@@ -1,0 +1,59 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "legalrag"
+version = "0.1.0"
+description = "Modular Legal RAG system backed by OpenSearch"
+requires-python = ">=3.11"
+dependencies = [
+    # OpenSearch
+    "opensearch-py>=2.7.0",
+    # LLM / embeddings
+    "openai>=1.40.0",          # swappable LLM client (also used for Qwen via compatible API)
+    "tiktoken>=0.7.0",
+    # Embeddings (swappable)
+    "sentence-transformers>=3.0.0",
+    # Schema / validation
+    "pydantic>=2.7.0",
+    "pydantic-settings>=2.3.0",
+    # Reranker
+    "sentence-transformers>=3.0.0",  # cross-encoder reranker
+    # Utilities
+    "tenacity>=8.4.0",              # retry logic
+    "structlog>=24.1.0",            # structured logging
+    "python-dotenv>=1.0.0",
+    "rich>=13.7.0",                 # pretty CLI output
+    "tqdm>=4.66.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.2.0",
+    "pytest-asyncio>=0.23.0",
+    "pytest-cov>=5.0.0",
+    "ruff>=0.4.0",
+    "mypy>=1.10.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["legalrag*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

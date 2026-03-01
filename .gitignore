@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Environments
+.venv/
+*.conda/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Editors
+.DS_Store
+.idea/
+.vscode/
+
+# Secrets
+.env
+
+# OpenSearch data (managed by Docker volume)
+opensearch-data/
