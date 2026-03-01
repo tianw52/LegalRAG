@@ -222,10 +222,4 @@ pytest tests/ -v
 
 ---
 
-## Session Log
 
-| Date | Session | Summary |
-|---|---|---|
-| 2026-02-28 | Initial build | Scaffolded full modular architecture: ingestion + query pipelines, OpenSearch client, hierarchical chunker, hybrid retrieval, cross-encoder reranker, threshold router with Deep Search placeholder (RLM-inspired), LLM generator with parent expansion |
-| 2026-02-28 | Data integration | Analysed 3000 CanLII documents; rewrote metadata extractor to parse structured headers (98.6% court coverage); added text cleaning step to strip page markers before chunking |
-| 2026-02-28 | LLM backend | Switched default LLM to Qwen3.5-397B-A17B via HuggingFace Inference Router; added HF_TOKEN fallback; centralised client factory in `legalrag/utils/llm_client.py` |
