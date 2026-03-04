@@ -1,0 +1,58 @@
+# Local OpenSearch stack for LegalRAG development.
+# Start with: docker compose up -d
+# Dashboard:  http://localhost:5601
+#
+# Security is DISABLED for local development convenience.
+# Ports are bound to 127.0.0.1 so they are NOT reachable from your local
+# network (other machines on the same Wi-Fi / Ethernet cannot connect).
+
+services:
+  opensearch:
+    image: opensearchproject/opensearch:2.14.0
+    container_name: legalrag-opensearch
+    environment:
+      - cluster.name=legalrag-cluster
+      - node.name=legalrag-node-1
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - OPENSEARCH_JAVA_OPTS=-Xms1g -Xmx1g
+      # Disable security plugin for local dev
+      - plugins.security.disabled=true
+      # Skip the demo config installer (which validates the admin password)
+      # Without this, OpenSearch 2.12+ aborts before security.disabled takes effect
+      - DISABLE_INSTALL_DEMO_CONFIG=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+    ports:
+      # Bound to localhost only – not reachable from the network
+      - "127.0.0.1:9200:9200"   # REST API
+      - "127.0.0.1:9600:9600"   # performance analyser
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q 'green\\|yellow'"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+
+  opensearch-dashboards:
+    image: opensearchproject/opensearch-dashboards:2.14.0
+    container_name: legalrag-dashboards
+    environment:
+      - OPENSEARCH_HOSTS=["http://opensearch:9200"]
+      - DISABLE_SECURITY_DASHBOARDS_PLUGIN=true
+    ports:
+      # Bound to localhost only
+      - "127.0.0.1:5601:5601"
+    depends_on:
+      opensearch:
+        condition: service_healthy
+
+volumes:
+  opensearch-data:
+    driver: local

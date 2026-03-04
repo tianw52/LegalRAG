@@ -101,7 +101,6 @@ LegalRAG/
 ├── docker-compose.yml          # OpenSearch + Dashboards (local dev)
 ├── pyproject.toml              # dependencies & tooling config
 ├── .env.example                # environment variable template
-├── cursor.md                   # session log
 ├── scripts/
 │   ├── ingest.py               # CLI: ingest documents
 │   └── query.py                # CLI: run a query
@@ -118,7 +117,7 @@ LegalRAG/
 │   │   ├── indexer.py          # OpenSearchIndexer
 │   │   └── pipeline.py         # IngestionPipeline orchestrator
 │   ├── prompts/                # ← prompt configs (edit here, not in Python)
-│   │   ├── loader.py           # YAML loader with lru_cache
+│   │   ├── loader.py           # YAML loader
 │   │   ├── formulator.yaml     # system prompt + field docs + model params
 │   │   └── generator.yaml      # system prompt + context templates + model params
 │   ├── query/

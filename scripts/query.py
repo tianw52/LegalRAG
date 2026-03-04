@@ -23,7 +23,7 @@ console = Console()
 def main() -> None:
     parser = argparse.ArgumentParser(description="Query the LegalRAG system.")
     parser.add_argument("query", help="Legal question to answer")
-    parser.add_argument("--log-level", default="WARNING", help="Logging level (default: WARNING)")
+    parser.add_argument("--log-level", default="INFO", help="Logging level (default: INFO)")
     args = parser.parse_args()
 
     configure_logging(args.log_level)
