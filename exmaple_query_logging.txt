@@ -1,110 +1,119 @@
-2026-03-03 16:56:27,798 INFO     legalrag.query.pipeline | ────────────────────────────────────────────────────────────────────────
-2026-03-03 16:56:27,798 INFO     legalrag.query.pipeline | RAW QUERY   : In the case of Parkinson v. The Corporation of The City of Brampton et al., why did the court grant summary judgment to dismiss the plaintiff's claim against Four Seasons Site Development Ltd., but refuse to dismiss the City of Brampton's cross-claim against them?
-2026-03-03 16:56:43,309 INFO     legalrag.query.pipeline | REFORMULATED: summary judgment dismissal of plaintiff claim versus cross-claim in Parkinson v City of Brampton case involving Four Seasons Site Development Ltd
-2026-03-03 16:56:47,464 INFO     legalrag.ingestion.embedder | Loading embedding model: sentence-transformers/all-MiniLM-L6-v2
-2026-03-03 16:56:49,735 INFO     legalrag.query.pipeline | RETRIEVED   : 80 candidates
-2026-03-03 16:56:49,735 INFO     legalrag.query.pipeline |   [01] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | sem=0.7423 lex=0.7423
-2026-03-03 16:56:49,735 INFO     legalrag.query.pipeline |   [02] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | sem=0.7276 lex=0.7276
-2026-03-03 16:56:49,735 INFO     legalrag.query.pipeline |   [03] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | sem=0.7075 lex=0.7075
-2026-03-03 16:56:49,735 INFO     legalrag.query.pipeline |   [04] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | sem=0.6849 lex=0.6849
-2026-03-03 16:56:49,735 INFO     legalrag.query.pipeline |   [05] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | sem=0.7039 lex=0.7039
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [06] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | sem=0.6982 lex=0.6982
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [07] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | sem=0.6497 lex=0.6497
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [08] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | sem=0.6422 lex=0.6422
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [09] 2019 SKQB 8                    | Saskatchewan Court of King's Bench            | sem=0.6310 lex=0.6310
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [10] 2019 SKQB 8                    | Saskatchewan Court of King's Bench            | sem=0.6493 lex=0.6493
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [11] 2019 SKQB 8                    | Saskatchewan Court of King's Bench            | sem=0.6561 lex=0.6561
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [12] no-citation                    | 2219                                          | sem=0.6298 lex=0.6298
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [13] no-citation                    | 1197                                          | sem=0.6198 lex=0.6198
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [14] 2019 SKQB 8                    | Saskatchewan Court of King's Bench            | sem=0.6232 lex=0.6232
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [15] 2011 QCCS 3911                 | Quebec Superior Court                         | sem=0.6300 lex=0.6300
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [16] 2020 ABPC 63                   | Alberta Provincial Court                      | sem=0.6188 lex=0.6188
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [17] no-citation                    | 2219                                          | sem=0.6202 lex=0.6202
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [18] 2020 ABPC 63                   | Alberta Provincial Court                      | sem=0.6309 lex=0.6309
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [19] 2011 QCCS 3911                 | Quebec Superior Court                         | sem=0.6146 lex=0.6146
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [20] no-citation                    | 1197                                          | sem=0.6183 lex=0.6183
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [21] no-citation                    | 2219                                          | sem=0.6148 lex=0.6148
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [22] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | sem=0.6557 lex=0.6557
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [23] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | sem=21.5521 lex=21.5521
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [24] no-citation                    | 2219                                          | sem=0.6501 lex=0.6501
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [25] 2019 SKQB 8                    | Saskatchewan Court of King's Bench            | sem=19.9855 lex=19.9855
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [26] 2023 NSSC 245                  | Nova Scotia Supreme Court                     | sem=19.3656 lex=19.3656
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [27] 2011 QCCS 3911                 | Quebec Superior Court                         | sem=0.6445 lex=0.6445
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [28] 2019 SKQB 8                    | Saskatchewan Court of King's Bench            | sem=0.6411 lex=0.6411
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [29] 2019 SKQB 8                    | Saskatchewan Court of King's Bench            | sem=16.2307 lex=16.2307
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [30] 2010 ABCA 390                  | Alberta Court of Appeal                       | sem=0.6396 lex=0.6396
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [31] 2011 QCCS 3911                 | Quebec Superior Court                         | sem=0.6378 lex=0.6378
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [32] no-citation                    | Federal Court                                 | sem=14.6963 lex=14.6963
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [33] 8 and 9                        | Federal Court of Appeal                       | sem=0.6335 lex=0.6335
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [34] 2019 SKQB 8                    | Saskatchewan Court of King's Bench            | sem=14.6300 lex=14.6300
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [35] 2011 QCCS 3911                 | Quebec Superior Court                         | sem=0.6335 lex=0.6335
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [36] no-citation                    | 2219                                          | sem=0.6331 lex=0.6331
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [37] 2019 SKQB 8                    | Saskatchewan Court of King's Bench            | sem=14.1967 lex=14.1967
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [38] no-citation                    | 1197                                          | sem=0.6324 lex=0.6324
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [39] 2019 SKQB 8                    | Saskatchewan Court of King's Bench            | sem=14.1846 lex=14.1846
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [40] 2011 QCCS 3911                 | Quebec Superior Court                         | sem=0.6320 lex=0.6320
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [41] 2010 ABCA 390                  | Alberta Court of Appeal                       | sem=0.6320 lex=0.6320
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [42] 2011 QCCS 3911                 | Quebec Superior Court                         | sem=14.0309 lex=14.0309
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [43] 2020 ABCA 250                  | Alberta Court of Appeal                       | sem=0.6318 lex=0.6318
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [44] no-citation                    | Federal Court                                 | sem=13.8825 lex=13.8825
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [45] 2018 FC 10                     | Federal Court                                 | sem=0.6318 lex=0.6318
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [46] 2014 FC 644                    | Federal Court                                 | sem=13.4648 lex=13.4648
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [47] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | sem=0.6315 lex=0.6315
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [48] no-citation                    | 1197                                          | sem=13.4187 lex=13.4187
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [49] 2019 SKQB 8                    | Saskatchewan Court of King's Bench            | sem=0.6310 lex=0.6310
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [50] 2014 FC 644                    | Federal Court                                 | sem=13.2708 lex=13.2708
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [51] 2019 SKQB 8                    | Saskatchewan Court of King's Bench            | sem=12.8771 lex=12.8771
-2026-03-03 16:56:49,736 INFO     legalrag.query.pipeline |   [52] no-citation                    | 1197                                          | sem=12.8158 lex=12.8158
-2026-03-03 16:56:49,737 INFO     legalrag.query.pipeline |   [53] 2018 FC 10                     | Federal Court                                 | sem=0.6299 lex=0.6299
-2026-03-03 16:56:49,737 INFO     legalrag.query.pipeline |   [54] 2020 ABCA 250                  | Alberta Court of Appeal                       | sem=11.6699 lex=11.6699
-2026-03-03 16:56:49,737 INFO     legalrag.query.pipeline |   [55] 2011 QCCS 3911                 | Quebec Superior Court                         | sem=11.5386 lex=11.5386
-2026-03-03 16:56:49,737 INFO     legalrag.query.pipeline |   [56] 2023 NSSC 245                  | Nova Scotia Supreme Court                     | sem=0.6294 lex=0.6294
-2026-03-03 16:56:49,737 INFO     legalrag.query.pipeline |   [57] 2019 SKQB 8                    | Saskatchewan Court of King's Bench            | sem=0.6288 lex=0.6288
-2026-03-03 16:56:49,737 INFO     legalrag.query.pipeline |   [58] 2011 QCCS 3911                 | Quebec Superior Court                         | sem=11.4169 lex=11.4169
-2026-03-03 16:56:49,737 INFO     legalrag.query.pipeline |   [59] no-citation                    | 1197                                          | sem=0.6280 lex=0.6280
-2026-03-03 16:56:49,737 INFO     legalrag.query.pipeline |   [60] 2011 SKCA 99                   | Saskatchewan Court of Appeal                  | sem=0.6258 lex=0.6258
-2026-03-03 16:56:49,737 INFO     legalrag.query.pipeline |   [61] no-citation                    | Federal Court                                 | sem=11.1851 lex=11.1851
-2026-03-03 16:56:49,737 INFO     legalrag.query.pipeline |   [62] 2020 ABCA 270                  | Alberta Court of Appeal                       | sem=0.6257 lex=0.6257
-2026-03-03 16:56:49,737 INFO     legalrag.query.pipeline |   [63] 2020 ABCA 270                  | Alberta Court of Appeal                       | sem=11.0897 lex=11.0897
-2026-03-03 16:56:49,737 INFO     legalrag.query.pipeline |   [64] 2020 ABCA 250                  | Alberta Court of Appeal                       | sem=0.6252 lex=0.6252
-2026-03-03 16:56:49,737 INFO     legalrag.query.pipeline |   [65] 8 and 9                        | Federal Court of Appeal                       | sem=10.8526 lex=10.8526
-2026-03-03 16:56:49,737 INFO     legalrag.query.pipeline |   [66] no-citation                    | 1197                                          | sem=0.6250 lex=0.6250
-2026-03-03 16:56:49,737 INFO     legalrag.query.pipeline |   [67] 2011 QCCS 3911                 | Quebec Superior Court                         | sem=0.6250 lex=0.6250
-2026-03-03 16:56:49,737 INFO     legalrag.query.pipeline |   [68] no-citation                    | Federal Court                                 | sem=10.8335 lex=10.8335
-2026-03-03 16:56:49,737 INFO     legalrag.query.pipeline |   [69] no-citation                    | 2219                                          | sem=0.6247 lex=0.6247
-2026-03-03 16:56:49,737 INFO     legalrag.query.pipeline |   [70] 2011 QCCS 3911                 | Quebec Superior Court                         | sem=10.7552 lex=10.7552
-2026-03-03 16:56:49,737 INFO     legalrag.query.pipeline |   [71] 2018 CM 4020                   | CM                                            | sem=0.6243 lex=0.6243
-2026-03-03 16:56:49,737 INFO     legalrag.query.pipeline |   [72] 2020 ABPC 63                   | Alberta Provincial Court                      | sem=10.5322 lex=10.5322
-2026-03-03 16:56:49,737 INFO     legalrag.query.pipeline |   [73] 2011 QCCS 3911                 | Quebec Superior Court                         | sem=0.6241 lex=0.6241
-2026-03-03 16:56:49,737 INFO     legalrag.query.pipeline |   [74] 2014 FC 644                    | Federal Court                                 | sem=10.5304 lex=10.5304
-2026-03-03 16:56:49,737 INFO     legalrag.query.pipeline |   [75] no-citation                    | Federal Court                                 | sem=0.6239 lex=0.6239
-2026-03-03 16:56:49,737 INFO     legalrag.query.pipeline |   [76] 2011 QCCS 3911                 | Quebec Superior Court                         | sem=10.4914 lex=10.4914
-2026-03-03 16:56:49,737 INFO     legalrag.query.pipeline |   [77] 2011 QCCS 3911                 | Quebec Superior Court                         | sem=0.6233 lex=0.6233
-2026-03-03 16:56:49,737 INFO     legalrag.query.pipeline |   [78] no-citation                    | 1197                                          | sem=10.3666 lex=10.3666
-2026-03-03 16:56:49,737 INFO     legalrag.query.pipeline |   [79] no-citation                    | 1197                                          | sem=0.6226 lex=0.6226
-2026-03-03 16:56:49,737 INFO     legalrag.query.pipeline |   [80] 2011 QCCS 3911                 | Quebec Superior Court                         | sem=10.3157 lex=10.3157
-2026-03-03 16:56:49,737 INFO     legalrag.query.reranker | Loading reranker model: cross-encoder/ms-marco-MiniLM-L-6-v2
-2026-03-03 16:56:52,092 INFO     legalrag.query.router | Router → fast path (reranker). Confident candidates: 5
-2026-03-03 16:56:52,092 INFO     legalrag.query.pipeline | ROUTER PATH : reranker → 20 chunks kept
-2026-03-03 16:56:52,092 INFO     legalrag.query.pipeline | RERANKED RESULTS:
-2026-03-03 16:56:52,092 INFO     legalrag.query.pipeline |   [01] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | rerank=4.9865
-2026-03-03 16:56:52,092 INFO     legalrag.query.pipeline |   [02] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | rerank=4.7802
-2026-03-03 16:56:52,092 INFO     legalrag.query.pipeline |   [03] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | rerank=4.3793
-2026-03-03 16:56:52,092 INFO     legalrag.query.pipeline |   [04] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | rerank=1.8712
-2026-03-03 16:56:52,092 INFO     legalrag.query.pipeline |   [05] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | rerank=1.4233
-2026-03-03 16:56:52,092 INFO     legalrag.query.pipeline |   [06] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | rerank=-0.4897
-2026-03-03 16:56:52,093 INFO     legalrag.query.pipeline |   [07] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | rerank=-1.4565
-2026-03-03 16:56:52,093 INFO     legalrag.query.pipeline |   [08] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | rerank=-2.1047
-2026-03-03 16:56:52,093 INFO     legalrag.query.pipeline |   [09] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | rerank=-4.5312
-2026-03-03 16:56:52,093 INFO     legalrag.query.pipeline |   [10] no-citation                    | 1197                                          | rerank=-5.3181
-2026-03-03 16:56:52,093 INFO     legalrag.query.pipeline |   [11] 2019 SKQB 8                    | Saskatchewan Court of King's Bench            | rerank=-6.0354
-2026-03-03 16:56:52,093 INFO     legalrag.query.pipeline |   [12] 2020 ABPC 63                   | Alberta Provincial Court                      | rerank=-6.2360
-2026-03-03 16:56:52,093 INFO     legalrag.query.pipeline |   [13] 2019 SKQB 8                    | Saskatchewan Court of King's Bench            | rerank=-6.3369
-2026-03-03 16:56:52,093 INFO     legalrag.query.pipeline |   [14] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | rerank=-6.4735
-2026-03-03 16:56:52,093 INFO     legalrag.query.pipeline |   [15] 2019 SKQB 8                    | Saskatchewan Court of King's Bench            | rerank=-7.1895
-2026-03-03 16:56:52,093 INFO     legalrag.query.pipeline |   [16] no-citation                    | 1197                                          | rerank=-7.2572
-2026-03-03 16:56:52,093 INFO     legalrag.query.pipeline |   [17] 2020 ABPC 63                   | Alberta Provincial Court                      | rerank=-7.3267
-2026-03-03 16:56:52,093 INFO     legalrag.query.pipeline |   [18] 2019 SKQB 8                    | Saskatchewan Court of King's Bench            | rerank=-7.4079
-2026-03-03 16:56:52,093 INFO     legalrag.query.pipeline |   [19] 2023 NSSC 245                  | Nova Scotia Supreme Court                     | rerank=-7.5378
-2026-03-03 16:56:52,093 INFO     legalrag.query.pipeline |   [20] 2011 QCCS 3911                 | Quebec Superior Court                         | rerank=-7.9597
-2026-03-03 16:57:22,221 INFO     legalrag.query.pipeline | ────────────────────────────────────────────────────────────────────────
+2026-03-03 17:16:39,361 INFO     legalrag.query.pipeline | ────────────────────────────────────────────────────────────────────────
+2026-03-03 17:16:39,361 INFO     legalrag.query.pipeline | RAW QUERY   : In the case of Parkinson v. The Corporation of The City of Brampton et al., why did the court grant summary judgment to dismiss the plaintiff's claim against Four Seasons Site Development Ltd., but refuse to dismiss the City of Brampton’s cross-claim against them?
+2026-03-03 17:18:39,729 INFO     openai._base_client | Retrying request to /chat/completions in 0.460626 seconds
+2026-03-03 17:18:44,112 INFO     legalrag.query.pipeline | REFORMULATED: Parkinson v City of Brampton summary judgment dismissal plaintiff claim versus cross-claim Four Seasons Site Development Ltd reasoning court decision
+2026-03-03 17:18:48,732 INFO     legalrag.ingestion.embedder | Loading embedding model: sentence-transformers/all-MiniLM-L6-v2
+2026-03-03 17:18:51,384 INFO     legalrag.query.pipeline | RETRIEVED   : 80 candidates
+2026-03-03 17:18:51,384 INFO     legalrag.query.pipeline |   [01] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | sem=0.7321 lex=0.7321
+2026-03-03 17:18:51,384 INFO     legalrag.query.pipeline |   [02] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | sem=0.7278 lex=0.7278
+2026-03-03 17:18:51,384 INFO     legalrag.query.pipeline |   [03] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | sem=0.7056 lex=0.7056
+2026-03-03 17:18:51,384 INFO     legalrag.query.pipeline |   [04] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | sem=0.7113 lex=0.7113
+2026-03-03 17:18:51,384 INFO     legalrag.query.pipeline |   [05] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | sem=0.6698 lex=0.6698
+2026-03-03 17:18:51,384 INFO     legalrag.query.pipeline |   [06] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | sem=0.6888 lex=0.6888
+2026-03-03 17:18:51,384 INFO     legalrag.query.pipeline |   [07] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | sem=0.6421 lex=0.6421
+2026-03-03 17:18:51,384 INFO     legalrag.query.pipeline |   [08] 2020 ABPC 63                   | Alberta Provincial Court                      | sem=0.6523 lex=0.6523
+2026-03-03 17:18:51,384 INFO     legalrag.query.pipeline |   [09] 2019 SKQB 8                    | Saskatchewan Court of King's Bench            | sem=0.6391 lex=0.6391
+2026-03-03 17:18:51,384 INFO     legalrag.query.pipeline |   [10] 2019 SKQB 8                    | Saskatchewan Court of King's Bench            | sem=0.6675 lex=0.6675
+2026-03-03 17:18:51,384 INFO     legalrag.query.pipeline |   [11] 2020 ABPC 63                   | Alberta Provincial Court                      | sem=0.6397 lex=0.6397
+2026-03-03 17:18:51,384 INFO     legalrag.query.pipeline |   [12] no-citation                    | 1197                                          | sem=0.6573 lex=0.6573
+2026-03-03 17:18:51,384 INFO     legalrag.query.pipeline |   [13] 2019 SKQB 8                    | Saskatchewan Court of King's Bench            | sem=0.6336 lex=0.6336
+2026-03-03 17:18:51,384 INFO     legalrag.query.pipeline |   [14] no-citation                    | 1197                                          | sem=0.6249 lex=0.6249
+2026-03-03 17:18:51,384 INFO     legalrag.query.pipeline |   [15] 2019 SKQB 8                    | Saskatchewan Court of King's Bench            | sem=0.6654 lex=0.6654
+2026-03-03 17:18:51,384 INFO     legalrag.query.pipeline |   [16] 2020 ABPC 63                   | Alberta Provincial Court                      | sem=0.6289 lex=0.6289
+2026-03-03 17:18:51,384 INFO     legalrag.query.pipeline |   [17] 2020 ABPC 63                   | Alberta Provincial Court                      | sem=0.6293 lex=0.6293
+2026-03-03 17:18:51,384 INFO     legalrag.query.pipeline |   [18] 2011 QCCS 3911                 | Quebec Superior Court                         | sem=0.6332 lex=0.6332
+2026-03-03 17:18:51,384 INFO     legalrag.query.pipeline |   [19] 2020 ABCA 270                  | Alberta Court of Appeal                       | sem=0.6385 lex=0.6385
+2026-03-03 17:18:51,384 INFO     legalrag.query.pipeline |   [20] 2011 QCCS 3911                 | Quebec Superior Court                         | sem=0.6228 lex=0.6228
+2026-03-03 17:18:51,384 INFO     legalrag.query.pipeline |   [21] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | sem=21.5521 lex=21.5521
+2026-03-03 17:18:51,384 INFO     legalrag.query.pipeline |   [22] 2019 SKQB 8                    | Saskatchewan Court of King's Bench            | sem=19.9625 lex=19.9625
+2026-03-03 17:18:51,384 INFO     legalrag.query.pipeline |   [23] 2010 ABCA 390                  | Alberta Court of Appeal                       | sem=0.6518 lex=0.6518
+2026-03-03 17:18:51,384 INFO     legalrag.query.pipeline |   [24] 2023 NSSC 245                  | Nova Scotia Supreme Court                     | sem=19.3656 lex=19.3656
+2026-03-03 17:18:51,384 INFO     legalrag.query.pipeline |   [25] 2019 SKQB 8                    | Saskatchewan Court of King's Bench            | sem=0.6512 lex=0.6512
+2026-03-03 17:18:51,384 INFO     legalrag.query.pipeline |   [26] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | sem=17.6196 lex=17.6196
+2026-03-03 17:18:51,384 INFO     legalrag.query.pipeline |   [27] no-citation                    | 2219                                          | sem=0.6504 lex=0.6504
+2026-03-03 17:18:51,384 INFO     legalrag.query.pipeline |   [28] 2019 SKQB 8                    | Saskatchewan Court of King's Bench            | sem=16.6537 lex=16.6537
+2026-03-03 17:18:51,384 INFO     legalrag.query.pipeline |   [29] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | sem=0.6499 lex=0.6499
+2026-03-03 17:18:51,384 INFO     legalrag.query.pipeline |   [30] 2019 SKQB 8                    | Saskatchewan Court of King's Bench            | sem=16.2307 lex=16.2307
+2026-03-03 17:18:51,384 INFO     legalrag.query.pipeline |   [31] 2020 ABCA 250                  | Alberta Court of Appeal                       | sem=0.6478 lex=0.6478
+2026-03-03 17:18:51,384 INFO     legalrag.query.pipeline |   [32] 2011 SKCA 99                   | Saskatchewan Court of Appeal                  | sem=0.6464 lex=0.6464
+2026-03-03 17:18:51,384 INFO     legalrag.query.pipeline |   [33] 2018 FC 10                     | Federal Court                                 | sem=0.6461 lex=0.6461
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [34] 2018 FC 10                     | Federal Court                                 | sem=0.6451 lex=0.6451
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [35] 2020 ABCA 250                  | Alberta Court of Appeal                       | sem=14.8158 lex=14.8158
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [36] 2010 ABCA 390                  | Alberta Court of Appeal                       | sem=0.6435 lex=0.6435
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [37] no-citation                    | Federal Court                                 | sem=14.6963 lex=14.6963
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [38] 2019 SKQB 8                    | Saskatchewan Court of King's Bench            | sem=0.6422 lex=0.6422
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [39] 2019 SKQB 8                    | Saskatchewan Court of King's Bench            | sem=14.1846 lex=14.1846
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [40] 2020 ABCA 250                  | Alberta Court of Appeal                       | sem=0.6416 lex=0.6416
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [41] 2019 SKQB 8                    | Saskatchewan Court of King's Bench            | sem=14.0323 lex=14.0323
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [42] 2011 QCCS 3911                 | Quebec Superior Court                         | sem=0.6404 lex=0.6404
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [43] no-citation                    | 1197                                          | sem=13.8968 lex=13.8968
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [44] 8 and 9                        | Federal Court of Appeal                       | sem=0.6401 lex=0.6401
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [45] 2020 ABCA 250                  | Alberta Court of Appeal                       | sem=13.8759 lex=13.8759
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [46] 2011 QCCS 3911                 | Quebec Superior Court                         | sem=13.6384 lex=13.6384
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [47] 2020 ABCA 270                  | Alberta Court of Appeal                       | sem=0.6389 lex=0.6389
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [48] 2011 QCCS 3911                 | Quebec Superior Court                         | sem=13.4907 lex=13.4907
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [49] 2019 SKQB 8                    | Saskatchewan Court of King's Bench            | sem=0.6387 lex=0.6387
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [50] 2014 FC 644                    | Federal Court                                 | sem=13.4648 lex=13.4648
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [51] no-citation                    | 1197                                          | sem=0.6386 lex=0.6386
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [52] 2011 QCCS 3911                 | Quebec Superior Court                         | sem=13.3463 lex=13.3463
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [53] 2011 QCCS 3911                 | Quebec Superior Court                         | sem=0.6384 lex=0.6384
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [54] 2014 FC 644                    | Federal Court                                 | sem=13.2708 lex=13.2708
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [55] no-citation                    | Federal Court                                 | sem=0.6381 lex=0.6381
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [56] no-citation                    | Federal Court                                 | sem=13.1533 lex=13.1533
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [57] no-citation                    | 2219                                          | sem=0.6356 lex=0.6356
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [58] 2011 QCCS 3911                 | Quebec Superior Court                         | sem=13.0029 lex=13.0029
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [59] 2011 QCCS 3911                 | Quebec Superior Court                         | sem=0.6351 lex=0.6351
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [60] 2019 SKQB 8                    | Saskatchewan Court of King's Bench            | sem=12.8771 lex=12.8771
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [61] 2012 NSSC 97                   | Nova Scotia Supreme Court                     | sem=0.6348 lex=0.6348
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [62] 2020 ABPC 63                   | Alberta Provincial Court                      | sem=12.8540 lex=12.8540
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [63] 2011 SKCA 99                   | Saskatchewan Court of Appeal                  | sem=0.6341 lex=0.6341
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [64] no-citation                    | 1197                                          | sem=12.8158 lex=12.8158
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [65] 2011 QCCS 3911                 | Quebec Superior Court                         | sem=0.6339 lex=0.6339
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [66] 2011 QCCS 3911                 | Quebec Superior Court                         | sem=12.7620 lex=12.7620
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [67] 2011 QCCS 3911                 | Quebec Superior Court                         | sem=12.7081 lex=12.7081
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [68] no-citation                    | 1329                                          | sem=12.6391 lex=12.6391
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [69] 2010 ABCA 390                  | Alberta Court of Appeal                       | sem=0.6323 lex=0.6323
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [70] 2014 FC 228                    | Federal Court                                 | sem=12.6355 lex=12.6355
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [71] no-citation                    | 1197                                          | sem=0.6311 lex=0.6311
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [72] 2011 QCCS 3911                 | Quebec Superior Court                         | sem=12.3454 lex=12.3454
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [73] 2011 SKCA 99                   | Saskatchewan Court of Appeal                  | sem=0.6310 lex=0.6310
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [74] no-citation                    | 2219                                          | sem=11.5137 lex=11.5137
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [75] 2011 QCCS 3911                 | Quebec Superior Court                         | sem=0.6306 lex=0.6306
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [76] 2011 QCCS 3911                 | Quebec Superior Court                         | sem=11.4169 lex=11.4169
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [77] 2018 CM 4020                   | CM                                            | sem=0.6304 lex=0.6304
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [78] no-citation                    | Federal Court                                 | sem=11.1851 lex=11.1851
+2026-03-03 17:18:51,385 INFO     legalrag.query.pipeline |   [79] 2011 SKCA 99                   | Saskatchewan Court of Appeal                  | sem=0.6302 lex=0.6302
+2026-03-03 17:18:51,386 INFO     legalrag.query.pipeline |   [80] 2020 ABCA 270                  | Alberta Court of Appeal                       | sem=11.0897 lex=11.0897
+2026-03-03 17:18:51,386 INFO     legalrag.query.reranker | Loading reranker model: cross-encoder/ms-marco-MiniLM-L-6-v2
+2026-03-03 17:18:54,461 INFO     legalrag.query.router | Router → fast path (reranker). Confident candidates: 5
+2026-03-03 17:18:54,461 INFO     legalrag.query.pipeline | ROUTER PATH : reranker → 20 chunks kept
+2026-03-03 17:18:54,461 INFO     legalrag.query.pipeline | RERANKED RESULTS:
+2026-03-03 17:18:54,461 INFO     legalrag.query.pipeline |   [01] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | rerank=4.1356
+2026-03-03 17:18:54,461 INFO     legalrag.query.pipeline |   [02] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | rerank=3.3664
+2026-03-03 17:18:54,461 INFO     legalrag.query.pipeline |   [03] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | rerank=3.3014
+2026-03-03 17:18:54,461 INFO     legalrag.query.pipeline |   [04] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | rerank=1.4533
+2026-03-03 17:18:54,461 INFO     legalrag.query.pipeline |   [05] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | rerank=0.9162
+2026-03-03 17:18:54,461 INFO     legalrag.query.pipeline |   [06] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | rerank=-0.9057
+2026-03-03 17:18:54,461 INFO     legalrag.query.pipeline |   [07] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | rerank=-1.0568
+2026-03-03 17:18:54,461 INFO     legalrag.query.pipeline |   [08] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | rerank=-3.4478
+2026-03-03 17:18:54,461 INFO     legalrag.query.pipeline |   [09] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | rerank=-5.0591
+2026-03-03 17:18:54,461 INFO     legalrag.query.pipeline |   [10] no-citation                    | 1197                                          | rerank=-6.2596
+2026-03-03 17:18:54,461 INFO     legalrag.query.pipeline |   [11] 2015 ONSC 7241                 | Ontario Superior Court of Justice             | rerank=-6.4779
+2026-03-03 17:18:54,461 INFO     legalrag.query.pipeline |   [12] 2020 ABPC 63                   | Alberta Provincial Court                      | rerank=-7.0263
+2026-03-03 17:18:54,461 INFO     legalrag.query.pipeline |   [13] 2019 SKQB 8                    | Saskatchewan Court of King's Bench            | rerank=-7.2154
+2026-03-03 17:18:54,462 INFO     legalrag.query.pipeline |   [14] 2019 SKQB 8                    | Saskatchewan Court of King's Bench            | rerank=-7.3990
+2026-03-03 17:18:54,462 INFO     legalrag.query.pipeline |   [15] 2020 ABPC 63                   | Alberta Provincial Court                      | rerank=-7.6370
+2026-03-03 17:18:54,462 INFO     legalrag.query.pipeline |   [16] 2019 SKQB 8                    | Saskatchewan Court of King's Bench            | rerank=-7.9930
+2026-03-03 17:18:54,462 INFO     legalrag.query.pipeline |   [17] 2019 SKQB 8                    | Saskatchewan Court of King's Bench            | rerank=-8.1759
+2026-03-03 17:18:54,462 INFO     legalrag.query.pipeline |   [18] 2020 ABPC 63                   | Alberta Provincial Court                      | rerank=-8.2190
+2026-03-03 17:18:54,462 INFO     legalrag.query.pipeline |   [19] 2011 QCCS 3911                 | Quebec Superior Court                         | rerank=-8.2626
+2026-03-03 17:18:54,462 INFO     legalrag.query.pipeline |   [20] no-citation                    | 1197                                          | rerank=-8.3823
+2026-03-03 17:19:21,237 INFO     legalrag.query.pipeline | ANSWER      :
+Based on the provided excerpts from *Parkinson v. The Corporation of The City of Brampton et al.*, 2015 ONSC 7241 (Ontario Superior Court of Justice), the court ruled differently on the plaintiff's claim and the City of Brampton's cross-claim for the following reasons:
+
+**Dismissal of Plaintiff's Claim**
+The court granted summary judgment dismissing the plaintiff's claim against Four Seasons Site Development Ltd. because the plaintiff failed to adduce any admissible evidence regarding the slip and fall or her injuries. Additionally, the plaintiff did not file any responding material or appear at the hearing of the motion (Ontario Superior Court of Justice, 2015 ONSC 7241 at paras [3], [11], [23]).
+
+**Refusal to Dismiss Cross-Claim**
+The court refused to dismiss the City of Brampton's cross-claim against Four Seasons because there was a genuine issue for trial requiring expert interpretation of meteorological data. Specifically, the nature of the weather conditions between January 31, 2013, and the date of the alleged slip and fall needed to be determined to assess Four Seasons' compliance with contract levels of service and causation (Ontario Superior Court of Justice, 2015 ONSC 7241 at paras [13]-[14], [22]).
+2026-03-03 17:19:21,239 INFO     legalrag.query.pipeline | ────────────────────────────────────────────────────────────────────────
