@@ -66,8 +66,8 @@ Raw user query
 |---|---|---|
 | Document format | Plain text (.txt) | Initial scope; interfaces support adding PDF/DOCX loaders |
 | Chunking strategy | Hierarchical (parent + child) | Small-to-big retrieval: child for precise vector match, parent for rich context |
-| Embedding model | Swappable (default: sentence-transformers) | `EMBEDDING_PROVIDER` env var; `SentenceTransformerEmbedder` or `OpenAIEmbedder` |
-| LLM backend | Qwen via OpenAI-compatible API | `LLM_BASE_URL` env var; swap to any OpenAI-compatible endpoint |
+| Embedding model | LegalBERT (`nlpaueb/legal-bert-base-uncased`, 768-dim) | Domain-specific BERT pre-trained on legal text; swappable via `EMBEDDING_MODEL` env var |
+| LLM backend | Qwen3.5-9B via OpenAI-compatible API | `LLM_BASE_URL` + `LLM_MODEL` env vars; swap to any OpenAI-compatible endpoint |
 | Vector store | OpenSearch (local Docker) | kNN (HNSW / nmslib) + BM25 in one system; hybrid search via RRF |
 | Retrieval mode | Hybrid (kNN + BM25) via RRF | Combines semantic precision with lexical recall; tunable weight |
 | Metadata fields | court, citation, decision_date | Chosen for legal domain relevance; easy to extend |
@@ -157,7 +157,7 @@ pip install -e ".[dev]"
 cp .env.example .env
 ```
 
-The default LLM is **Qwen3.5-397B-A17B** via the HuggingFace Inference Router. Get a free token at https://huggingface.co/settings/tokens, then:
+The default LLM is **Qwen3.5-9B** via the HuggingFace Inference Router. Get a free token at https://huggingface.co/settings/tokens, then:
 
 ```bash
 export HF_TOKEN=hf_...      # picked up automatically, or set LLM_API_KEY in .env

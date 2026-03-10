@@ -40,15 +40,15 @@ class LLMSettings(BaseSettings):
     # Ollama style     : "qwen2.5:7b"
     # DashScope style  : "qwen-plus"
     # OpenAI style     : "gpt-4o"
-    model: str = Field("Qwen/Qwen3.5-397B-A17B:novita", alias="LLM_MODEL")
+    model: str = Field("Qwen/Qwen3.5-9B", alias="LLM_MODEL")
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore", populate_by_name=True)
 
 
 class EmbeddingSettings(BaseSettings):
     provider: str = Field("sentence_transformers", alias="EMBEDDING_PROVIDER")
-    model: str = Field("BAAI/bge-large-en-v1.5", alias="EMBEDDING_MODEL")
-    dim: int = Field(1024, alias="EMBEDDING_DIM")
+    model: str = Field("nlpaueb/legal-bert-base-uncased", alias="EMBEDDING_MODEL")
+    dim: int = Field(768, alias="EMBEDDING_DIM")
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore", populate_by_name=True)
 
