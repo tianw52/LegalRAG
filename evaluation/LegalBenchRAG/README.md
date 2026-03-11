@@ -110,7 +110,7 @@ Expected output:
 | `--data-dir PATH` | required | Root of downloaded data dir |
 | `--benchmarks NAME [NAME ...]` | all four | Sub-benchmarks to evaluate |
 | `--limit N` | None (all) | Cap test cases per benchmark (for fast iteration) |
-| `--top-k K` | 20 | Number of chunks to retrieve per query |
+| `--ks K [K ...]` | 20 40 60 | Rank cutoffs to evaluate; retrieves `max(ks)` chunks |
 | `--log-level` | WARNING | Verbosity |
 
 ---
@@ -127,7 +127,7 @@ python -m evaluation.LegalBenchRAG.ingest \
 python -m evaluation.LegalBenchRAG.eval_precision_recall \
     --data-dir data/LegalBenchRAG \
     --benchmarks cuad \
-    --top-k 50
+    --ks 20 40 60
 ```
 
 ---

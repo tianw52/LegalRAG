@@ -1,16 +1,18 @@
-"""LegalBench-RAG evaluation — chunk-level Precision & Recall.
+"""LegalBench-RAG evaluation — chunk-level Precision@K & Recall@K.
 
 Evaluation methodology
 ----------------------
-Scoring is at the *chunk level* (binary hit/miss per snippet), which avoids
-penalising systems for the exact byte position of chunk boundaries:
+Scoring is at the *chunk level* (binary hit/miss), evaluated at multiple
+rank cutoffs K simultaneously:
 
-    Recall    = fraction of GT snippets covered by ≥1 retrieved chunk
-    Precision = fraction of retrieved chunks that overlap ≥1 GT snippet
+    Recall@K    = fraction of GT snippets covered by ≥1 of the top-K chunks
+    Precision@K = fraction of the top-K chunks that overlap ≥1 GT snippet
 
-A GT snippet is "covered" if any retrieved chunk from the same file has a
-character span that overlaps the snippet's span (i.e. the intersection is
-non-empty).  A retrieved chunk "hits" if it overlaps at least one GT snippet.
+A GT snippet is "covered" if any of the top-K retrieved chunks from the same
+file has a character span that overlaps the snippet span (non-empty intersection).
+A retrieved chunk "hits" if it overlaps at least one GT snippet.
+
+This is insensitive to exact chunk boundary positions — only overlap matters.
 
 Mapping retrieved chunks back to character positions
 -----------------------------------------------------
@@ -20,15 +22,21 @@ Each indexed chunk has:
 
 Usage
 -----
-# Evaluate with default settings (all 4 sub-benchmarks, top_k=20)
+# Default: evaluate at K=1,5,10,20 (all 4 sub-benchmarks)
 python -m evaluation.LegalBenchRAG.eval_precision_recall \\
     --data-dir data/LegalBenchRAG
 
-# Evaluate only cuad + maud, top_k=50
+# Evaluate on the 50-query subset at K=5,10,20
+python -m evaluation.LegalBenchRAG.eval_precision_recall \\
+    --data-dir data/LegalBenchRAG \\
+    --benchmarks-dir data/LegalBenchRAG/benchmarks_subset \\
+    --ks 5 10 20
+
+# Evaluate only cuad + maud, retrieve up to top-50
 python -m evaluation.LegalBenchRAG.eval_precision_recall \\
     --data-dir data/LegalBenchRAG \\
     --benchmarks cuad maud \\
-    --top-k 50
+    --ks 5 10 20 50
 
 # Quick smoke test (10 cases per benchmark, verbose)
 python -m evaluation.LegalBenchRAG.eval_precision_recall \\
@@ -88,8 +96,9 @@ def build_retriever(top_k: int) -> OpenSearchRetriever:
 
 
 class QueryScore(NamedTuple):
-    recall: float
-    precision: float
+    # Dicts keyed by K value, e.g. {1: 0.5, 5: 0.8, 10: 1.0}
+    recall_at_k: dict[int, float]
+    precision_at_k: dict[int, float]
     tags: list[str]
 
 
@@ -101,15 +110,15 @@ def spans_overlap(a: tuple[int, int], b: tuple[int, int]) -> bool:
 def score_query(
     test: BenchmarkTestCase,
     retriever: OpenSearchRetriever,
+    ks: list[int],
 ) -> QueryScore:
-    """Run retrieval for one test case and return chunk-level recall/precision.
+    """Run retrieval for one test case and return Precision@K / Recall@K scores.
 
-    Recall    = fraction of GT snippets covered by ≥1 retrieved chunk.
-    Precision = fraction of retrieved chunks that overlap ≥1 GT snippet.
+    A single retrieval pass fetches ``max(ks)`` chunks.  Metrics are then
+    computed for every K by slicing the ranked list at position K.
 
-    A GT snippet is "covered" when any retrieved chunk from the same file has a
-    character span that overlaps the snippet span.  This is insensitive to the
-    exact position of chunk boundaries.
+    Recall@K    = fraction of GT snippets covered by ≥1 of the top-K chunks.
+    Precision@K = fraction of the top-K chunks that overlap ≥1 GT snippet.
     """
     sq = StructuredQuery(
         raw_query=test.query,
@@ -117,7 +126,7 @@ def score_query(
     )
     results = retriever.retrieve(sq)
 
-    # Collect retrieved (file_path, char_start, char_end) triples
+    # Collect retrieved (file_path, char_start, char_end) in rank order
     retrieved: list[tuple[str, int, int]] = []
     for r in results:
         chunk = r.chunk
@@ -128,32 +137,34 @@ def score_query(
             continue
         retrieved.append((file_path, chunk.char_start, chunk.char_end))
 
-    # Recall: for each GT snippet, check if any retrieved chunk overlaps it
     n_gt = len(test.snippets)
-    n_gt_covered = sum(
-        1
-        for snippet in test.snippets
-        if any(
-            fp == snippet.file_path and spans_overlap((cs, ce), snippet.span)
-            for fp, cs, ce in retrieved
-        )
-    )
+    recall_at_k: dict[int, float] = {}
+    precision_at_k: dict[int, float] = {}
 
-    # Precision: for each retrieved chunk, check if it overlaps any GT snippet
-    n_retrieved = len(retrieved)
-    n_retrieved_relevant = sum(
-        1
-        for fp, cs, ce in retrieved
-        if any(
-            fp == snippet.file_path and spans_overlap((cs, ce), snippet.span)
+    for k in ks:
+        top_k = retrieved[:k]
+
+        n_gt_covered = sum(
+            1
             for snippet in test.snippets
+            if any(
+                fp == snippet.file_path and spans_overlap((cs, ce), snippet.span)
+                for fp, cs, ce in top_k
+            )
         )
-    )
+        n_retrieved_relevant = sum(
+            1
+            for fp, cs, ce in top_k
+            if any(
+                fp == snippet.file_path and spans_overlap((cs, ce), snippet.span)
+                for snippet in test.snippets
+            )
+        )
 
-    recall = n_gt_covered / n_gt if n_gt > 0 else 0.0
-    precision = n_retrieved_relevant / n_retrieved if n_retrieved > 0 else 0.0
+        recall_at_k[k] = n_gt_covered / n_gt if n_gt > 0 else 0.0
+        precision_at_k[k] = n_retrieved_relevant / len(top_k) if top_k else 0.0
 
-    return QueryScore(recall=recall, precision=precision, tags=test.tags)
+    return QueryScore(recall_at_k=recall_at_k, precision_at_k=precision_at_k, tags=test.tags)
 
 
 # ── Aggregate results ─────────────────────────────────────────────────────────
@@ -162,38 +173,49 @@ def score_query(
 def aggregate(
     scores: list[QueryScore],
     benchmark_names: list[str],
+    ks: list[int],
 ) -> None:
-    """Print a summary table: per-benchmark + overall average."""
-    overall_recall = sum(s.recall for s in scores) / len(scores) if scores else 0.0
-    overall_precision = sum(s.precision for s in scores) / len(scores) if scores else 0.0
-
+    """Print a summary table: Recall@K and Precision@K per benchmark + overall."""
     per_bm: dict[str, list[QueryScore]] = defaultdict(list)
     for score in scores:
         for tag in score.tags:
             if tag in benchmark_names:
                 per_bm[tag].append(score)
 
-    width = 44
+    def avg_at_k(score_list: list[QueryScore], metric: str, k: int) -> float:
+        if not score_list:
+            return 0.0
+        vals = [getattr(s, metric)[k] for s in score_list]
+        return sum(vals) / len(vals)
+
+    k_header = "  ".join(f"@{k:>2}" for k in ks)
+    col_w = 7  # width per K column
+
+    def fmt_row(label: str, score_list: list[QueryScore], metric: str) -> str:
+        vals = "  ".join(f"{avg_at_k(score_list, metric, k):>{col_w}.4f}" for k in ks)
+        return f"  {label:<18}  {vals}  ({len(score_list)})"
+
+    k_labels = "  ".join(f"{'K='+str(k):>{col_w}}" for k in ks)
+    width = 22 + (col_w + 2) * len(ks) + 6
+
     print(f"\n{'─' * width}")
-    print(f"  LegalBench-RAG Evaluation — chunk-level")
+    print(f"  LegalBench-RAG Evaluation — chunk-level @K")
     print(f"{'─' * width}")
-    print(f"  {'Benchmark':<18} {'Recall':>8}  {'Precision':>9}  {'N':>5}")
-    print(f"  {'─'*18} {'─'*8}  {'─'*9}  {'─'*5}")
-    for name in benchmark_names:
-        bm_scores = per_bm.get(name, [])
-        if not bm_scores:
-            continue
-        bm_recall = sum(s.recall for s in bm_scores) / len(bm_scores)
-        bm_prec = sum(s.precision for s in bm_scores) / len(bm_scores)
-        print(
-            f"  {name:<18} {bm_recall:>8.4f}  {bm_prec:>9.4f}  {len(bm_scores):>5}"
-        )
-    print(f"  {'─'*18} {'─'*8}  {'─'*9}  {'─'*5}")
-    print(
-        f"  {'OVERALL':<18} {overall_recall:>8.4f}  {overall_precision:>9.4f}  {len(scores):>5}"
-    )
-    print(f"{'─' * width}")
-    print(f"  Index : {INDEX_NAME}")
+
+    for metric, label in [("recall_at_k", "Recall"), ("precision_at_k", "Precision")]:
+        print(f"\n  {label}")
+        print(f"  {'Benchmark':<18}  {k_labels}   N")
+        print(f"  {'─'*18}  {'  '.join(['─'*col_w]*len(ks))}  {'─'*5}")
+        for name in benchmark_names:
+            bm_scores = per_bm.get(name, [])
+            if not bm_scores:
+                continue
+            print(fmt_row(name, bm_scores, metric))
+        print(f"  {'─'*18}  {'  '.join(['─'*col_w]*len(ks))}  {'─'*5}")
+        print(fmt_row("OVERALL", scores, metric))
+
+    print(f"\n{'─' * width}")
+    print(f"  Index : {INDEX_NAME}  |  K values: {ks}")
     print()
 
 
@@ -205,7 +227,7 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         prog="python -m evaluation.LegalBenchRAG.eval_precision_recall",
         description=(
             "Evaluate LegalRAG retrieval on LegalBench-RAG using "
-            "chunk-level Precision & Recall."
+            "chunk-level Precision@K & Recall@K."
         ),
     )
     parser.add_argument(
@@ -248,11 +270,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         ),
     )
     parser.add_argument(
-        "--top-k",
+        "--ks",
+        nargs="+",
         type=int,
-        default=20,
+        default=[1, 5, 10, 20],
         metavar="K",
-        help="Number of chunks to retrieve per query (default: 20).",
+        help="Rank cutoffs to evaluate (default: 1 5 10 20). Retrieves max(ks) chunks.",
     )
     parser.add_argument(
         "--log-level",
@@ -267,6 +290,9 @@ def main(argv: list[str] | None = None) -> None:
     args = parse_args(argv)
     configure_logging(level=args.log_level)
 
+    ks = sorted(set(args.ks))
+    top_k = max(ks)
+
     data_dir = args.data_dir.rstrip("/")
     benchmarks_dir = args.benchmarks_dir.rstrip("/") if args.benchmarks_dir else f"{data_dir}/benchmarks"
     benchmark_names = args.benchmarks or ["contractnli", "cuad", "maud", "privacy_qa"]
@@ -280,21 +306,21 @@ def main(argv: list[str] | None = None) -> None:
         print("No test cases found. Check --data-dir and --benchmarks.", file=sys.stderr)
         sys.exit(1)
 
-    retriever = build_retriever(top_k=args.top_k)
+    retriever = build_retriever(top_k=top_k)
 
     print(
         f"\nRunning evaluation: {len(tests)} queries, "
-        f"top_k={args.top_k}, index={INDEX_NAME} …"
+        f"K={ks}, top_k={top_k}, index={INDEX_NAME} …"
     )
 
     scores: list[QueryScore] = []
     for i, test in enumerate(tests, 1):
-        score = score_query(test, retriever)
+        score = score_query(test, retriever, ks=ks)
         scores.append(score)
         if i % 50 == 0:
             print(f"  {i}/{len(tests)} queries done …")
 
-    aggregate(scores, benchmark_names)
+    aggregate(scores, benchmark_names, ks=ks)
 
 
 if __name__ == "__main__":

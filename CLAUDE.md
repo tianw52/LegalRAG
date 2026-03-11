@@ -52,6 +52,10 @@ curl http://localhost:9200/legalrag/_count
 
 ## LegalBench-RAG Evaluation Commands
 
+Metrics: **chunk-level Precision@K and Recall@K** (binary hit/miss per GT snippet at rank
+cutoffs K). A single retrieval pass fetches `max(ks)` chunks; metrics are computed at each K
+by slicing the ranked list. Default K values: 20, 40, 60.
+
 ```bash
 # ── Step 1: Ingest corpus ──────────────────────────────────────────────────────
 
@@ -97,25 +101,28 @@ for name, n in [('contractnli',13),('cuad',13),('maud',12),('privacy_qa',12)]:
 
 # ── Step 3: Evaluate ──────────────────────────────────────────────────────────
 
-# Full evaluation (all 4 benchmarks, top_k=20)
-python -m evaluation.LegalBenchRAG.eval_precision_recall \
-    --data-dir data/LegalBenchRAG
-
-# Evaluate on the 50-query subset
+# Full evaluation on all 4 benchmarks at K=20,40,60
 python -m evaluation.LegalBenchRAG.eval_precision_recall \
     --data-dir data/LegalBenchRAG \
-    --benchmarks-dir data/LegalBenchRAG/benchmarks_subset
+    --ks 20 40 60
 
-# Evaluate specific sub-benchmarks with higher top_k
+# Evaluate on the 50-query subset (fast iteration)
+python -m evaluation.LegalBenchRAG.eval_precision_recall \
+    --data-dir data/LegalBenchRAG \
+    --benchmarks-dir data/LegalBenchRAG/benchmarks_subset \
+    --ks 20 40 60
+
+# Custom K values and specific sub-benchmarks
 python -m evaluation.LegalBenchRAG.eval_precision_recall \
     --data-dir data/LegalBenchRAG \
     --benchmarks cuad maud \
-    --top-k 50
+    --ks 10 20 50 100
 
 # Quick smoke test (10 queries per benchmark, verbose)
 python -m evaluation.LegalBenchRAG.eval_precision_recall \
     --data-dir data/LegalBenchRAG \
     --limit 10 \
+    --ks 20 40 60 \
     --log-level INFO
 
 # Check index doc count
@@ -126,6 +133,16 @@ curl -s http://localhost:9200/legalrag-legalbenchrag/_mapping \
     | python3 -c "import json,sys; m=json.load(sys.stdin); \
       print(list(m.values())[0]['mappings']['properties']['embedding']['dimension'])"
 ```
+
+### Baseline results (50-query subset, nlpaueb/legal-bert-base-uncased, seed=42)
+
+| | R@20 | R@40 | R@60 | P@20 | P@40 | P@60 |
+|---|---|---|---|---|---|---|
+| contractnli | 0.231 | 0.308 | 0.462 | 0.0154 | 0.0096 | 0.0090 |
+| cuad | 0.154 | 0.333 | 0.641 | 0.0077 | 0.0135 | 0.0141 |
+| maud | 0.083 | 0.125 | 0.167 | 0.0042 | 0.0063 | 0.0056 |
+| privacy_qa | 0.313 | 0.563 | 0.646 | 0.0333 | 0.0229 | 0.0167 |
+| **OVERALL** | **0.195** | **0.332** | **0.482** | **0.0150** | **0.0130** | **0.0113** |
 
 ---
 
