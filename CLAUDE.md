@@ -50,6 +50,85 @@ curl http://localhost:9200/legalrag/_count
 
 ---
 
+## LegalBench-RAG Evaluation Commands
+
+```bash
+# ── Step 1: Ingest corpus ──────────────────────────────────────────────────────
+
+# Ingest only corpus files referenced by benchmark tests (recommended)
+python -m evaluation.LegalBenchRAG.ingest \
+    --data-dir data/LegalBenchRAG
+
+# Ingest only files for specific sub-benchmarks
+python -m evaluation.LegalBenchRAG.ingest \
+    --data-dir data/LegalBenchRAG \
+    --benchmarks cuad maud
+
+# Fast smoke test: ingest files for first 10 test cases per benchmark
+python -m evaluation.LegalBenchRAG.ingest \
+    --data-dir data/LegalBenchRAG \
+    --limit 10
+
+# Ingest entire corpus (all *.txt files, ignores benchmark filter)
+python -m evaluation.LegalBenchRAG.ingest \
+    --data-dir data/LegalBenchRAG \
+    --all
+
+# Delete index and re-ingest (required after changing EMBEDDING_MODEL/EMBEDDING_DIM)
+curl -X DELETE http://localhost:9200/legalrag-legalbenchrag
+python -m evaluation.LegalBenchRAG.ingest --data-dir data/LegalBenchRAG
+
+
+# ── Step 2: Sample a subset of queries (optional) ─────────────────────────────
+
+# The benchmarks_subset/ dir holds a fixed 50-query sample (seed=42, ~12-13 per benchmark)
+# To recreate it:
+python3 -c "
+import json, random
+random.seed(42)
+import pathlib
+out = pathlib.Path('data/LegalBenchRAG/benchmarks_subset')
+out.mkdir(exist_ok=True)
+for name, n in [('contractnli',13),('cuad',13),('maud',12),('privacy_qa',12)]:
+    tests = json.load(open(f'data/LegalBenchRAG/benchmarks/{name}.json'))['tests']
+    json.dump({'tests': random.sample(tests, n)}, open(out/f'{name}.json','w'), indent=2)
+"
+
+
+# ── Step 3: Evaluate ──────────────────────────────────────────────────────────
+
+# Full evaluation (all 4 benchmarks, top_k=20)
+python -m evaluation.LegalBenchRAG.eval_precision_recall \
+    --data-dir data/LegalBenchRAG
+
+# Evaluate on the 50-query subset
+python -m evaluation.LegalBenchRAG.eval_precision_recall \
+    --data-dir data/LegalBenchRAG \
+    --benchmarks-dir data/LegalBenchRAG/benchmarks_subset
+
+# Evaluate specific sub-benchmarks with higher top_k
+python -m evaluation.LegalBenchRAG.eval_precision_recall \
+    --data-dir data/LegalBenchRAG \
+    --benchmarks cuad maud \
+    --top-k 50
+
+# Quick smoke test (10 queries per benchmark, verbose)
+python -m evaluation.LegalBenchRAG.eval_precision_recall \
+    --data-dir data/LegalBenchRAG \
+    --limit 10 \
+    --log-level INFO
+
+# Check index doc count
+curl http://localhost:9200/legalrag-legalbenchrag/_count
+
+# Check index embedding dimension (must match EMBEDDING_DIM in .env)
+curl -s http://localhost:9200/legalrag-legalbenchrag/_mapping \
+    | python3 -c "import json,sys; m=json.load(sys.stdin); \
+      print(list(m.values())[0]['mappings']['properties']['embedding']['dimension'])"
+```
+
+---
+
 ## Architecture
 
 ### Ingestion Pipeline
@@ -115,7 +194,10 @@ renames. Falls back to `MD5("stem|<filename stem>")` for ~0.7% of docs without a
 
 **Hierarchical chunking**: Child chunks (512 chars) are embedded and retrieved. Parent chunks
 (1500 chars) are stored without embeddings and fetched at generation time for richer context
-(small-to-big retrieval pattern).
+(small-to-big retrieval pattern). Splitting is done **purely by character position** using
+`_split_positions()` — never by reconstructing text from tokens (which loses whitespace and
+causes `str.find()` to fail on legal documents with multi-space / newline runs, leaving large
+unindexed gaps).
 
 **Hybrid search**: kNN and BM25 results are merged via Reciprocal Rank Fusion (RRF):
 `score = Σ 1/(60 + rank)`. No native hybrid query needed — works on OpenSearch 2.x.
