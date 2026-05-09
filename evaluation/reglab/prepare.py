@@ -97,19 +97,16 @@ def prepare_barexam_qa(out_dir: Path, max_corpus_docs: int | None) -> None:
     n_written = 0
 
     try:
-        stream = load_dataset(
+        passage_iter = load_dataset(
             "reglab/barexam_qa",
             "passages",
             split=split_name,
             streaming=True,
             trust_remote_code=True,
         )
-        passage_iter = stream
-        use_stream = True
     except Exception as exc:  # noqa: BLE001
         logger.warning("Streaming load failed (%s); falling back to non-streaming.", exc)
         passage_iter = passage_meta[split_name]
-        use_stream = False
 
     for row in passage_iter:
         if max_corpus_docs is not None and n_written >= max_corpus_docs:
@@ -121,8 +118,6 @@ def prepare_barexam_qa(out_dir: Path, max_corpus_docs: int | None) -> None:
         if allowed is not None:
             allowed.add(idx)
         n_written += 1
-        if not use_stream and max_corpus_docs is not None and n_written >= max_corpus_docs:
-            break
 
     logger.info("Wrote %d passage files under %s", n_written, out_corpus)
 
@@ -182,19 +177,16 @@ def prepare_housing_qa(out_dir: Path, max_corpus_docs: int | None) -> None:
     n_written = 0
 
     try:
-        stream = load_dataset(
+        stat_iter = load_dataset(
             "reglab/housing_qa",
             "statutes",
             split=split_name,
             streaming=True,
             trust_remote_code=True,
         )
-        stat_iter = stream
-        use_stream = True
     except Exception as exc:  # noqa: BLE001
         logger.warning("Streaming load failed (%s); falling back to non-streaming.", exc)
         stat_iter = stat_meta[split_name]
-        use_stream = False
 
     for row in stat_iter:
         if max_corpus_docs is not None and n_written >= max_corpus_docs:
@@ -206,8 +198,6 @@ def prepare_housing_qa(out_dir: Path, max_corpus_docs: int | None) -> None:
         if allowed is not None:
             allowed.add(str(idx))
         n_written += 1
-        if not use_stream and max_corpus_docs is not None and n_written >= max_corpus_docs:
-            break
 
     logger.info("Wrote %d statute files under %s", n_written, out_corpus)
 
