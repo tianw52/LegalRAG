@@ -14,8 +14,9 @@
 # RegLab datasets — LegalBench-style CharRecall@K / CharPrecision@K (eval_recall, default K=20,40,60).
 #
 # Prerequisites:
-#   - Prepared data: data/reglab_eval/barexam_qa and data/reglab_eval/housing_qa
-#     (python -m evaluation.reglab.prepare ...)
+#   - Prepared HF exports (corpus/ + benchmarks/). On a LOGIN node run:
+#       ./scripts/run_reglab_prepare_data.sh
+#     Or set REGLAB_ROOT if data lives elsewhere (e.g. $SCRATCH/reglab_eval).
 #   - OpenSearch tarball (see run_benchmark_50_eval.slurm)
 #
 # Usage:
@@ -24,6 +25,7 @@
 # Optional exports:
 #   RUN_PIP_INSTALL=1          — run pip install -e ".[eval]" on the compute node (needs outbound network; most CC nodes have none)
 #   LEGALRAG_VENV              — venv with legalrag installed (default: ../PyTorch)
+#   REGLAB_ROOT                — parent folder containing barexam_qa/ and housing_qa/ (default: <repo>/data/reglab_eval)
 #   SKIP_INGEST=1              — do not delete/re-ingest (indices must already exist on this node’s OpenSearch)
 #   EMBED_PROVIDER=sentence_transformers
 #   EMBED_MODEL=sentence-transformers/all-mpnet-base-v2
@@ -37,8 +39,9 @@ set -e
 LEGALRAG_ROOT="/home/ram112/projects/def-jieliang/ram112/LegalRAG"
 LEGALRAG_VENV="${LEGALRAG_VENV:-/home/ram112/projects/def-jieliang/ram112/PyTorch}"
 OPENSEARCH_DIR="${OPENSEARCH_TARBALL_DIR:-$HOME/opensearch-2.14.0}"
-BAREXAM_DIR="$LEGALRAG_ROOT/data/reglab_eval/barexam_qa"
-HOUSING_DIR="$LEGALRAG_ROOT/data/reglab_eval/housing_qa"
+REGLAB_ROOT="${REGLAB_ROOT:-$LEGALRAG_ROOT/data/reglab_eval}"
+BAREXAM_DIR="$REGLAB_ROOT/barexam_qa"
+HOUSING_DIR="$REGLAB_ROOT/housing_qa"
 
 EMBED_PROVIDER="${EMBED_PROVIDER:-sentence_transformers}"
 EMBED_MODEL="${EMBED_MODEL:-sentence-transformers/all-mpnet-base-v2}"
@@ -73,11 +76,14 @@ echo "CUDA: $(python3 -c 'import torch; print(torch.cuda.get_device_name(0) if t
 mkdir -p slurm_logs logs/reglab
 
 if [[ "$RUN_BAREXAM" == "1" ]] && [[ ! -d "$BAREXAM_DIR/corpus" ]]; then
-    echo "ERROR: Missing $BAREXAM_DIR/corpus — run: python -m evaluation.reglab.prepare barexam_qa --out-dir $BAREXAM_DIR"
+    echo "ERROR: Missing $BAREXAM_DIR/corpus"
+    echo "  On a login node: $LEGALRAG_ROOT/scripts/run_reglab_prepare_data.sh"
+    echo "  Or: REGLAB_ROOT=/path/to/parent sbatch --export=ALL,REGLAB_ROOT=... scripts/run_reglab_char_eval.slurm"
     exit 1
 fi
 if [[ "$RUN_HOUSING" == "1" ]] && [[ ! -d "$HOUSING_DIR/corpus" ]]; then
-    echo "ERROR: Missing $HOUSING_DIR/corpus — run: python -m evaluation.reglab.prepare housing_qa --out-dir $HOUSING_DIR"
+    echo "ERROR: Missing $HOUSING_DIR/corpus"
+    echo "  On a login node: $LEGALRAG_ROOT/scripts/run_reglab_prepare_data.sh"
     exit 1
 fi
 

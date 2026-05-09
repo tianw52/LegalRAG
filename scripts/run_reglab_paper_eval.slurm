@@ -15,8 +15,9 @@
 # Housing uses jurisdiction filtering (ingest_reglab + court metadata).
 #
 # Prerequisites:
-#   - data/reglab_eval/barexam_qa and data/reglab_eval/housing_qa with statutes/<State>/ layout for housing
-#     (re-run prepare if you have an older flat corpus)
+#   - Prepared HF exports (run on a LOGIN node): ./scripts/run_reglab_prepare_data.sh
+#   - Or REGLAB_ROOT if data is under e.g. $SCRATCH/reglab_eval
+#   - Housing must use statutes/<State>/ layout (current prepare)
 #
 # Usage:
 #   sbatch scripts/run_reglab_paper_eval.slurm
@@ -24,6 +25,7 @@
 # Optional exports:
 #   RUN_PIP_INSTALL=1          — pip install on compute node (needs network; usually unavailable)
 #   LEGALRAG_VENV              — venv with legalrag installed (default: ../PyTorch)
+#   REGLAB_ROOT                — parent of barexam_qa/ and housing_qa/ (default: <repo>/data/reglab_eval)
 #   SKIP_INGEST=1
 #   EMBED_PROVIDER / EMBED_MODEL — must match index if SKIP_INGEST=1
 #   INDEX_BAREXAM / INDEX_HOUSING — default *-paper so char and paper jobs do not clobber each other
@@ -37,8 +39,9 @@ set -e
 LEGALRAG_ROOT="/home/ram112/projects/def-jieliang/ram112/LegalRAG"
 LEGALRAG_VENV="${LEGALRAG_VENV:-/home/ram112/projects/def-jieliang/ram112/PyTorch}"
 OPENSEARCH_DIR="${OPENSEARCH_TARBALL_DIR:-$HOME/opensearch-2.14.0}"
-BAREXAM_DIR="$LEGALRAG_ROOT/data/reglab_eval/barexam_qa"
-HOUSING_DIR="$LEGALRAG_ROOT/data/reglab_eval/housing_qa"
+REGLAB_ROOT="${REGLAB_ROOT:-$LEGALRAG_ROOT/data/reglab_eval}"
+BAREXAM_DIR="$REGLAB_ROOT/barexam_qa"
+HOUSING_DIR="$REGLAB_ROOT/housing_qa"
 
 EMBED_PROVIDER="${EMBED_PROVIDER:-sentence_transformers}"
 EMBED_MODEL="${EMBED_MODEL:-sentence-transformers/all-mpnet-base-v2}"
@@ -76,10 +79,12 @@ mkdir -p slurm_logs logs/reglab
 
 if [[ "$RUN_BAREXAM" == "1" ]] && [[ ! -d "$BAREXAM_DIR/corpus" ]]; then
     echo "ERROR: Missing $BAREXAM_DIR/corpus"
+    echo "  On a login node: $LEGALRAG_ROOT/scripts/run_reglab_prepare_data.sh"
     exit 1
 fi
 if [[ "$RUN_HOUSING" == "1" ]] && [[ ! -d "$HOUSING_DIR/corpus" ]]; then
     echo "ERROR: Missing $HOUSING_DIR/corpus"
+    echo "  On a login node: $LEGALRAG_ROOT/scripts/run_reglab_prepare_data.sh"
     exit 1
 fi
 
