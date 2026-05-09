@@ -1,12 +1,15 @@
 #!/bin/bash
 #SBATCH --job-name=reglab-paper
-#SBATCH --output=slurm_logs/reglab_paper_eval_%j.out
-#SBATCH --error=slurm_logs/reglab_paper_eval_%j.err
-#SBATCH --time=24:00:00
 #SBATCH --account=def-jieliang_gpu
-#SBATCH --gres=gpu:nvidia_h100_80gb_hbm3_2g.20gb:1
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=64G
+#SBATCH --time=24:00:00
+# Narval / Alliance: full A100. For MIG: gpu:a100_4g.20gb:1 (etc.)
+#SBATCH --gres=gpu:a100:1
+#SBATCH --output=slurm_logs/reglab_paper_eval_%j.out
+#SBATCH --error=slurm_logs/reglab_paper_eval_%j.err
 
 # RegLab datasets — passage-level metrics (Recall@1,10,100,1000; MRR@10) per Zheng et al. CS&Law 2025.
 # Housing uses jurisdiction filtering (ingest_reglab + court metadata).

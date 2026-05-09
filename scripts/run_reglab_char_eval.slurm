@@ -1,12 +1,15 @@
 #!/bin/bash
 #SBATCH --job-name=reglab-char
-#SBATCH --output=slurm_logs/reglab_char_eval_%j.out
-#SBATCH --error=slurm_logs/reglab_char_eval_%j.err
-#SBATCH --time=12:00:00
 #SBATCH --account=def-jieliang_gpu
-#SBATCH --gres=gpu:nvidia_h100_80gb_hbm3_2g.20gb:1
+#SBATCH --nodes=1
+#SBATCH --ntasks=1
 #SBATCH --cpus-per-task=8
 #SBATCH --mem=48G
+#SBATCH --time=12:00:00
+# Narval / Alliance: full A100 (see sinfo / docs). For MIG slices use e.g. gpu:a100_4g.20gb:1
+#SBATCH --gres=gpu:a100:1
+#SBATCH --output=slurm_logs/reglab_char_eval_%j.out
+#SBATCH --error=slurm_logs/reglab_char_eval_%j.err
 
 # RegLab datasets — LegalBench-style CharRecall@K / CharPrecision@K (eval_recall, default K=20,40,60).
 #
