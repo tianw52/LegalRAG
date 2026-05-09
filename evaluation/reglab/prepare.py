@@ -5,14 +5,16 @@ Output layout (for :mod:`evaluation.LegalBenchRAG.loader` and ingestion)::
     <out_dir>/
         corpus/
             passages/*.txt      # barexam_qa only (hashed filenames)
-            statutes/*.txt      # housing_qa only
+            statutes/<State>/*.txt
+                # housing_qa: jurisdiction subfolders (Section 5.2 — per-state pool)
         benchmarks/
             barexam_qa.json
             housing_qa.json
 
-Each ground-truth unit is stored as one `.txt` file; evaluation uses CharRecall@K /
-CharPrecision@K over the **full document span** ``[0, len(text))``, identical to the
-methodology in :mod:`evaluation.LegalBenchRAG.eval_precision_recall`.
+Each ground-truth unit is stored as one `.txt` file.  For **character-level**
+LegalBench-style metrics use :mod:`evaluation.reglab.eval_recall`.  For **passage-level**
+Recall@K / MRR@10 as in Zheng et al. (CS&Law 2025) use :mod:`evaluation.reglab.paper_eval`
+after re-exporting with this script and ingesting with :mod:`evaluation.reglab.ingest_reglab`.
 
 Query strings
 -------------
@@ -50,7 +52,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-from evaluation.reglab.util import PREFIX_PASSAGES, PREFIX_STATUTES, corpus_relpath
+from evaluation.reglab.util import PREFIX_PASSAGES, corpus_relpath, statute_relpath
 
 logger = logging.getLogger(__name__)
 
@@ -150,6 +152,7 @@ def prepare_barexam_qa(out_dir: Path, max_corpus_docs: int | None) -> None:
             "query": qtext,
             "snippets": [{"file_path": rel, "span": [0, n_chars]}],
             "tags": ["barexam_qa"],
+            "jurisdiction": None,
         })
 
     benchmark_path = out_bm / "barexam_qa.json"
@@ -175,6 +178,7 @@ def prepare_housing_qa(out_dir: Path, max_corpus_docs: int | None) -> None:
 
     allowed: set[str] | None = set() if max_corpus_docs is not None else None
     n_written = 0
+    statute_idx_to_state: dict[str, str] = {}
 
     try:
         stat_iter = load_dataset(
@@ -193,8 +197,10 @@ def prepare_housing_qa(out_dir: Path, max_corpus_docs: int | None) -> None:
             break
         idx = row["idx"]
         text = row.get("text") or ""
-        rel = corpus_relpath(PREFIX_STATUTES, idx)
+        st = (row.get("state") or "").strip()
+        rel = statute_relpath(st, idx)
         _write_text(out_corpus / rel, text)
+        statute_idx_to_state[str(idx)] = st
         if allowed is not None:
             allowed.add(str(idx))
         n_written += 1
@@ -226,7 +232,11 @@ def prepare_housing_qa(out_dir: Path, max_corpus_docs: int | None) -> None:
             if allowed is not None and sid_str not in allowed:
                 ok = False
                 break
-            rel = corpus_relpath(PREFIX_STATUTES, sid)
+            st_for_path = statute_idx_to_state.get(sid_str)
+            if not st_for_path:
+                ok = False
+                break
+            rel = statute_relpath(st_for_path, sid)
             gold_path = out_corpus / rel
             if not gold_path.is_file():
                 ok = False
@@ -240,7 +250,12 @@ def prepare_housing_qa(out_dir: Path, max_corpus_docs: int | None) -> None:
         if not ok or not snippets:
             continue
 
-        tests.append({"query": qtext, "snippets": snippets, "tags": ["housing_qa"]})
+        tests.append({
+            "query": qtext,
+            "snippets": snippets,
+            "tags": ["housing_qa"],
+            "jurisdiction": state,
+        })
 
     benchmark_path = out_bm / "housing_qa.json"
     benchmark_path.write_text(json.dumps({"tests": tests}, indent=2), encoding="utf-8")
