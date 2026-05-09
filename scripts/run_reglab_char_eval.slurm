@@ -14,7 +14,7 @@
 # RegLab datasets — LegalBench-style CharRecall@K / CharPrecision@K (eval_recall, default K=20,40,60).
 #
 # Prerequisites:
-#   - Prepared exports: data/reglab_eval/barexam_qa and data/reglab_eval/housing_qa
+#   - Prepared data: data/reglab_eval/barexam_qa and data/reglab_eval/housing_qa
 #     (python -m evaluation.reglab.prepare ...)
 #   - OpenSearch tarball (see run_benchmark_50_eval.slurm)
 #
@@ -22,6 +22,8 @@
 #   sbatch scripts/run_reglab_char_eval.slurm
 #
 # Optional exports:
+#   RUN_PIP_INSTALL=1          — run pip install -e ".[eval]" on the compute node (needs outbound network; most CC nodes have none)
+#   LEGALRAG_VENV              — venv with legalrag installed (default: ../PyTorch)
 #   SKIP_INGEST=1              — do not delete/re-ingest (indices must already exist on this node’s OpenSearch)
 #   EMBED_PROVIDER=sentence_transformers
 #   EMBED_MODEL=sentence-transformers/all-mpnet-base-v2
@@ -33,6 +35,7 @@
 set -e
 
 LEGALRAG_ROOT="/home/ram112/projects/def-jieliang/ram112/LegalRAG"
+LEGALRAG_VENV="${LEGALRAG_VENV:-/home/ram112/projects/def-jieliang/ram112/PyTorch}"
 OPENSEARCH_DIR="${OPENSEARCH_TARBALL_DIR:-$HOME/opensearch-2.14.0}"
 BAREXAM_DIR="$LEGALRAG_ROOT/data/reglab_eval/barexam_qa"
 HOUSING_DIR="$LEGALRAG_ROOT/data/reglab_eval/housing_qa"
@@ -49,11 +52,21 @@ module load StdEnv/2023
 module load gcc
 module load cuda
 module load python/3.12
-source /home/ram112/projects/def-jieliang/ram112/PyTorch/bin/activate
+# shellcheck source=/dev/null
+source "$LEGALRAG_VENV/bin/activate"
 
 cd "$LEGALRAG_ROOT"
-pip uninstall legalrag -y 2>/dev/null || true
-pip install -e ".[eval]" -q
+if [[ "${RUN_PIP_INSTALL:-0}" == "1" ]]; then
+    pip uninstall legalrag -y 2>/dev/null || true
+    pip install -e ".[eval]" -q
+else
+    echo "RUN_PIP_INSTALL not set — skipping pip (compute nodes often have no network). Using: $LEGALRAG_VENV"
+fi
+python3 -c "import legalrag" || {
+    echo "ERROR: legalrag not importable in venv. On a login node:"
+    echo "  source $LEGALRAG_VENV/bin/activate && cd $LEGALRAG_ROOT && pip install -e '.[eval]'"
+    exit 1
+}
 
 export CUDA_VISIBLE_DEVICES=0
 echo "CUDA: $(python3 -c 'import torch; print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else "N/A")')"
