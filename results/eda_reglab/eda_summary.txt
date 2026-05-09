@@ -1,0 +1,37 @@
+REGLab dataset EDA
+==================
+barexam_qa: https://huggingface.co/datasets/reglab/barexam_qa
+housing_qa: https://huggingface.co/datasets/reglab/housing_qa
+
+=== reglab/barexam_qa · qa ===
+rows: 1,195
+columns: ['idx', 'dataset', 'example_id', 'prompt_id', 'source', 'subject', 'question_number', 'prompt', 'question', 'choice_a', 'choice_b', 'choice_c', 'choice_d', 'answer', 'gold_passage', 'gold_idx']
+gold_passage chars: min=42 median=569 max=10998
+
+=== reglab/barexam_qa · passages (first 200,000 rows only) ===
+(Passages are read from the start of passages.tsv; distribution should be stable at large N but compare with full ~900K if needed.)
+Unique idx in sample: 200,000
+top sources in sample:
+source
+caselaw    190393
+wex          6714
+mbe          2893
+=== reglab/housing_qa · questions (questions.json.zip; HF loader uses split=test) ===
+rows: 6,853
+questions_aux rows: 9,297
+statute excerpts per Q: min=1 max=15 mean=2.61
+excerpt chars: median=556 max=15825
+
+=== reglab/housing_qa · statutes (first 250,000 rows; full ~1.7M) ===
+(Sequential rows from the TSV can skew the state mix vs. the full corpus; increase --statute-sample-rows or shuffle offline for a fairer estimate.)
+top states in sample:
+state
+illinois             38196
+new york             37049
+virginia             31313
+puerto rico          30917
+south carolina       30418
+missouri             29632
+washington           24093
+alaska               17706
+us virgin islands    10676

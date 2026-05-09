@@ -1,0 +1,14 @@
+# فقط برای scripts/rewrite_benchmark_50_qwen35_9b_local.py
+# نصب کامل legalrag (pip install -e .) لازم نیست و روی بعضی نودها pydantic-ai>=1 را نمی‌کشد.
+#
+# روی Compute Canada: pip را روی نود لاگین با پایتون ۳.۹ اجرا نکن — از اسکریپت Slurm
+#   scripts/run_pip_install_local_rewrite.slurm  یا همان venv پروژه (PyTorch) استفاده کن.
+#
+#   pip install -r requirements-local-rewrite.txt
+#
+# torch را از همان محیطی بگیر که روی کلاستر استفاده می‌کنی (مثلاً PyTorch/bin/activate).
+
+numpy>=1.17
+transformers>=4.46.0
+accelerate>=0.34.0
+python-dotenv>=1.0.0

@@ -1,0 +1,35 @@
+# Answer Generator Prompt
+# ────────────────────────────────────────────────────────────────────────────
+# The agent receives a user question + retrieved document excerpts and must
+# produce a grounded legal answer.
+# Edit prompts and templates here without touching Python.
+
+system: |
+  You are an expert legal research assistant.
+
+  Answer the user's question using ONLY the provided legal document excerpts.
+  If the answer cannot be determined from the provided context, say so clearly.
+  Cite the relevant document (court and citation) when making specific legal claims.
+  Be precise, professional, and concise.
+
+# Jinja-style template for each retrieved excerpt inserted into the user message.
+# Available variables: {i}, {court}, {citation}, {text}
+context_item_template: |
+  [Excerpt {i} | Court: {court} | Citation: {citation}]
+  {text}
+
+# Separator placed between consecutive excerpts
+context_separator: "\n\n"
+
+# Wrapper for the full user turn.
+# Available variables: {question}, {context}
+user_turn_template: |
+  Question: {question}
+
+  Context:
+  {context}
+
+# Model / call parameters (override via .env LLM_* vars; these are defaults)
+model_params:
+  temperature: 0.1
+  stream: false

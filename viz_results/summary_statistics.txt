@@ -1,0 +1,285 @@
+REGLab dataset statistics — generated 2026-05-03T03:18:08.909937+00:00 UTC
+Figures directory: /lustre06/project/6006955/ram112/LegalRAG/viz_results
+Samples: passages.tsv nrows=200,000 | statutes.tsv nrows=250,000
+
+
+========================================================================
+ BAR EXAM QA (qa.csv)
+========================================================================
+Rows: 1,195
+Columns: ['idx', 'dataset', 'example_id', 'prompt_id', 'source', 'subject', 'question_number', 'prompt', 'question', 'choice_a', 'choice_b', 'choice_c', 'choice_d', 'answer', 'gold_passage', 'gold_idx', 'prompt_nchars', 'question_nchars', 'choice_a_nchars', 'choice_b_nchars', 'choice_c_nchars', 'choice_d_nchars', 'gold_passage_nchars', 'choices_total_nchars']
+
+Missingness (% of rows) — top 15:
+prompt             62.761506
+subject            50.292887
+choice_d            0.083682
+idx                 0.000000
+prompt_id           0.000000
+example_id          0.000000
+source              0.000000
+dataset             0.000000
+question_number     0.000000
+question            0.000000
+choice_b            0.000000
+choice_a            0.000000
+choice_c            0.000000
+answer              0.000000
+gold_passage        0.000000
+
+Numeric / engineered length summaries:
+prompt_nchars_n       1195.000000
+prompt_nchars_mean     298.669456
+prompt_nchars_std      473.199600
+prompt_nchars_min        0.000000
+prompt_nchars_p05        0.000000
+prompt_nchars_p25        0.000000
+prompt_nchars_p50        0.000000
+prompt_nchars_p75      551.000000
+prompt_nchars_p95     1356.000000
+prompt_nchars_max     1870.000000
+question_nchars_n       1195.000000
+question_nchars_mean     532.289540
+question_nchars_std      403.444783
+question_nchars_min       20.000000
+question_nchars_p05       67.700000
+question_nchars_p25      194.500000
+question_nchars_p50      443.000000
+question_nchars_p75      765.500000
+question_nchars_p95     1310.600000
+question_nchars_max     2144.000000
+choices_total_nchars_n       1195.000000
+choices_total_nchars_mean     358.272803
+choices_total_nchars_std      183.037957
+choices_total_nchars_min       24.000000
+choices_total_nchars_p05       82.700000
+choices_total_nchars_p25      250.000000
+choices_total_nchars_p50      332.000000
+choices_total_nchars_p75      436.000000
+choices_total_nchars_p95      682.600000
+choices_total_nchars_max     1328.000000
+gold_passage_nchars_n        1195.000000
+gold_passage_nchars_mean      742.541423
+gold_passage_nchars_std       729.434829
+gold_passage_nchars_min        42.000000
+gold_passage_nchars_p05       181.700000
+gold_passage_nchars_p25       362.000000
+gold_passage_nchars_p50       569.000000
+gold_passage_nchars_p75       910.000000
+gold_passage_nchars_p95      1643.500000
+gold_passage_nchars_max     10998.000000
+
+Answer counts vs uniform: chi-square=0.3506, p=0.9502
+answer
+A    294
+B    295
+C    299
+D    307
+
+Questions per prompt_id:
+count    935.000000
+mean       1.278075
+std        0.665533
+min        1.000000
+25%        1.000000
+50%        1.000000
+75%        1.000000
+max        6.000000
+Fraction of prompt_id with >1 question: 0.1957
+
+Cramér V (top-6 source × answer): 0.0206
+
+========================================================================
+ BAR EXAM PASSAGES (first 200,000 rows of passages.tsv)
+========================================================================
+source
+caselaw    190393
+wex          6714
+mbe          2893
+
+passage_text_nchars_n       200000.000000
+passage_text_nchars_mean       574.578265
+passage_text_nchars_std        812.509348
+passage_text_nchars_min         17.000000
+passage_text_nchars_p05         82.000000
+passage_text_nchars_p25        245.000000
+passage_text_nchars_p50        476.000000
+passage_text_nchars_p75        772.000000
+passage_text_nchars_p95       1345.000000
+passage_text_nchars_max     276898.000000
+
+========================================================================
+ BAR EXAM gold_idx overlap with passages prefix
+========================================================================
+Questions with gold_idx in prefix: 1195 / 1195 (100.00%)
+
+========================================================================
+ HOUSING QA (questions.json.zip)
+========================================================================
+questions rows: 6,853
+questions_aux rows: 9,297
+Unique states: 48
+Unique question_group: 226
+Overall Yes rate: 35.23%
+
+answer_norm counts:
+answer_norm
+No     4439
+Yes    2414
+
+n_statute_excerpts:
+count    6853.000000
+mean        2.606450
+std         2.388726
+min         1.000000
+25%         1.000000
+50%         2.000000
+75%         3.000000
+max        15.000000
+
+excerpt field lengths (flattened):
+excerpt_chars_n       17862.000000
+excerpt_chars_mean      914.686373
+excerpt_chars_std      1217.162287
+excerpt_chars_min        16.000000
+excerpt_chars_p05       115.000000
+excerpt_chars_p25       292.000000
+excerpt_chars_p50       556.000000
+excerpt_chars_p75      1075.000000
+excerpt_chars_p95      2733.000000
+excerpt_chars_max     15825.000000
+
+top states by n:
+state
+Washington        201
+Colorado          192
+New York          190
+Connecticut       182
+California        181
+Wisconsin         176
+North Carolina    175
+Delaware          174
+Virginia          174
+New Hampshire     174
+Nebraska          173
+Rhode Island      170
+Ohio              169
+Missouri          166
+Tennessee         162
+Maryland          161
+Indiana           156
+Maine             155
+Georgia           155
+Oregon            154
+========================================================================
+ HOUSING STATUTES (first 250,000 rows)
+========================================================================
+statute_text_nchars_n       250000.000000
+statute_text_nchars_mean      1803.248584
+statute_text_nchars_std       4770.648509
+statute_text_nchars_min          7.000000
+statute_text_nchars_p05        146.000000
+statute_text_nchars_p25        440.000000
+statute_text_nchars_p50        881.000000
+statute_text_nchars_p75       1884.000000
+statute_text_nchars_p95       5926.000000
+statute_text_nchars_max     616105.000000
+
+top states in sequential sample (may be biased by file order):
+state
+illinois             38196
+new york             37049
+virginia             31313
+puerto rico          30917
+south carolina       30418
+missouri             29632
+washington           24093
+alaska               17706
+us virgin islands    10676
+========================================================================
+ HOUSING statute_idx coverage vs statutes prefix
+========================================================================
+Unique statute_idx in question labels: 990
+Overlap with loaded statute rows idx: 132 (13.33%)
+
+========================================================================
+ RAG CHUNK ANALYSIS (512 characters, non-overlapping from offset 0)
+========================================================================
+Each text is aligned to chunk grid [0,k), [k,2k), ... from the start of that string. Number of chunks touching [0, L) equals ceil(L/k) for L>0.
+This matches overlap counting for span [0,L) in plot_chunking_span_histograms.py.
+Housing “concat per question”: all `statutes[].excerpt` for a row are joined with '\n' then treated as one span.
+
+
+Bar Exam — gold_passage chunks:
+  n=1,195  min=1  median=2.0  mean=1.95  p90=3.0  max=22
+  fraction requiring >1 chunk: 0.5674
+  fraction requiring >2 chunks: 0.2059
+
+Bar Exam — passage pool text chunks (loaded prefix):
+  n=200,000  min=1  median=1.0  mean=1.65  p90=3.0  max=541
+  fraction requiring >1 chunk: 0.4631
+  fraction requiring >2 chunks: 0.1249
+
+Housing — flattened gold excerpt chunks:
+  n=17,862  min=1  median=2.0  mean=2.30  p90=4.0  max=31
+  fraction requiring >1 chunk: 0.5429
+  fraction requiring >2 chunks: 0.2699
+
+Housing — concat gold excerpts per question (chunks):
+  n=6,853  min=1  median=3.0  mean=5.14  p90=12.0  max=62
+  fraction requiring >1 chunk: 0.7678
+  fraction requiring >2 chunks: 0.5773
+
+Housing — statute sample full-text chunks:
+  n=250,000  min=1  median=2.0  mean=4.03  p90=8.0  max=1204
+  fraction requiring >1 chunk: 0.6992
+  fraction requiring >2 chunks: 0.4457
+
+Housing — max excerpt chunks per question:
+  n=6,853  min=1  median=2.0  mean=3.19  p90=6.0  max=31
+  fraction requiring >1 chunk: 0.7246
+  fraction requiring >2 chunks: 0.4515
+
+========================================================================
+ FILES WRITTEN
+========================================================================
+  barexam_passages_01_source_mix_pie.png
+  barexam_passages_02_length_hist.png
+  barexam_passages_02_length_log_hist.png
+  barexam_passages_03_gold_vs_corpus_ecdf.png
+  barexam_qa_01_answer_distribution.png
+  barexam_qa_02_missingness.png
+  barexam_qa_03_length_histograms.png
+  barexam_qa_04_length_ecdf.png
+  barexam_qa_05_hexbin_question_vs_gold.png
+  barexam_qa_06_boxplot_gold_by_answer.png
+  barexam_qa_07_prompt_id_cluster_sizes.png
+  barexam_qa_08_source_top18.png
+  barexam_qa_09_subject_top18.png
+  barexam_qa_10_spearman_corr_heatmap.png
+  barexam_qa_11_source_subject_heatmap.png
+  housing_q_00_dataset_files_pie.png
+  housing_q_01_yes_no_counts.png
+  housing_q_02_states_by_volume.png
+  housing_q_03_yes_rate_by_state.png
+  housing_q_04_statute_excerpts_per_question.png
+  housing_q_05_excerpt_length_histogram.png
+  housing_q_05b_excerpt_length_kde_log.png
+  housing_q_06_violin_excerpts_by_label.png
+  housing_q_07_question_group_top35.png
+  housing_q_08_crossstate_heterogeneity.png
+  housing_statutes_01_excerpt_vs_full_ecdf.png
+  housing_statutes_02_state_counts_prefix.png
+  rag_barexam_chunk_count_ecdf_512c.png
+  rag_barexam_corpus_passage_chunk_hist_512c.png
+  rag_barexam_gold_cumulative_chunks_512c.png
+  rag_barexam_gold_passage_chunk_hist_512c.png
+  rag_barexam_gold_vs_pool_chunk_share_512c.png
+  rag_barexam_passage_pool_chunk_hist_512c.png
+  rag_housing_chunk_ecdf_512c.png
+  rag_housing_corpus_statute_chunk_hist_512c.png
+  rag_housing_excerpt_and_statute_chunk_hist_512c.png
+  rag_housing_gold_concat_per_question_chunk_hist_512c.png
+  rag_housing_gold_excerpt_chunk_hist_512c.png
+  rag_housing_max_excerpt_chunks_per_question_512c.png
+  rag_panel_retrieval_chunk_budget_512c.png
+  summary_panel_executive.png

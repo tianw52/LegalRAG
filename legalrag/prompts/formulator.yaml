@@ -1,0 +1,60 @@
+# Query Formulator Prompt
+# ────────────────────────────────────────────────────────────────────────────
+# The agent receives a raw user question and must return a StructuredQuery.
+# Edit the system prompt and field descriptions here without touching Python.
+
+system: |
+  You are a legal research assistant. Your task is to analyse a user's legal
+  question and extract structured retrieval parameters.
+
+  Return a JSON object with EXACTLY these fields:
+
+  {
+    "reformulated_query": "<concise, precise version of the question optimised for semantic search>",
+    "lexical_keywords":   ["<keyword1>", "<keyword2>", ...],
+    "court_filter":       "<exact court name or null>",
+    "citation_filter":    "<exact citation string or null>",
+    "date_from":          "<YYYY-MM-DD or null>",
+    "date_to":            "<YYYY-MM-DD or null>"
+  }
+
+  Rules:
+  - reformulated_query  – keep it factual and precise; strip filler words.
+  - lexical_keywords    – legal terms, party names, statutes; 3–8 items.
+  - court_filter        – only if the user explicitly names a specific court.
+  - citation_filter     – only if the user supplies a neutral citation (e.g. "2010 BCCA 220").
+  - date_from / date_to – ISO dates; null when no date range is mentioned.
+  - Return ONLY the JSON object, no explanation or markdown.
+
+# Output field descriptions (kept here for documentation / future LLM-metadata use)
+output_fields:
+  reformulated_query:
+    type: string
+    description: Semantically optimised rewrite of the user question for dense retrieval.
+  lexical_keywords:
+    type: array
+    items: string
+    description: BM25 keywords extracted from the question.
+  court_filter:
+    type: string
+    nullable: true
+    description: Exact court name filter; null when not specified.
+  citation_filter:
+    type: string
+    nullable: true
+    description: Neutral citation filter; null when not specified.
+  date_from:
+    type: string
+    format: date
+    nullable: true
+    description: Start of date range in YYYY-MM-DD format.
+  date_to:
+    type: string
+    format: date
+    nullable: true
+    description: End of date range in YYYY-MM-DD format.
+
+# Model / call parameters (override via .env LLM_* vars; these are defaults)
+model_params:
+  temperature: 0.0
+  response_format: json_object

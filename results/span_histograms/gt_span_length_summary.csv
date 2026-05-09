@@ -1,0 +1,6 @@
+dataset,n,min,max,mean,p50,std,p25,p75,frac(len≤512),x_max,bins
+all,0,nan,nan,nan,nan,nan,nan,nan,nan,6000.0,60.0
+contractnli,0,nan,nan,nan,nan,nan,nan,nan,nan,6000.0,60.0
+cuad,0,nan,nan,nan,nan,nan,nan,nan,nan,6000.0,60.0
+maud,0,nan,nan,nan,nan,nan,nan,nan,nan,6000.0,60.0
+privacy_qa,0,nan,nan,nan,nan,nan,nan,nan,nan,6000.0,60.0
