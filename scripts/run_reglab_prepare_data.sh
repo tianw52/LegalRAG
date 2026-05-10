@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Run on a LOGIN node (needs Hugging Face / internet for datasets).
-#
-#   ./scripts/run_reglab_prepare_data.sh
+# Run on a LOGIN node with internet, or submit:
+#   sbatch scripts/run_reglab_prepare_data.slurm
 #
 # Optional:
 #   LEGALRAG_VENV=...   (default: sibling PyTorch venv next to LegalRAG in ram112 tree)
 #   REGLAB_ROOT=...     (default: <repo>/data/reglab_eval) — e.g. put HF exports on $SCRATCH
 #   MAX_CORPUS_DOCS=N   — smoke test; passes --max-corpus-docs to prepare
+#   SKIP_PIP_INSTALL=1  — do not run pip (venv already has deps)
 
 set -euo pipefail
 
@@ -19,7 +19,11 @@ REGLAB_ROOT="${REGLAB_ROOT:-$LEGALRAG_ROOT/data/reglab_eval}"
 # shellcheck source=/dev/null
 source "$LEGALRAG_VENV/bin/activate"
 
-pip install -e ".[eval]" -q
+if [[ "${SKIP_PIP_INSTALL:-0}" != "1" ]]; then
+  pip install -e ".[eval]" -q
+else
+  echo "SKIP_PIP_INSTALL=1 — skipping pip install -e .[eval]"
+fi
 
 mkdir -p "$REGLAB_ROOT"
 if [[ -n "${MAX_CORPUS_DOCS:-}" ]]; then
