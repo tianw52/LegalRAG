@@ -25,4 +25,11 @@ htmlcov/
 
 # OpenSearch data (managed by Docker volume)
 opensearch-data/
-/data
+data/CLERC/
+
+#submodules
+OpenScholar/
+legalbenchrag/
+
+
+logs/queries.log

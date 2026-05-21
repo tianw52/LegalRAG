@@ -6,14 +6,14 @@ Usage:
     python scripts/eval_viewer.py [PORT]          # default 8765
     python scripts/eval_viewer.py 9000
 
-Then open http://localhost:PORT in your browser.
-If running on the lab machine, port-forward first:
-    ssh -L 8765:localhost:8765 twa174@secb1010u-d11
+Then open http://<lab-machine-ip>:PORT in your browser.
+VPN users can access directly — no port-forwarding needed.
 """
 from __future__ import annotations
 import http.server
 import json
 import pathlib
+import socketserver
 import sys
 import threading
 import urllib.parse
@@ -618,6 +618,10 @@ init().catch(err => {
 _models_cache: dict | None = None
 
 
+class ThreadedHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
+    daemon_threads = True
+
+
 class Handler(http.server.BaseHTTPRequestHandler):
 
     def do_GET(self):
@@ -677,7 +681,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
 
 def main():
     port = int(sys.argv[1]) if len(sys.argv) > 1 else 8765
-    server = http.server.HTTPServer(("localhost", port), Handler)
+    server = ThreadedHTTPServer(("0.0.0.0", port), Handler)
     url = f"http://localhost:{port}"
     print(f"Eval viewer →  {url}")
     # print("Lab machine?   ssh -L 8765:localhost:8765 twa174@secb1010u-d11")

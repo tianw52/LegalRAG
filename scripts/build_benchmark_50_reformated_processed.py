@@ -20,9 +20,9 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-BENCHMARKS_50 = REPO_ROOT / "benchmarks_50"
-REFORMATED_ROOT = REPO_ROOT / "benchmark_50_reformated"
-OUT_ROOT = REPO_ROOT / "benchmark_50_reformated_proccessed"
+BENCHMARKS_50 = REPO_ROOT / "data" / "legalbenchrag-mini" / "benchmarks"
+REFORMATED_ROOT = REPO_ROOT / "data/legalbenchrag-mini/benchmarks_gemini3_rewrite"
+OUT_ROOT = REPO_ROOT / "data" / "legalbenchrag-mini" / "benchmarks_gemini3flash_rewrite_processed"
 DATASETS = ("contractnli", "cuad", "maud", "privacy_qa")
 DEFAULT_VARIANT = "v4_reddit_style"
 
@@ -38,12 +38,18 @@ def _is_bad_rewrite(text: str) -> bool:
 
 def _rewrite_map_from_reformated(reformated_path: Path, variant: str) -> dict[str, str]:
     data = json.loads(reformated_path.read_text(encoding="utf-8"))
+    # Support both formats:
+    #   dict with "results" key (mistral, qwen72b)
+    #   flat list (gemini-3-flash)
+    rows = data.get("results", data) if isinstance(data, dict) else data
     m: dict[str, str] = {}
-    for row in data.get("results", []):
+    for row in rows:
         orig = row.get("original")
         if not orig:
             continue
-        rw = (row.get("rewrites") or {}).get(variant, "")
+        # Support both "rewrites" (plural) and "rewrite" (singular)
+        rw_dict = row.get("rewrites") or row.get("rewrite") or {}
+        rw = rw_dict.get(variant, "")
         if isinstance(rw, str) and not _is_bad_rewrite(rw):
             m[orig] = rw.strip()
     return m
@@ -51,11 +57,11 @@ def _rewrite_map_from_reformated(reformated_path: Path, variant: str) -> dict[st
 
 def build_one_dataset(
     dataset: str,
-    model: str,
+    model_dir: Path,
     variant: str,
 ) -> tuple[list[dict], dict[str, int]]:
     bench_path = BENCHMARKS_50 / f"{dataset}.json"
-    ref_path = REFORMATED_ROOT / model / f"{dataset}.json"
+    ref_path = model_dir / f"{dataset}.json"
     if not bench_path.exists():
         raise FileNotFoundError(bench_path)
     if not ref_path.exists():
@@ -112,29 +118,27 @@ def main() -> None:
     if args.models:
         models = args.models
     else:
-        models = sorted(
+        subdirs = sorted(
             d.name
             for d in REFORMATED_ROOT.iterdir()
             if d.is_dir() and not d.name.startswith(".")
         )
-
-    if not models:
-        print("ERROR: No model subdirs found under benchmark_50_reformated/", file=sys.stderr)
-        sys.exit(1)
+        # Fall back to treating REFORMATED_ROOT itself as a flat (no-subdir) model
+        models = subdirs if subdirs else ["gemini3_flash"]
 
     grand = {m: {"total": 0, "rewritten": 0, "fallback_original": 0} for m in models}
 
     for model in models:
         model_dir = REFORMATED_ROOT / model
+        # If no subdir exists, use REFORMATED_ROOT directly (flat layout)
         if not model_dir.is_dir():
-            print(f"WARN: skip missing model dir {model_dir}", file=sys.stderr)
-            continue
+            model_dir = REFORMATED_ROOT
         out_model_dir = OUT_ROOT / model
         out_model_dir.mkdir(parents=True, exist_ok=True)
 
         for ds in DATASETS:
             try:
-                tests, st = build_one_dataset(ds, model, args.variant)
+                tests, st = build_one_dataset(ds, model_dir, args.variant)
             except FileNotFoundError as e:
                 print(f"WARN: {e} — skipping {model}/{ds}", file=sys.stderr)
                 continue
