@@ -94,6 +94,8 @@ def build_retriever(
     index_name: str = DEFAULT_INDEX_NAME,
     embedding_model: str | None = None,
     embedding_provider: str | None = None,
+    embedding_cache: str | None = None,
+    retrieval_mode: str = "hybrid",
 ) -> OpenSearchRetriever:
     cfg = settings.opensearch
     lb_cfg = OpenSearchSettings(
@@ -106,11 +108,11 @@ def build_retriever(
             "OPENSEARCH_INDEX_NAME": index_name,
         }
     )
-    embedder = build_embedder(model_name=embedding_model, provider=embedding_provider)
+    embedder = build_embedder(model_name=embedding_model, provider=embedding_provider, cache_path=embedding_cache)
     os_client = OpenSearchClient(cfg=lb_cfg, embedding_dim=embedder.dim)
-    # Ensure the hybrid search pipeline exists (idempotent — safe to call every time)
-    os_client._ensure_hybrid_pipeline()
-    return OpenSearchRetriever(os_client, embedder, mode="hybrid", top_k=top_k)
+    if retrieval_mode == "hybrid":
+        os_client._ensure_hybrid_pipeline()
+    return OpenSearchRetriever(os_client, embedder, mode=retrieval_mode, top_k=top_k)
 
 
 # ── Per-query scoring ─────────────────────────────────────────────────────────
@@ -712,6 +714,21 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+        "--embedding-cache",
+        default="data/cache/embeddings",
+        metavar="PATH",
+        help=(
+            "Path to a diskcache directory for caching query embeddings across runs "
+            "(default: data/cache/embeddings). Only active when --embedding-provider openai "
+            "is used. Pass --no-embedding-cache to disable."
+        ),
+    )
+    parser.add_argument(
+        "--no-embedding-cache",
+        action="store_true",
+        help="Disable the embedding cache even for API-based providers.",
+    )
+    parser.add_argument(
         "--label",
         default=None,
         metavar="TEXT",
@@ -725,6 +742,12 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         default="WARNING",
         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
         help="Logging verbosity (default: WARNING — keeps output clean).",
+    )
+    parser.add_argument(
+        "--retrieval-mode",
+        default="hybrid",
+        choices=["hybrid", "semantic", "lexical"],
+        help="Retrieval mode: hybrid (KNN+BM25 via RRF), semantic (KNN only), or lexical (BM25 only). Default: hybrid.",
     )
     return parser.parse_args(argv)
 
@@ -749,11 +772,17 @@ def main(argv: list[str] | None = None) -> None:
         print("No test cases found. Check --data-dir and --benchmarks.", file=sys.stderr)
         sys.exit(1)
 
+    use_cache = (
+        not args.no_embedding_cache
+        and args.embedding_provider == "openai"
+    )
     retriever = build_retriever(
         top_k=top_k,
         index_name=args.index_name,
         embedding_model=args.embedding_model,
         embedding_provider=args.embedding_provider,
+        embedding_cache=args.embedding_cache if use_cache else None,
+        retrieval_mode=args.retrieval_mode,
     )
 
     trace_path = Path(args.trace_file)
