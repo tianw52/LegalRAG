@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Inspector</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+  html, body { height: 100%; margin: 0; }
+  mark.gt { background: #fef08a; border-radius: 2px; padding: 0 1px; }
+  .chunk-hit  { background: #f0fdf4; border-color: #86efac; }
+  .chunk-miss { background: #f9fafb; border-color: #e5e7eb; }
+  .q-item { border-left: 3px solid transparent; }
+  .q-item.active { background: #eff6ff; border-left-color: #3b82f6; }
+  .q-item:hover:not(.active) { background: #f8fafc; }
+  pre { white-space: pre-wrap; word-break: break-word; font-size: 12px; }
+  .line-clamp-2 {
+    display: -webkit-box; -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .chart-box { position: relative; height: 220px; }
+</style>
+</head>
+<body class="h-screen flex flex-col bg-gray-100 text-gray-900" style="font-size:13px">
+
+<!-- ── header ── -->
+<header class="bg-white border-b px-4 py-2 flex flex-wrap items-center gap-2 flex-shrink-0 shadow-sm">
+  <a href="/" class="text-gray-400 hover:text-gray-600 text-xs mr-1" title="Back to datasets">← Datasets</a>
+  <span id="hdr-title" class="font-bold text-gray-800 mr-1">⚖ Data Inspector</span>
+
+  <label class="text-gray-500 text-xs">Query model</label>
+  <select id="sel-model" class="border rounded px-2 py-1 bg-white text-xs"></select>
+
+  <label class="text-gray-500 text-xs">Embedder</label>
+  <select id="sel-embedder" class="border rounded px-2 py-1 bg-white text-xs"></select>
+
+  <span id="chunker-wrap" class="flex items-center gap-1.5">
+    <label class="text-gray-500 text-xs">Chunker</label>
+    <select id="sel-chunker" class="border rounded px-2 py-1 bg-white text-xs"></select>
+  </span>
+
+  <label class="text-gray-500 text-xs">Benchmark</label>
+  <select id="sel-dataset" class="border rounded px-2 py-1 bg-white text-xs">
+    <option value="">All</option>
+  </select>
+
+  <input id="search" type="text" placeholder="Filter queries…"
+         class="border rounded px-2 py-1 text-xs w-52">
+
+  <label class="text-gray-500 text-xs">Sort</label>
+  <select id="sel-sort" class="border rounded px-2 py-1 bg-white text-xs">
+    <option value="chunk_recall_max">Chunk Recall</option>
+    <option value="char_recall_max">Char Recall</option>
+    <option value="n_gt_snippets">GT Snippets</option>
+    <option value="total_gt_chars">GT Chars</option>
+    <option value="idx">Query Index</option>
+  </select>
+  <select id="sel-sort-dir" class="border rounded px-2 py-1 bg-white text-xs">
+    <option value="desc">↓ Desc</option>
+    <option value="asc">↑ Asc</option>
+  </select>
+
+  <div id="stats" class="ml-auto text-xs text-gray-400"></div>
+</header>
+
+<!-- ── main ── -->
+<div class="flex-1 flex overflow-hidden">
+
+  <!-- query list -->
+  <aside class="w-72 flex-shrink-0 bg-white border-r flex flex-col overflow-hidden">
+    <div id="list-hdr" class="px-3 py-1.5 text-xs text-gray-500 border-b bg-gray-50 flex-shrink-0">
+      Loading…
+    </div>
+    <div id="query-list" class="overflow-y-auto flex-1"></div>
+  </aside>
+
+  <!-- detail -->
+  <main id="detail" class="flex-1 overflow-y-auto">
+    <div class="flex items-center justify-center h-full text-gray-400 text-sm">
+      Select a query from the list
+    </div>
+  </main>
+
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

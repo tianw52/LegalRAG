@@ -1,0 +1,34 @@
+{
+  "barexam_hier": [
+    "clerc-ft",
+    "legalbert",
+    "mpnet",
+    "legal-bge",
+    "octen",
+    "qwen3"
+  ],
+  "barexam_rec": [
+    "clerc-ft",
+    "legalbert",
+    "mpnet",
+    "legal-bge",
+    "octen",
+    "qwen3"
+  ],
+  "housing_hier": [
+    "clerc-ft",
+    "legalbert",
+    "mpnet",
+    "legal-bge",
+    "octen",
+    "qwen3"
+  ],
+  "housing_rec": [
+    "clerc-ft",
+    "legalbert",
+    "mpnet",
+    "legal-bge",
+    "octen",
+    "qwen3"
+  ]
+}
