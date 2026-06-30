@@ -1,0 +1,6 @@
+# Extra packages needed for Table 21 baseline reproduction
+# (core deps torch, sentence-transformers, datasets already in the PyTorch venv)
+rank-bm25>=0.2.2
+faiss-cpu>=1.7.4        # used if CUDA is unavailable; gpu build used when CUDA is present
+numpy>=1.24
+tqdm>=4.65
