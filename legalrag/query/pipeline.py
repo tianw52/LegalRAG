@@ -24,8 +24,8 @@ from legalrag.core.interfaces import (
 from legalrag.core.models import RAGResponse
 from legalrag.ingestion.embedder import build_embedder
 from legalrag.opensearch.client import OpenSearchClient
-from legalrag.query.formulator import LLMQueryFormulator
-from legalrag.query.generator import LLMGenerator
+from legalrag.query.formulator import LLMQueryFormulator, PassthroughQueryFormulator
+from legalrag.query.generator import LLMGenerator, LocalHFGenerator
 from legalrag.query.retriever import OpenSearchRetriever
 from legalrag.query.router import ThresholdRouter
 
@@ -58,6 +58,87 @@ class QueryPipeline:
         return cls(
             formulator=LLMQueryFormulator(),
             retriever=OpenSearchRetriever(os_client, embedder, mode="hybrid"),
+            router=ThresholdRouter(),
+            generator=generator,
+        )
+
+    @classmethod
+    def local(
+        cls,
+        *,
+        index_name: str | None = None,
+        embedding_provider: str | None = None,
+        embedding_model: str | None = None,
+        retrieval_mode: str = "hybrid",
+        local_model_id: str = LocalHFGenerator.DEFAULT_MODEL,
+        max_context_chunks: int = 5,
+        max_new_tokens: int = 512,
+        temperature: float = 0.1,
+        expand_to_parent: bool = True,
+        hf_offline: bool = False,
+    ) -> "QueryPipeline":
+        """Construct the pipeline using a local HuggingFace LLM for generation.
+
+        This factory is designed for cluster use (no API server needed).
+        The embedding model is configured via the usual .env / env vars and
+        can be overridden via the keyword arguments below.
+
+        Parameters
+        ----------
+        index_name:
+            OpenSearch index to query.  If ``None``, uses the value from
+            ``OPENSEARCH_INDEX_NAME`` in the environment / .env file.
+        embedding_provider:
+            ``"sentence_transformers"`` or ``"huggingface"``.  Defaults to
+            ``EMBEDDING_PROVIDER`` env var.
+        embedding_model:
+            HF model ID for the retrieval embedder.  Defaults to
+            ``EMBEDDING_MODEL`` env var.
+        retrieval_mode:
+            ``"hybrid"`` (default), ``"semantic"``, or ``"lexical"``.
+        local_model_id:
+            HuggingFace model ID for the local generator.  Defaults to
+            ``Qwen/Qwen2.5-7B-Instruct``.
+        max_context_chunks:
+            Number of retrieved chunks to include in the generation prompt.
+        max_new_tokens:
+            Token budget for the generated answer.
+        temperature:
+            Sampling temperature (0.0 = greedy).
+        expand_to_parent:
+            Expand child chunks to parent for richer context.
+        hf_offline:
+            Load both embedder and generator from local HF cache only.
+        """
+        import os
+
+        if hf_offline:
+            os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
+            os.environ.setdefault("HF_HUB_OFFLINE", "1")
+
+        from legalrag.core.config import settings as _settings
+
+        if index_name:
+            os.environ["OPENSEARCH_INDEX_NAME"] = index_name
+        if embedding_provider:
+            os.environ["EMBEDDING_PROVIDER"] = embedding_provider
+        if embedding_model:
+            os.environ["EMBEDDING_MODEL"] = embedding_model
+
+        os_client = OpenSearchClient.from_settings()
+        embedder = build_embedder()
+        generator = LocalHFGenerator(
+            model_id=local_model_id,
+            os_client=os_client if expand_to_parent else None,
+            expand_to_parent=expand_to_parent,
+            max_context_chunks=max_context_chunks,
+            max_new_tokens=max_new_tokens,
+            temperature=temperature,
+            hf_offline=hf_offline,
+        )
+        return cls(
+            formulator=PassthroughQueryFormulator(),
+            retriever=OpenSearchRetriever(os_client, embedder, mode=retrieval_mode),
             router=ThresholdRouter(),
             generator=generator,
         )

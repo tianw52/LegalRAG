@@ -79,6 +79,7 @@ class BenchmarkTestCase(BaseModel):
     query: str
     snippets: list[BenchmarkSnippet]
     tags: list[str] = []
+    jurisdiction: str | None = None
 
 
 # ── Corpus loader ─────────────────────────────────────────────────────────────
@@ -204,6 +205,7 @@ def load_benchmark(
                         for s in t.get("snippets", [])
                     ],
                     tags=tags,
+                    jurisdiction=t.get("jurisdiction"),
                 )
             )
         logger.info("Loaded %d tests from %s", len(tests_raw), json_path)

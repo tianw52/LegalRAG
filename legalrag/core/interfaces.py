@@ -61,8 +61,17 @@ class BaseEmbedder(ABC):
     """Encodes text into dense vectors."""
 
     @abstractmethod
-    def embed(self, texts: list[str]) -> list[list[float]]:
-        """Return one embedding per input text."""
+    def embed(
+        self,
+        texts: list[str],
+        *,
+        role: str | None = None,
+    ) -> list[list[float]]:
+        """Return one embedding per input text.
+
+        *role* may be ``"query"`` or ``"passage"`` for models that require
+        asymmetric prefixes (E5, Qwen3-Embedding, Octen documents, etc.).
+        """
 
     @property
     @abstractmethod

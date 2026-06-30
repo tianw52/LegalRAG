@@ -23,7 +23,11 @@ from legalrag.core.interfaces import (
     BaseMetadataExtractor,
 )
 from legalrag.core.models import doc_id_from_citation
-from legalrag.ingestion.chunker import HierarchicalChunker, RecursiveCharacterTextSplitter
+from legalrag.ingestion.chunker import (
+    FlatPassageChunker,
+    HierarchicalChunker,
+    RecursiveCharacterTextSplitter,
+)
 from legalrag.ingestion.embedder import SentenceTransformerEmbedder, build_embedder
 from legalrag.ingestion.indexer import OpenSearchIndexer
 from legalrag.ingestion.loader import TxtFileLoader, clean_document_text
@@ -130,7 +134,7 @@ class IngestionPipeline:
                 child_chunks = chunks
             if child_chunks:
                 texts = [c.text for c in child_chunks]
-                embeddings = self.embedder.embed(texts)
+                embeddings = self.embedder.embed(texts, role="passage")
                 for chunk, emb in zip(child_chunks, embeddings):
                     chunk.embedding = emb
 
@@ -166,4 +170,8 @@ def _build_chunker(
         if chunk_overlap is not None:
             kwargs["chunk_overlap"] = chunk_overlap
         return RecursiveCharacterTextSplitter(**kwargs)
-    raise ValueError(f"Unknown chunker: {name!r}. Choose 'hierarchical' or 'recursive'.")
+    if name == "flat_passage":
+        return FlatPassageChunker()
+    raise ValueError(
+        f"Unknown chunker: {name!r}. Choose 'hierarchical', 'recursive', or 'flat_passage'."
+    )

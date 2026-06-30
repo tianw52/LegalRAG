@@ -126,6 +126,15 @@ class HierarchicalChunker(BaseChunker):
     def chunk(self, document: RawDocument) -> list[Chunk]:
         text = document.text
         doc_id = document.metadata.doc_id
+
+        # Guard: skip truly empty documents — they cannot be embedded.
+        if not text or not text.strip():
+            logger.warning(
+                "HierarchicalChunker: skipping empty/whitespace-only document '%s'",
+                document.metadata.source_path,
+            )
+            return []
+
         parent_spans = _split_positions(text, self._parent_size)
 
         all_chunks: list[Chunk] = []
@@ -146,11 +155,37 @@ class HierarchicalChunker(BaseChunker):
             )
             all_chunks.append(parent_chunk)
 
-            # Child chunks: sliding window over the parent span
+            # Child chunks: sliding window over the parent span.
+            # For short passages (len < child_size) the window produces exactly
+            # one child covering the whole parent span, so every non-empty
+            # document is guaranteed at least one searchable child chunk.
             children = self._sliding_window(
                 parent_text, offset=p_start, doc_id=doc_id, parent_id=parent_id,
                 metadata=document.metadata,
             )
+
+            # Fallback safety net: if the sliding window somehow produces no
+            # children (should not happen for non-empty text, but guard anyway),
+            # emit the whole parent span as a single child chunk so the document
+            # remains retrievable by kNN search.
+            if not children:
+                logger.warning(
+                    "HierarchicalChunker: parent span [%d,%d] of '%s' produced no "
+                    "child chunks — creating fallback whole-span child chunk.",
+                    p_start, p_end, document.metadata.source_path,
+                )
+                children = [
+                    Chunk(
+                        chunk_id=stable_id(doc_id, str(p_start), str(p_end), "fallback"),
+                        doc_id=doc_id,
+                        parent_chunk_id=parent_id,
+                        text=parent_text,
+                        char_start=p_start,
+                        char_end=p_end,
+                        metadata=document.metadata,
+                    )
+                ]
+
             all_chunks.extend(children)
 
         logger.debug(
@@ -363,3 +398,34 @@ class RecursiveCharacterTextSplitter(BaseChunker):
 
         windows.append((win_start, win_end))
         return windows
+
+
+class FlatPassageChunker(BaseChunker):
+    """Index each HF passage as a single retrieval unit (paper-style).
+
+    No sub-chunking: one child chunk spans the full passage text.  Use this
+    mode to isolate whether hierarchical/recursive chunking hurts Recall@K.
+    """
+
+    def chunk(self, document: RawDocument) -> list[Chunk]:
+        text = document.text or ""
+        if not text.strip():
+            logger.warning(
+                "FlatPassageChunker: skipping empty document '%s'",
+                document.metadata.source_path,
+            )
+            return []
+
+        doc_id = document.metadata.doc_id
+        n = len(text)
+        return [
+            Chunk(
+                chunk_id=stable_id(doc_id, "flat", "0", str(n)),
+                doc_id=doc_id,
+                parent_chunk_id=None,
+                text=text,
+                char_start=0,
+                char_end=n,
+                metadata=document.metadata,
+            )
+        ]

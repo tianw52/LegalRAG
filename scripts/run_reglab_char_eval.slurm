@@ -8,8 +8,9 @@
 #SBATCH --time=12:00:00
 # Narval / Alliance: full A100 (see sinfo / docs). For MIG slices use e.g. gpu:a100_4g.20gb:1
 #SBATCH --gres=gpu:a100:1
-#SBATCH --output=slurm_logs/reglab_char_eval_%j.out
-#SBATCH --error=slurm_logs/reglab_char_eval_%j.err
+# Writable cwd recommended: cd "${SCRATCH:-$HOME}" && sbatch .../run_reglab_char_eval.slurm
+#SBATCH --output=reglab_char_eval_%j.out
+#SBATCH --error=reglab_char_eval_%j.err
 
 # RegLab datasets — LegalBench-style CharRecall@K / CharPrecision@K (eval_recall, default K=20,40,60).
 #
@@ -33,6 +34,7 @@
 #   INDEX_HOUSING=legalrag-reglab-housing-mpnet
 #   KS="20 40 60"               — passed to eval (default: eval_recall adds 20 40 60 if you omit --ks)
 #   RUN_BAREXAM=0 / RUN_HOUSING=0 — skip one dataset
+#   REGLAB_REGLOG=/path       — trace JSONL (default: $SCRATCH/legalrag_reglab_logs or $HOME/...)
 #
 set -e
 
@@ -40,8 +42,15 @@ LEGALRAG_ROOT="/home/ram112/projects/def-jieliang/ram112/LegalRAG"
 LEGALRAG_VENV="${LEGALRAG_VENV:-/home/ram112/projects/def-jieliang/ram112/PyTorch}"
 OPENSEARCH_DIR="${OPENSEARCH_TARBALL_DIR:-$HOME/opensearch-2.14.0}"
 REGLAB_ROOT="${REGLAB_ROOT:-$LEGALRAG_ROOT/data/reglab_eval}"
+if [[ "${REGLAB_ROOT}" == "$LEGALRAG_ROOT/data/reglab_eval" ]] && [[ ! -d "$REGLAB_ROOT/barexam_qa/corpus" ]] && [[ -n "${SCRATCH:-}" ]]; then
+  if [[ -d "${SCRATCH}/reglab_eval/barexam_qa/corpus" ]]; then
+    REGLAB_ROOT="${SCRATCH}/reglab_eval"
+    echo "Using REGLAB_ROOT=$REGLAB_ROOT (data found on SCRATCH)"
+  fi
+fi
 BAREXAM_DIR="$REGLAB_ROOT/barexam_qa"
 HOUSING_DIR="$REGLAB_ROOT/housing_qa"
+REGLAB_REGLOG="${REGLAB_REGLOG:-${SCRATCH:-$HOME}/legalrag_reglab_logs}"
 
 EMBED_PROVIDER="${EMBED_PROVIDER:-sentence_transformers}"
 EMBED_MODEL="${EMBED_MODEL:-sentence-transformers/all-mpnet-base-v2}"
@@ -73,7 +82,7 @@ python3 -c "import legalrag" || {
 
 export CUDA_VISIBLE_DEVICES=0
 echo "CUDA: $(python3 -c 'import torch; print(torch.cuda.get_device_name(0) if torch.cuda.is_available() else "N/A")')"
-mkdir -p slurm_logs logs/reglab
+mkdir -p "$REGLAB_REGLOG"
 
 if [[ "$RUN_BAREXAM" == "1" ]] && [[ ! -d "$BAREXAM_DIR/corpus" ]]; then
     echo "ERROR: Missing $BAREXAM_DIR/corpus"
@@ -168,7 +177,7 @@ if [[ "$RUN_BAREXAM" == "1" ]]; then
         --index-name "$INDEX_BAREXAM" \
         --embedding-provider "$EMBED_PROVIDER" \
         --embedding-model "$EMBED_MODEL" \
-        --trace-file "$LEGALRAG_ROOT/logs/reglab/barexam_char_${SLURM_JOB_ID}.jsonl" \
+        --trace-file "$REGLAB_REGLOG/barexam_char_${SLURM_JOB_ID}.jsonl" \
         "${EVAL_EXTRA[@]}"
 fi
 
@@ -180,7 +189,7 @@ if [[ "$RUN_HOUSING" == "1" ]]; then
         --index-name "$INDEX_HOUSING" \
         --embedding-provider "$EMBED_PROVIDER" \
         --embedding-model "$EMBED_MODEL" \
-        --trace-file "$LEGALRAG_ROOT/logs/reglab/housing_char_${SLURM_JOB_ID}.jsonl" \
+        --trace-file "$REGLAB_REGLOG/housing_char_${SLURM_JOB_ID}.jsonl" \
         "${EVAL_EXTRA[@]}"
 fi
 

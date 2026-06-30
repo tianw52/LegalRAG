@@ -45,7 +45,7 @@ class OpenSearchRetriever(BaseRetriever):
         query_text = query.reformulated_query or query.raw_query
 
         if self._mode == "semantic":
-            vector = self._embedder.embed([query_text])[0]
+            vector = self._embedder.embed([query_text], role="query")[0]
             hits = self._client.knn_search(vector, k=self._top_k, filters=filters)
             return [self._hit_to_retrieved(h, semantic_score=h["_score"]) for h in hits]
 
@@ -54,7 +54,7 @@ class OpenSearchRetriever(BaseRetriever):
             return [self._hit_to_retrieved(h, lexical_score=h["_score"]) for h in hits]
 
         # hybrid (default) — native OpenSearch hybrid query with RRF pipeline
-        vector = self._embedder.embed([query_text])[0]
+        vector = self._embedder.embed([query_text], role="query")[0]
         hits = self._client.hybrid_search(
             vector, query_text, k=self._top_k, filters=filters
         )

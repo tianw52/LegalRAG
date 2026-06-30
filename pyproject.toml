@@ -40,7 +40,7 @@ dev = [
 ]
 eval = [
     "pytrec_eval-terrier>=0.5.6",   # NDCG / MRR / MAP evaluation (CLERC)
-    "datasets>=2.15.0",              # HuggingFace dataset loading
+    "datasets>=2.15.0,<3.0.0",       # HuggingFace dataset loading; RegLab uses dataset scripts
 ]
 # Local Qwen rewrite deps: use requirements-local-rewrite.txt (standalone; avoids pulling legalrag + pydantic-ai).
 

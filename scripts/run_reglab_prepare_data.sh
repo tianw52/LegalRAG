@@ -6,7 +6,7 @@
 #   LEGALRAG_VENV=...   (default: sibling PyTorch venv next to LegalRAG in ram112 tree)
 #   REGLAB_ROOT=...     (default: <repo>/data/reglab_eval) — e.g. put HF exports on $SCRATCH
 #   MAX_CORPUS_DOCS=N   — smoke test; passes --max-corpus-docs to prepare
-#   SKIP_PIP_INSTALL=1  — do not run pip (venv already has deps)
+#   SKIP_PIP_INSTALL=1  — do not run pip (venv already has deps; default in Slurm)
 
 set -euo pipefail
 
@@ -19,8 +19,18 @@ REGLAB_ROOT="${REGLAB_ROOT:-$LEGALRAG_ROOT/data/reglab_eval}"
 # shellcheck source=/dev/null
 source "$LEGALRAG_VENV/bin/activate"
 
+python - <<'PY'
+import datasets
+import pandas
+import pyarrow
+
+print(f"datasets={datasets.__version__} pandas={pandas.__version__} pyarrow={pyarrow.__version__}")
+PY
+
 if [[ "${SKIP_PIP_INSTALL:-0}" != "1" ]]; then
-  pip install -e ".[eval]" -q
+  echo "$(date -Is) — pip install -e '.[eval]' (this can take several minutes on compute nodes; set SKIP_PIP_INSTALL=1 if the venv is already provisioned)"
+  pip install -e ".[eval]"
+  echo "$(date -Is) — pip install finished"
 else
   echo "SKIP_PIP_INSTALL=1 — skipping pip install -e .[eval]"
 fi

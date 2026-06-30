@@ -60,6 +60,14 @@ class OpenSearchClient:
     def ping(self) -> bool:
         return self._client.ping()
 
+    def document_count(self) -> int:
+        """Return the number of documents in the index (0 if missing or unreachable)."""
+        try:
+            resp = self._client.count(index=self.index_name)
+            return int(resp.get("count", 0))
+        except Exception:
+            return 0
+
     # ── Index management ──────────────────────────────────────────────────────
 
     def _index_embedding_dim_matches(self) -> bool:
@@ -184,6 +192,8 @@ class OpenSearchClient:
             "settings": {
                 "index": {
                     "knn": True,
+                    # Allow paper_eval to retrieve up to top_chunks (default 50k).
+                    "max_result_window": 50000,
                     # ef_search controls recall at query time; 512 is a good balance
                     # for legal text (can be tuned per-query via the knn query params)
                     "knn.algo_param.ef_search": 512,

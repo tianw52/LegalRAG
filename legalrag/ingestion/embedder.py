@@ -20,6 +20,7 @@ from functools import cached_property
 
 from legalrag.core.config import settings
 from legalrag.core.interfaces import BaseEmbedder
+from legalrag.ingestion.embed_prefixes import EmbedRole, format_embedding_inputs
 
 logger = logging.getLogger(__name__)
 
@@ -42,11 +43,17 @@ class SentenceTransformerEmbedder(BaseEmbedder):
     def dim(self) -> int:
         return self._model.get_sentence_embedding_dimension()  # type: ignore[return-value]
 
-    def embed(self, texts: list[str]) -> list[list[float]]:
+    def embed(
+        self,
+        texts: list[str],
+        *,
+        role: EmbedRole | None = None,
+    ) -> list[list[float]]:
         if not texts:
             return []
+        inputs = format_embedding_inputs(texts, self._model_name, role=role)
         embeddings = self._model.encode(
-            texts,
+            inputs,
             batch_size=self._batch_size,
             show_progress_bar=False,
             normalize_embeddings=True,
@@ -91,7 +98,12 @@ class HuggingFaceEmbedder(BaseEmbedder):
     def dim(self) -> int:
         return self._model.config.hidden_size
 
-    def embed(self, texts: list[str]) -> list[list[float]]:
+    def embed(
+        self,
+        texts: list[str],
+        *,
+        role: EmbedRole | None = None,
+    ) -> list[list[float]]:
         if not texts:
             return []
         import torch
@@ -99,9 +111,10 @@ class HuggingFaceEmbedder(BaseEmbedder):
 
         device = next(self._model.parameters()).device
         all_embeddings: list[list[float]] = []
+        inputs = format_embedding_inputs(texts, self._model_name, role=role)
 
-        for i in range(0, len(texts), self._batch_size):
-            batch = texts[i : i + self._batch_size]
+        for i in range(0, len(inputs), self._batch_size):
+            batch = inputs[i : i + self._batch_size]
             encoded = self._tokenizer(
                 batch,
                 padding=True,
@@ -158,15 +171,45 @@ class OpenAIEmbedder(BaseEmbedder):
             self._dim = len(probe[0])
         return self._dim
 
-    def embed(self, texts: list[str]) -> list[list[float]]:
+    def embed(
+        self,
+        texts: list[str],
+        *,
+        role: EmbedRole | None = None,
+    ) -> list[list[float]]:
         if not texts:
             return []
         results: list[list[float]] = []
-        for i in range(0, len(texts), self._batch_size):
-            batch = texts[i : i + self._batch_size]
+        inputs = format_embedding_inputs(texts, self._model or "", role=role)
+        for i in range(0, len(inputs), self._batch_size):
+            batch = inputs[i : i + self._batch_size]
             response = self._client.embeddings.create(model=self._model, input=batch)
             results.extend([item.embedding for item in response.data])
         return results
+
+
+class NullEmbedder(BaseEmbedder):
+    """No-op embedder for lexical-only (BM25) retrieval.
+
+    Does not load any model.  ``dim`` returns 1 so that OpenSearchClient can
+    be constructed without an active kNN index, and ``embed`` raises an error
+    if called (it should never be invoked in lexical mode).
+    """
+
+    def embed(
+        self,
+        texts: list[str],
+        *,
+        role: EmbedRole | None = None,
+    ) -> list[list[float]]:
+        raise RuntimeError(
+            "NullEmbedder.embed() called — embeddings should not be needed in "
+            "lexical (BM25-only) retrieval mode."
+        )
+
+    @property
+    def dim(self) -> int:
+        return 1
 
 
 def build_embedder(
@@ -181,9 +224,12 @@ def build_embedder(
         Override the model name from ``EMBEDDING_MODEL`` in ``.env``.
     provider:
         Override the provider from ``EMBEDDING_PROVIDER`` in ``.env``.
-        Choices: ``sentence_transformers``, ``huggingface``, ``openai``.
+        Choices: ``sentence_transformers``, ``huggingface``, ``openai``,
+        ``null`` (BM25-only, no model loaded).
     """
     resolved_provider = provider or settings.embedding.provider
+    if resolved_provider in ("null", "none"):
+        return NullEmbedder()
     if resolved_provider == "sentence_transformers":
         return SentenceTransformerEmbedder(model_name=model_name)
     if resolved_provider == "huggingface":

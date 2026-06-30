@@ -40,7 +40,11 @@ from tqdm import tqdm
 from legalrag.core.config import settings
 from legalrag.core.interfaces import BaseChunker
 from legalrag.core.models import Chunk
-from legalrag.ingestion.chunker import HierarchicalChunker, RecursiveCharacterTextSplitter
+from legalrag.ingestion.chunker import (
+    FlatPassageChunker,
+    HierarchicalChunker,
+    RecursiveCharacterTextSplitter,
+)
 from legalrag.ingestion.embedder import build_embedder
 from legalrag.ingestion.indexer import OpenSearchIndexer
 from legalrag.opensearch.client import OpenSearchClient, OpenSearchSettings
@@ -137,6 +141,50 @@ class LegalBenchRAGIngestionPipeline:
             indexer=OpenSearchIndexer(os_client),
         )
 
+    @classmethod
+    def build_with_loader(
+        cls,
+        loader,
+        chunker: str = "hierarchical",
+        chunk_size: int | None = None,
+        chunk_overlap: int | None = None,
+        parent_size: int | None = None,
+        embedding_model: str | None = None,
+        embedding_provider: str | None = None,
+        index_name: str = DEFAULT_INDEX_NAME,
+    ) -> "LegalBenchRAGIngestionPipeline":
+        """Build pipeline with a pre-constructed loader (e.g. in-memory / HuggingFace)."""
+        cfg = settings.opensearch
+        lb_cfg = OpenSearchSettings(
+            **{
+                "OPENSEARCH_HOST": cfg.host,
+                "OPENSEARCH_PORT": cfg.port,
+                "OPENSEARCH_USER": cfg.user,
+                "OPENSEARCH_PASSWORD": cfg.password,
+                "OPENSEARCH_USE_SSL": cfg.use_ssl,
+                "OPENSEARCH_INDEX_NAME": index_name,
+            }
+        )
+
+        chunker_obj: BaseChunker = _build_chunker(
+            chunker,
+            chunk_size=chunk_size,
+            chunk_overlap=chunk_overlap,
+            parent_size=parent_size,
+        )
+
+        embedder = build_embedder(model_name=embedding_model, provider=embedding_provider)
+
+        os_client = OpenSearchClient(cfg=lb_cfg, embedding_dim=embedder.dim)
+        os_client.ensure_index()
+
+        return cls(
+            loader=loader,
+            chunker=chunker_obj,
+            embedder=embedder,
+            indexer=OpenSearchIndexer(os_client),
+        )
+
     def run(self, file_paths: list[str] | None = None) -> None:
         """Ingest documents.
 
@@ -148,7 +196,7 @@ class LegalBenchRAGIngestionPipeline:
             benchmark subset.  ``None`` uses the paths configured in the
             loader (or discovers all ``*.txt`` files).
         """
-        if file_paths is not None:
+        if file_paths is not None and hasattr(self._loader, "_file_paths"):
             self._loader._file_paths = file_paths
 
         batch_chunks: list[Chunk] = []
@@ -199,7 +247,7 @@ class LegalBenchRAGIngestionPipeline:
 
     def _embed_and_index(self, chunks: list[Chunk]) -> None:
         texts = [c.text for c in chunks]
-        embeddings = self._embedder.embed(texts)
+        embeddings = self._embedder.embed(texts, role="passage")
         for chunk, emb in zip(chunks, embeddings):
             chunk.embedding = emb
         self._indexer.index(chunks)
@@ -231,5 +279,9 @@ def _build_chunker(
         if chunk_overlap is not None:
             kwargs["chunk_overlap"] = chunk_overlap
         return RecursiveCharacterTextSplitter(**kwargs)
-    raise ValueError(f"Unknown chunker: {name!r}. Choose 'hierarchical' or 'recursive'.")
+    if name == "flat_passage":
+        return FlatPassageChunker()
+    raise ValueError(
+        f"Unknown chunker: {name!r}. Choose 'hierarchical', 'recursive', or 'flat_passage'."
+    )
 

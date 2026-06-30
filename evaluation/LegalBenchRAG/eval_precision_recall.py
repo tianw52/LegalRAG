@@ -185,6 +185,8 @@ def score_query(
     ks: list[int],
     trace_fh=None,
     query_idx: int = 0,
+    corpus_dir: "Path | None" = None,
+    disable_jurisdiction_filter: bool = False,
 ) -> QueryScore:
     """Run retrieval for one test case and return character-level Precision@K / Recall@K.
 
@@ -200,10 +202,33 @@ def score_query(
     If ``trace_fh`` is provided, one JSON line is appended per query with the
     full retrieval trace: query text, GT snippets, all retrieved chunks (ranked),
     per-K metrics, and which retrieved chunks hit/missed at each K.
+
+    If ``disable_jurisdiction_filter`` is True, the ``court_filter`` derived
+    from ``test.jurisdiction`` or GT snippet paths is suppressed and retrieval
+    runs across the full corpus (same behaviour as BarExam full-corpus eval).
+    Metrics, K values, scoring, and ground-truth matching are unaffected.
     """
+    # OpenSearch ``court`` must match :attr:`LegalDocumentMetadata.court`, which
+    # for reglab/housing_qa is taken from the citation folder
+    # (``statutes/<state>/...``, often lowercased in the Parquet export).  The
+    # benchmark ``jurisdiction`` string is frequently Title Case — an exact term
+    # filter on that form returns zero hits.  Prefer the path segment from any
+    # gold snippet so the filter aligns with the index.
+    court_filter: str | None = None
+    if (not disable_jurisdiction_filter) and test.jurisdiction:
+        for s in test.snippets:
+            parts = (s.file_path or "").split("/")
+            if len(parts) >= 3 and parts[0] == "statutes":
+                court_filter = parts[1]
+                break
+        if court_filter is None:
+            j = test.jurisdiction.strip()
+            court_filter = j.casefold() if j else None
+
     sq = StructuredQuery(
         raw_query=test.query,
         reformulated_query=test.query,
+        court_filter=court_filter,
     )
     results = retriever.retrieve(sq)
 
@@ -226,6 +251,7 @@ def score_query(
             "char_len": chunk.char_end - chunk.char_start,
             "score": r.semantic_score,
             "chunk_id": chunk.chunk_id,
+            "chunk_text": chunk.text or "",
         })
 
     # GT spans grouped by file
@@ -281,14 +307,23 @@ def score_query(
             })
 
     if trace_fh is not None:
+        # Ground truth snippets — include actual text if corpus_dir provided
+        gt_entries = []
+        for s in test.snippets:
+            entry: dict = {"file": s.file_path, "span": list(s.span)}
+            if corpus_dir is not None:
+                try:
+                    full_text = (corpus_dir / s.file_path).read_text(encoding="utf-8", errors="replace")
+                    entry["gt_text"] = full_text[s.span[0]: s.span[1]]
+                except OSError:
+                    entry["gt_text"] = None
+            gt_entries.append(entry)
+
         record = {
             "query_idx": query_idx,
             "query": test.query,
             "tags": test.tags,
-            "ground_truth": [
-                {"file": s.file_path, "span": list(s.span)}
-                for s in test.snippets
-            ],
+            "ground_truth": gt_entries,
             "total_gt_chars": total_gt_chars,
             "n_retrieved": len(retrieved),
             "retrieved_all": retrieved_meta,
@@ -557,6 +592,19 @@ def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+        "--no-court-filter",
+        dest="no_court_filter",
+        action="store_true",
+        default=False,
+        help=(
+            "Disable per-query jurisdiction/court filtering. "
+            "When set, retrieval runs across the full corpus regardless of "
+            "test.jurisdiction or GT snippet paths (same as BarExam full-corpus mode). "
+            "Metrics, K values, chunking, embeddings, and GT matching are unaffected. "
+            "Useful for an apples-to-apples ablation against BarExam."
+        ),
+    )
+    parser.add_argument(
         "--log-level",
         default="WARNING",
         choices=["DEBUG", "INFO", "WARNING", "ERROR"],
@@ -575,6 +623,7 @@ def main(argv: list[str] | None = None) -> None:
     data_dir = args.data_dir.rstrip("/")
     benchmarks_dir = args.benchmarks_dir.rstrip("/") if args.benchmarks_dir else f"{data_dir}/benchmarks"
     benchmark_names = args.benchmarks or ["contractnli", "cuad", "maud", "privacy_qa"]
+    corpus_dir = Path(f"{data_dir}/corpus")
 
     tests = load_benchmark(
         benchmarks_dir,
@@ -602,12 +651,17 @@ def main(argv: list[str] | None = None) -> None:
     if trace_fh:
         sys.stdout = _Tee(_real_stdout, trace_fh)
     try:
+        _filter_note = " [no-court-filter: full-corpus ablation]" if args.no_court_filter else ""
         print(
             f"\nRunning evaluation: {len(tests)} queries, "
-            f"K={ks}, top_k={top_k}, index={args.index_name} …"
+            f"K={ks}, top_k={top_k}, index={args.index_name}{_filter_note} …"
         )
         for i, test in enumerate(tests, 1):
-            score = score_query(test, retriever, ks=ks, trace_fh=trace_fh, query_idx=i)
+            score = score_query(
+                test, retriever, ks=ks, trace_fh=trace_fh, query_idx=i,
+                corpus_dir=corpus_dir,
+                disable_jurisdiction_filter=args.no_court_filter,
+            )
             scores.append(score)
             if i % 50 == 0:
                 print(f"  {i}/{len(tests)} queries done …")

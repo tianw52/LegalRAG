@@ -24,9 +24,13 @@ Query strings
 
 Corpus size
 -----------
-Full exports are large (~900k passages for barexam; ~1.7M statutes for housing). Use
+Full exports are large (~857k passages for barexam — train+validation+test; ~1.7M statutes for housing). Use
 ``--max-corpus-docs`` for smoke tests (writes the first *N* corpus rows in dataset order,
 then keeps only QA items whose gold IDs lie in that set).
+
+By default the corpus step iterates the **non-streaming** HuggingFace split so dataset scripts
+are not required to open local TSV paths that may be missing on compute nodes. Set
+``REGLAB_PREPARE_STREAMING=1`` to force streaming (only if those paths exist).
 
 Dependencies::
     pip install -e ".[eval]"
@@ -36,6 +40,10 @@ Examples::
     python -m evaluation.reglab.prepare barexam_qa --out-dir data/reglab_eval/barexam_qa
 
     python -m evaluation.reglab.prepare housing_qa --out-dir data/reglab_eval/housing_qa
+
+After a housing disk export, build Parquet shards over ``housing_qa/corpus`` (see
+``tools/full_corpus_fast/run_build_housing_parquet.slurm``) before full GPU eval with
+``scripts/run_reglab_housing_full_eval_array.slurm``.
 
     # smoke test
     python -m evaluation.reglab.prepare barexam_qa --out-dir data/reglab_eval/barexam_smoke \\
@@ -47,12 +55,14 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import os
 import shutil
 import sys
 from pathlib import Path
 from typing import Any
 
 from evaluation.reglab.util import PREFIX_PASSAGES, corpus_relpath, statute_relpath
+from evaluation.reglab.hf_reglab import iter_barexam_qa_rows, load_barexam_all_passages
 
 logger = logging.getLogger(__name__)
 
@@ -74,6 +84,10 @@ def _pick_split_name(ds_dict: dict, preferred: tuple[str, ...]) -> str:
     return next(iter(ds_dict.keys()))
 
 
+def _env_flag(name: str) -> bool:
+    return os.environ.get(name, "").strip().lower() in ("1", "true", "yes")
+
+
 def _write_text(path: Path, text: str) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(text, encoding="utf-8")
@@ -92,23 +106,19 @@ def prepare_barexam_qa(out_dir: Path, max_corpus_docs: int | None) -> None:
     out_corpus.mkdir(parents=True)
     out_bm.mkdir(parents=True)
 
-    passage_meta = load_dataset("reglab/barexam_qa", "passages", trust_remote_code=True)
-    split_name = _pick_split_name(passage_meta, ("train", "validation", "test"))
+    passages = load_barexam_all_passages(load_dataset, trust_remote_code=True)
 
     allowed: set[str] | None = set() if max_corpus_docs is not None else None
     n_written = 0
 
-    try:
-        passage_iter = load_dataset(
-            "reglab/barexam_qa",
-            "passages",
-            split=split_name,
-            streaming=True,
-            trust_remote_code=True,
+    # Streaming uses the dataset builder's local TSV paths; on cluster nodes those paths
+    # often don't exist (different checkout / no HF download). Prefer the cached Dataset.
+    passage_iter = passages
+    if _env_flag("REGLAB_PREPARE_STREAMING"):
+        logger.warning(
+            "REGLAB_PREPARE_STREAMING=1 ignored for barexam_qa — full corpus requires "
+            "concatenated train+validation+test splits."
         )
-    except Exception as exc:  # noqa: BLE001
-        logger.warning("Streaming load failed (%s); falling back to non-streaming.", exc)
-        passage_iter = passage_meta[split_name]
 
     for row in passage_iter:
         if max_corpus_docs is not None and n_written >= max_corpus_docs:
@@ -124,11 +134,9 @@ def prepare_barexam_qa(out_dir: Path, max_corpus_docs: int | None) -> None:
     logger.info("Wrote %d passage files under %s", n_written, out_corpus)
 
     qa_meta = load_dataset("reglab/barexam_qa", "qa", trust_remote_code=True)
-    qa_split = _pick_split_name(qa_meta, ("train", "validation", "test"))
-    qa_rows = qa_meta[qa_split]
 
     tests: list[dict[str, Any]] = []
-    for row in qa_rows:
+    for row in iter_barexam_qa_rows(qa_meta):
         gid = str(row["gold_idx"])
         if allowed is not None and gid not in allowed:
             continue
@@ -180,17 +188,19 @@ def prepare_housing_qa(out_dir: Path, max_corpus_docs: int | None) -> None:
     n_written = 0
     statute_idx_to_state: dict[str, str] = {}
 
-    try:
-        stat_iter = load_dataset(
-            "reglab/housing_qa",
-            "statutes",
-            split=split_name,
-            streaming=True,
-            trust_remote_code=True,
-        )
-    except Exception as exc:  # noqa: BLE001
-        logger.warning("Streaming load failed (%s); falling back to non-streaming.", exc)
-        stat_iter = stat_meta[split_name]
+    stat_iter = stat_meta[split_name]
+    if _env_flag("REGLAB_PREPARE_STREAMING"):
+        try:
+            stat_iter = load_dataset(
+                "reglab/housing_qa",
+                "statutes",
+                split=split_name,
+                streaming=True,
+                trust_remote_code=True,
+            )
+        except Exception as exc:  # noqa: BLE001
+            logger.warning("Streaming load failed (%s); using non-streaming split.", exc)
+            stat_iter = stat_meta[split_name]
 
     for row in stat_iter:
         if max_corpus_docs is not None and n_written >= max_corpus_docs:
