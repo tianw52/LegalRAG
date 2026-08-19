@@ -1,0 +1,151 @@
+{
+  "query_id": "7",
+  "query_type": "relational",
+  "title": "NDA disclosure obligations — State of Illinois / Vendor",
+  "summary": "Network of permitted and prohibited information flows under the Non-Disclosure Agreement: who the Vendor may or may not share Confidential Information with, and what exceptions apply.",
+  "primary_view": {
+    "type": "network",
+    "items": [],
+    "layout": "hierarchical",
+    "network": {
+      "nodes": [
+        {
+          "id": "state",
+          "label": "State of Illinois\n(Discloser)",
+          "entity_type": "party",
+          "description": "Discloses fiber-optic network route information to Vendor under the NDA.",
+          "evidence_ids": ["e1"],
+          "layer": 0
+        },
+        {
+          "id": "ci",
+          "label": "Confidential\nInformation",
+          "entity_type": "doctrine",
+          "description": "Specifications, designs, plans, drawings, and business/technical information proprietary to the State.",
+          "evidence_ids": ["e1"],
+          "layer": 1
+        },
+        {
+          "id": "vendor",
+          "label": "Vendor",
+          "entity_type": "defendant",
+          "description": "Receives CI solely for discussing fiber-optic network data points and paths.",
+          "evidence_ids": ["e1", "e2"],
+          "layer": 2
+        },
+        {
+          "id": "employees",
+          "label": "Need-to-Know\nEmployees",
+          "entity_type": "actor",
+          "description": "Vendor may share CI only with employees who have a demonstrated need to know and who are bound by the same obligations.",
+          "evidence_ids": ["e2"],
+          "layer": 3
+        },
+        {
+          "id": "third_parties",
+          "label": "Third Parties\n(Prohibited)",
+          "entity_type": "third_party",
+          "description": "Vendor shall NOT disclose CI to any third party without the State's prior written approval.",
+          "evidence_ids": ["e2"],
+          "layer": 3
+        },
+        {
+          "id": "exceptions",
+          "label": "Public Domain /\nPrior Knowledge",
+          "entity_type": "actor",
+          "description": "Restrictions do not apply if CI is independently developed, already public, or previously known to Vendor.",
+          "evidence_ids": ["e3"],
+          "layer": 3
+        }
+      ],
+      "edges": [
+        {
+          "source": "state",
+          "target": "ci",
+          "relation": "discloses",
+          "description": "State shares proprietary fiber-optic network specifications as Confidential Information.",
+          "evidence_ids": ["e1"]
+        },
+        {
+          "source": "ci",
+          "target": "vendor",
+          "relation": "received by",
+          "description": "Vendor receives CI for a specific limited purpose (fiber project discussions).",
+          "evidence_ids": ["e1"]
+        },
+        {
+          "source": "vendor",
+          "target": "employees",
+          "relation": "may share (need-to-know)",
+          "description": "Permitted onward sharing only to employees with a need to know, who must be informed of NDA obligations.",
+          "evidence_ids": ["e2"]
+        },
+        {
+          "source": "vendor",
+          "target": "third_parties",
+          "relation": "prohibited without approval",
+          "description": "No disclosure to third parties unless the State grants prior written approval.",
+          "evidence_ids": ["e2"]
+        },
+        {
+          "source": "ci",
+          "target": "exceptions",
+          "relation": "exceptions apply",
+          "description": "Restrictions do not apply to independently developed, publicly available, or previously known information.",
+          "evidence_ids": ["e3"]
+        }
+      ]
+    }
+  },
+  "secondary_views": [],
+  "legend": [
+    {"key": "party",       "label": "Contracting party",  "color_token": "teal"},
+    {"key": "doctrine",    "label": "Legal concept / CI", "color_token": "blue"},
+    {"key": "actor",       "label": "Permitted recipient", "color_token": "green"},
+    {"key": "third_party", "label": "Prohibited recipient", "color_token": "orange"}
+  ],
+  "annotations": [],
+  "evidence_links": [
+    {
+      "evidence_id": "e1",
+      "document_id": "contractnli/DoiT-ICN-NonDisclosure-Agreement.txt",
+      "citation": "NDA §1 — Purpose & Scope",
+      "passage": "Vendor shall use such CONFIDENTIAL INFORMATION only for the purpose of discussing street level route information for the State's fiber optic network data points and paths with the State's support team in discussions regarding the State's fiber project.",
+      "source_url": null
+    },
+    {
+      "evidence_id": "e2",
+      "document_id": "contractnli/DoiT-ICN-NonDisclosure-Agreement.txt",
+      "citation": "NDA §1 — Disclosure Restrictions",
+      "passage": "Vendor shall restrict disclosure of such CONFIDENTIAL INFORMATION to its employees with a need to know (and advise such employees of the obligations assumed herein), and shall not disclose such CONFIDENTIAL INFORMATION to any third party without prior written approval of the State.",
+      "source_url": null
+    },
+    {
+      "evidence_id": "e3",
+      "document_id": "contractnli/DoiT-ICN-NonDisclosure-Agreement.txt",
+      "citation": "NDA §1 — Exceptions",
+      "passage": "These restrictions on the use or disclosure of CONFIDENTIAL INFORMATION shall not apply to any CONFIDENTIAL INFORMATION: i. which is independently developed by Vendor or is lawfully received free of restriction from another source having the right to so furnish such CONFIDENTIAL INFORMATION; ii. after it has become generally available to the public without breach of this Agreement by Vendor; iii. which, at the time of disclosure to Vendor, was known to Vendor to be free of restriction.",
+      "source_url": null
+    }
+  ],
+  "limitations": [
+    "The NDA does not specify a duration for the confidentiality obligation; the three-year survival clause referenced in some DoiT agreements does not appear in this copy of the text.",
+    "The State's identity is anonymized in the document header; factual background is drawn from the query."
+  ],
+  "fallback_text": "Under the NDA, the Vendor may share Confidential Information only with need-to-know employees and may not disclose it to any third party without prior written approval from the State. Exceptions apply if the information is independently developed, publicly available, or previously known to the Vendor.",
+  "_source": {
+    "query": "Consider the Non-Disclosure Agreement between DoiT and the State of Illinois; Who may the Vendor share Confidential Information with, and what third-party disclosures are prohibited?",
+    "generated_answer": "The Vendor may share Confidential Information only with employees who have a need to know, after advising them of the NDA obligations. Disclosure to any third party requires the State's prior written approval. Restrictions do not apply to information that is independently developed, already public, or was already known to the Vendor at the time of disclosure.",
+    "model_id": "gemini-2.5-flash",
+    "backend": "gemini"
+  },
+  "limited_evidence": false,
+  "_audit": {
+    "backed_items": 14,
+    "unsupported_items": 0,
+    "fabricated_numeric": 0,
+    "limited_evidence": false,
+    "primary": "network",
+    "diagram_kind": "obligation network"
+  }
+}

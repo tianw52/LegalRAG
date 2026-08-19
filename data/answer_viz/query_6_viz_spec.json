@@ -1,0 +1,148 @@
+{
+  "query_id": "6",
+  "query_type": "contractual",
+  "title": "License rights granted — Corio / Changepoint",
+  "summary": "Hierarchical breakdown of the exclusive hosting license: what rights Corio received, under what conditions, and what remains restricted.",
+  "primary_view": {
+    "type": "statute_tree",
+    "items": [
+      {
+        "id": "root",
+        "label": "Hosting Software\nLicense §2.1",
+        "category": "grant",
+        "detail": "Changepoint grants Corio a fee-bearing, irrevocable, nonexclusive, nontransferable license in the Territory.",
+        "evidence_ids": ["e1"]
+      },
+      {
+        "id": "r1",
+        "label": "Reproduce\nSoftware",
+        "parent": "root",
+        "category": "right",
+        "detail": "Machine-executable object code only; installation on Corio Servers. No source-code access.",
+        "evidence_ids": ["e1"]
+      },
+      {
+        "id": "r2",
+        "label": "Host &\nAccess",
+        "parent": "root",
+        "category": "right",
+        "detail": "Install multiple copies on Corio Servers; make remotely accessible to Customers for internal business purposes.",
+        "evidence_ids": ["e2"]
+      },
+      {
+        "id": "r3",
+        "label": "Sublicense\nto Customers",
+        "parent": "root",
+        "category": "right",
+        "detail": "Sublicense an unlimited number of Customers to access and use the Software only through installation on Corio Servers.",
+        "evidence_ids": ["e2"]
+      },
+      {
+        "id": "r4",
+        "label": "Tools &\nUtilities",
+        "parent": "root",
+        "category": "right",
+        "detail": "Use Changepoint's tools to configure, integrate, and manage the Software, subject to third-party restrictions.",
+        "evidence_ids": ["e3"]
+      },
+      {
+        "id": "c1",
+        "label": "Fee-bearing",
+        "parent": "r1",
+        "category": "condition",
+        "detail": "License is contingent on payment of applicable fees as set forth in the Agreement.",
+        "evidence_ids": ["e1"]
+      },
+      {
+        "id": "c2",
+        "label": "Nonexclusive",
+        "parent": "r1",
+        "category": "condition",
+        "detail": "Changepoint retains the right to grant identical or similar licenses to other parties.",
+        "evidence_ids": ["e1"]
+      },
+      {
+        "id": "c3",
+        "label": "Nontransferable\n(§14.1 exception)",
+        "parent": "r1",
+        "category": "restriction",
+        "detail": "Corio may not assign or transfer the license except as expressly permitted under §14.1 (change of control).",
+        "evidence_ids": ["e1", "e4"]
+      },
+      {
+        "id": "c4",
+        "label": "Territory-limited",
+        "parent": "r2",
+        "category": "condition",
+        "detail": "Rights are limited to the Territory as defined in the Agreement; cross-border deployment requires additional approval.",
+        "evidence_ids": ["e1"]
+      },
+      {
+        "id": "c5",
+        "label": "Internal Use\nOnly (Customers)",
+        "parent": "r3",
+        "category": "restriction",
+        "detail": "Customers may access the Software only for their own internal business purposes; redistribution is prohibited.",
+        "evidence_ids": ["e2"]
+      }
+    ]
+  },
+  "secondary_views": [],
+  "legend": [
+    {"key": "grant",       "label": "License grant",  "color_token": "violet"},
+    {"key": "right",       "label": "Granted right",  "color_token": "green"},
+    {"key": "condition",   "label": "Condition",       "color_token": "amber"},
+    {"key": "restriction", "label": "Restriction",     "color_token": "red"}
+  ],
+  "annotations": [],
+  "evidence_links": [
+    {
+      "evidence_id": "e1",
+      "document_id": "cuad/CHANGEPOINTCORP_03_08_2000-EX-10.6-LICENSE AND HOSTING AGREEMENT.txt",
+      "citation": "§2.1 Hosting Software License",
+      "passage": "Changepoint hereby grants to Corio a fee-bearing, irrevocable, nonexclusive, nontransferable (except in accordance with Section 14.1 of this Agreement) license in the Territory to (i) reproduce the Software in machine executable object code format only for installation on the Corio Servers.",
+      "source_url": null
+    },
+    {
+      "evidence_id": "e2",
+      "document_id": "cuad/CHANGEPOINTCORP_03_08_2000-EX-10.6-LICENSE AND HOSTING AGREEMENT.txt",
+      "citation": "§2.1(ii)–(iv) Hosting Software License",
+      "passage": "(ii) install multiple copies of the Software on Corio's Servers which will be made remotely accessible to Corio's Customers for their internal business purposes, (iii) permit limited access to and use of the Software by Customers through Corio Servers solely for such Customer's internal business purposes; (iv) sublicense an unlimited number of Customers to access and use the Software only through the installation on Corio Servers.",
+      "source_url": null
+    },
+    {
+      "evidence_id": "e3",
+      "document_id": "cuad/CHANGEPOINTCORP_03_08_2000-EX-10.6-LICENSE AND HOSTING AGREEMENT.txt",
+      "citation": "§2.1(v) Tools & Utilities",
+      "passage": "(v) use Changepoint's tools and utilities, if any, subject to any restrictions placed on the Changepoint by third party software providers and payment of any applicable fees required by such third parties, to configure, integrate and manage the Software.",
+      "source_url": null
+    },
+    {
+      "evidence_id": "e4",
+      "document_id": "cuad/CHANGEPOINTCORP_03_08_2000-EX-10.6-LICENSE AND HOSTING AGREEMENT.txt",
+      "citation": "§2.4 Demonstration License",
+      "passage": "Changepoint hereby grants to Corio a nonexclusive, nontransferable (except in accordance with Section 14.1 of this Agreement) royalty-free, fully paid up right and license in the Territory, on Corio Servers, to make a reasonable number of copies of the Demonstration Software solely for demonstration purposes to potential Customers.",
+      "source_url": null
+    }
+  ],
+  "limitations": [
+    "License grant details apply to the 1999 Corio/Changepoint Agreement; subsequent amendments may alter scope.",
+    "Redacted sections (CONFIDENTIAL TREATMENT) may contain fee schedules or territory definitions not shown here."
+  ],
+  "fallback_text": "Changepoint granted Corio a fee-bearing, irrevocable, nonexclusive, nontransferable hosting software license to reproduce, install, host, and sublicense the Software to Customers for their internal business purposes, subject to territory and fee conditions.",
+  "_source": {
+    "query": "Consider the License and Hosting Agreement between Corio Inc. and Changepoint, Inc.; What licenses are granted under this contract?",
+    "generated_answer": "Under §2.1, Changepoint grants Corio a fee-bearing, irrevocable, nonexclusive, nontransferable license to: (i) reproduce the Software (object code only) for installation on Corio Servers; (ii) install multiple copies on Corio Servers remotely accessible to Customers; (iii) permit Customer access for internal business purposes; (iv) sublicense an unlimited number of Customers through Corio Servers; and (v) use Changepoint's tools and utilities. Additionally, §2.4 grants a separate royalty-free demonstration license.",
+    "model_id": "gemini-2.5-flash",
+    "backend": "gemini"
+  },
+  "limited_evidence": false,
+  "_audit": {
+    "backed_items": 10,
+    "unsupported_items": 0,
+    "fabricated_numeric": 0,
+    "limited_evidence": false,
+    "primary": "statute_tree",
+    "diagram_kind": "rights hierarchy"
+  }
+}

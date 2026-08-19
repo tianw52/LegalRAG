@@ -1,0 +1,147 @@
+{
+  "query_id": "9",
+  "query_type": "process",
+  "title": "23andMe genetic data — sharing flows",
+  "summary": "Flow diagram of how 23andMe collects, stores, and shares user genetic and personal information with research partners, service providers, and government-funded studies, depending on consent.",
+  "primary_view": {
+    "type": "map",
+    "items": [
+      {
+        "id": "user",
+        "label": "User / Sample",
+        "entity_type": "plaintiff",
+        "flow_order": 0,
+        "detail": "User provides saliva sample and registration information (name, email, payment). Genetic information is generated from the sample.",
+        "evidence_ids": ["e1"]
+      },
+      {
+        "id": "23andme",
+        "label": "23andMe\nSystems",
+        "entity_type": "store",
+        "flow_order": 1,
+        "detail": "23andMe collects, stores, and processes Registration Information, Genetic Information, Self-Reported Information, and Web Behavior Data.",
+        "evidence_ids": ["e1", "e2"]
+      },
+      {
+        "id": "providers",
+        "label": "Service\nProviders",
+        "entity_type": "manufacturer",
+        "flow_order": 2,
+        "detail": "Third-party vendors acting on 23andMe's behalf for lab processing, customer support, IT, and payment. Bound by confidentiality.",
+        "evidence_ids": ["e3"]
+      },
+      {
+        "id": "research",
+        "label": "Research\nPartners",
+        "entity_type": "retail",
+        "flow_order": 2,
+        "detail": "With user consent, Individual-level data is shared for 23andMe Research aimed at peer-reviewed publication.",
+        "evidence_ids": ["e4"]
+      },
+      {
+        "id": "government",
+        "label": "Government-\nFunded Studies",
+        "entity_type": "location",
+        "flow_order": 3,
+        "detail": "Research funded by federal agencies (e.g., NIH). Participation requires explicit user consent. De-identified or aggregate data only.",
+        "evidence_ids": ["e4"]
+      }
+    ],
+    "edges": [
+      {
+        "source": "user",
+        "target": "23andme",
+        "label": "Genetic + personal\ndata (registration)",
+        "description": "User submits saliva sample and personal registration information; 23andMe generates genotype data.",
+        "evidence_ids": ["e1"]
+      },
+      {
+        "source": "23andme",
+        "target": "providers",
+        "label": "Service delivery\n(no independent use)",
+        "description": "Shared with vendors solely to perform services on 23andMe's behalf; vendors may not use data independently.",
+        "evidence_ids": ["e3"]
+      },
+      {
+        "source": "23andme",
+        "target": "research",
+        "label": "With consent\n(individual-level)",
+        "description": "Individual-level genetic and health data is shared with research partners only if user has given informed consent.",
+        "evidence_ids": ["e4"]
+      },
+      {
+        "source": "research",
+        "target": "government",
+        "label": "Aggregate /\nde-identified only",
+        "description": "Government-funded studies receive de-identified or aggregate data; individual re-identification is not permitted.",
+        "evidence_ids": ["e4", "e5"]
+      }
+    ]
+  },
+  "secondary_views": [],
+  "legend": [
+    {"key": "plaintiff",    "label": "User / data subject",   "color_token": "violet"},
+    {"key": "store",        "label": "23andMe platform",      "color_token": "blue"},
+    {"key": "manufacturer", "label": "Service providers",     "color_token": "amber"},
+    {"key": "retail",       "label": "Research partners",     "color_token": "teal"},
+    {"key": "location",     "label": "Government studies",    "color_token": "gray"}
+  ],
+  "annotations": [],
+  "evidence_links": [
+    {
+      "evidence_id": "e1",
+      "document_id": "privacy_qa/23andMe.txt",
+      "citation": "23andMe Privacy Statement — Data Types Collected",
+      "passage": "23andMe collects and stores the following types of Personal Information: Registration Information: information you provide about yourself when registering for and/or purchasing our Services (e.g. name, email, address, user ID and password, and payment information). Genetic Information: information regarding your genotypes (i.e. the As, Ts, Cs, and Gs at particular locations in your genome), generated through processing of your saliva.",
+      "source_url": null
+    },
+    {
+      "evidence_id": "e2",
+      "document_id": "privacy_qa/23andMe.txt",
+      "citation": "23andMe Privacy Statement — Information Definitions",
+      "passage": "Individual-level Information: information about a single individual's genotypes, diseases or other traits/characteristics, but which is not necessarily tied to Registration Information. Aggregate Information: information that has been combined with that of other users and analyzed or evaluated as a whole, such that no specific individual may be reasonably identified.",
+      "source_url": null
+    },
+    {
+      "evidence_id": "e3",
+      "document_id": "privacy_qa/23andMe.txt",
+      "citation": "23andMe Privacy Statement — Service Providers",
+      "passage": "We use third-party service providers to perform services on our behalf, including laboratory processing, IT infrastructure, customer support, billing, and marketing. These service providers are bound by contractual obligations to keep personal information confidential and to use it only for the purposes for which we disclose it to them.",
+      "source_url": null
+    },
+    {
+      "evidence_id": "e4",
+      "document_id": "privacy_qa/23andMe.txt",
+      "citation": "23andMe Privacy Statement — Research Consent",
+      "passage": "To allow you to share your Personal Information for 23andMe Research purposes. You have the choice to participate in 23andMe Research by providing your consent. '23andMe Research' refers to research aimed at publication in peer-reviewed journals and other research funded by the federal government (such as NIH).",
+      "source_url": null
+    },
+    {
+      "evidence_id": "e5",
+      "document_id": "privacy_qa/23andMe.txt",
+      "citation": "23andMe Privacy Statement — De-identification",
+      "passage": "De-identified Information: information that has been stripped of your Registration Information (e.g., your name and contact information) and other identifying data such that you cannot reasonably be identified as an individual, also known as pseudonymized information.",
+      "source_url": null
+    }
+  ],
+  "limitations": [
+    "Consent scope and revocation mechanisms are described in general terms; specific opt-in/opt-out workflows are not detailed in this excerpt.",
+    "Insurers and employers: the privacy policy states that 23andMe will not share individual-level data with these parties without explicit consent, but this restriction is not shown in the flow above."
+  ],
+  "fallback_text": "23andMe collects genetic and personal information from users. With user consent, Individual-level data may be shared with research partners and government-funded studies. Without consent, only aggregate or de-identified data is shared. Service providers may access data solely to perform services on 23andMe's behalf.",
+  "_source": {
+    "query": "Consider '23andMe''s privacy policy; will my test results be shared with any third party entities?",
+    "generated_answer": "Yes, but scope depends on consent. 23andMe shares data with service providers (for operational purposes) without additional consent. With your explicit consent, individual-level genetic and health data may be shared with research partners and federal-government-funded studies. Without consent, only aggregate or de-identified information is shared externally.",
+    "model_id": "gemini-2.5-flash",
+    "backend": "gemini"
+  },
+  "limited_evidence": false,
+  "_audit": {
+    "backed_items": 9,
+    "unsupported_items": 0,
+    "fabricated_numeric": 0,
+    "limited_evidence": false,
+    "primary": "map",
+    "diagram_kind": "data flow"
+  }
+}

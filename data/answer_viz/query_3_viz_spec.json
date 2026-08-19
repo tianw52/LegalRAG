@@ -1,0 +1,228 @@
+{
+  "query_id": "3",
+  "query_type": "relational",
+  "title": "Zemo — Vic's reputation for veracity",
+  "summary": "Who asks whom about reputation, and what the retrieved record does and does not establish.",
+  "primary_view": {
+    "type": "network",
+    "layout": "hierarchical",
+    "items": [],
+    "network": {
+      "nodes": [
+        {
+          "id": "issue",
+          "label": "Reputation ask OK?",
+          "entity_type": "doctrine",
+          "description": "Is Zemo's question about Vic's veracity reputation admissible?",
+          "evidence_ids": [
+            "e1"
+          ],
+          "layer": 0
+        },
+        {
+          "id": "dan",
+          "label": "Dan",
+          "entity_type": "defendant",
+          "description": "Calls Zemo.",
+          "evidence_ids": [
+            "e1"
+          ],
+          "layer": 1
+        },
+        {
+          "id": "zemo",
+          "label": "Zemo",
+          "entity_type": "actor",
+          "description": "Asked about Vic's community reputation for veracity.",
+          "evidence_ids": [
+            "e1"
+          ],
+          "layer": 2
+        },
+        {
+          "id": "vic",
+          "label": "Vic",
+          "entity_type": "actor",
+          "description": "Target of the reputation question.",
+          "evidence_ids": [
+            "e1"
+          ],
+          "layer": 3
+        },
+        {
+          "id": "rule",
+          "label": "Veracity rule",
+          "entity_type": "doctrine",
+          "description": "Not established in retrieved passages.",
+          "evidence_ids": [
+            "e5"
+          ],
+          "layer": 1
+        }
+      ],
+      "edges": [
+        {
+          "source": "dan",
+          "target": "zemo",
+          "relation": "calls",
+          "description": "Dan calls Zemo.",
+          "evidence_ids": [
+            "e1"
+          ]
+        },
+        {
+          "source": "zemo",
+          "target": "vic",
+          "relation": "reputation?",
+          "description": "Asked about community veracity reputation.",
+          "evidence_ids": [
+            "e1"
+          ]
+        },
+        {
+          "source": "dan",
+          "target": "issue",
+          "relation": "poses",
+          "description": "Admissibility is the open question.",
+          "evidence_ids": [
+            "e1"
+          ]
+        },
+        {
+          "source": "rule",
+          "target": "issue",
+          "relation": "missing",
+          "description": "Governing doctrine absent from retrieval.",
+          "evidence_ids": [
+            "e5"
+          ]
+        }
+      ]
+    }
+  },
+  "secondary_views": [],
+  "legend": [],
+  "annotations": [],
+  "evidence_links": [
+    {
+      "evidence_id": "e1",
+      "document_id": "passages/e451f42aede23c6cd711ed87b0a18dd138c1dee6a0d868525c94d13ab3aa7c83.txt",
+      "citation": "passages/e451f42aede23c6cd711ed87b0a18dd138c1dee6a0d868525c94d13ab3aa7c83.txt",
+      "passage": "apturing the driver of one car stating that the other driver ran a red light would be hearsay when offered to prove that the other driver ran a red light.",
+      "source_url": null
+    },
+    {
+      "evidence_id": "e2",
+      "document_id": "passages/2166fbe348000df2f904b3c489cf250b78dcce21abf87c92ef8090b88bdf5e55.txt",
+      "citation": "passages/2166fbe348000df2f904b3c489cf250b78dcce21abf87c92ef8090b88bdf5e55.txt",
+      "passage": "This case presented conflicting testimony between the parties and the trial court assessed the credibility of the witnesses in determining who ran the red light. In assessing credibility, the trial court stated that Adams's testimony seemed credible, but questioned the account that Adams had time to warn his brother of the accident. The trial court noted that Adams had a stake in the outcome, his testimony was self-serving, and he is a convicted felon. The trial court found Price's testimony to ",
+      "source_url": null
+    },
+    {
+      "evidence_id": "e3",
+      "document_id": "passages/5247b5c1e7da6fcf16b80be2ae1eb0b8222cd68534fddee29865f6d8f12fefb8.txt",
+      "citation": "passages/5247b5c1e7da6fcf16b80be2ae1eb0b8222cd68534fddee29865f6d8f12fefb8.txt",
+      "passage": "alvatore to Dan's Car World's policy. And after that conversation, Mr. Cava was \"under the assumption that\" Salvatore had been added to the policy. Like Ms. Moine, Dan Cava testified that he had a conversation with Mr. Beresford in which he wanted to add Salvatore to Dan's Car World's policy as a named insured and Mr. Beresford advised him that his son was covered. The positions taken by Dan's Car World and Dan Cava are not inconsistent, as both Dan's Car World and Dan Cava testified regarding a",
+      "source_url": null
+    },
+    {
+      "evidence_id": "e4",
+      "document_id": "passages/5247b5c1e7da6fcf16b80be2ae1eb0b8222cd68534fddee29865f6d8f12fefb8.txt",
+      "citation": "passages/5247b5c1e7da6fcf16b80be2ae1eb0b8222cd68534fddee29865f6d8f12fefb8.txt",
+      "passage": "In this case, the Plaintiff claims that Dan's Car World was told by its Zurich insurance agent, Scott Beresford, that Salvatore was covered under the insurance issued to Dan's Car World. While Tiffany Moine, Dan's Car World's Rule 30(b)(7) deponent, testified that she did not know what Mr. Beresford specifically told Dan Cava, she also testified that she was made aware by Dan Cava of a conversation between himself and Zurich's agent on adding Salvatore to Dan's Car World's policy. And after that",
+      "source_url": null
+    },
+    {
+      "evidence_id": "e5",
+      "document_id": "passages/31de716a0f053ec2309112a3deed68c2798fb828fbd783a771ad04f702ebcf0e.txt",
+      "citation": "passages/31de716a0f053ec2309112a3deed68c2798fb828fbd783a771ad04f702ebcf0e.txt",
+      "passage": "id not know. In response to Petitioners' motion to compel Dan's Car World to produce a Rule 30(b)(7) witness who could answer the question, Dan's Car World stated that the information was not available. Several years later Mr. Cava testified at a deposition, called by the Respondent, that Petitioners' agent informed him that Salvatore Cava was already covered under the garage provision and umbrella provision of the policy. Nowhere in the record does it show that at the time of Ms. Moine's deposi",
+      "source_url": null
+    }
+  ],
+  "limitations": [
+    "The answer is strictly limited to the information contained within the provided legal document excerpts. No external legal knowledge or analysis was applied.",
+    "The retrieved passages did not contain specific legal rules or precedents regarding the admissibility of questions about a witness's reputation for veracity in the community.",
+    "Network shows the evidentiary move, not an authority for admitting reputation evidence."
+  ],
+  "fallback_text": "The provided legal documents do not contain information regarding the admissibility of a question about a witness's reputation for veracity in the community. Therefore, the trial judge's ruling on this question cannot be determined from the context.",
+  "_source": {
+    "query": "Paul, the Plaintiff in a personal injury action, called Wes as a witness to testify that Dan's car, in which Paul had been riding. ran a red light. Wes, however, testified that Dan's car did not run the light.\nDan called Zemo as a witness and asked him if he knew Vic's reputation for veracity in the community where Vic resided. The trialjudge should rule that this question is",
+    "generated_answer": "The provided legal document excerpts do not contain information regarding the admissibility of a question about a witness's reputation for veracity in the community. Therefore, the trial judge's ruling on this question cannot be determined from the context.",
+    "model_id": "gemini-2.5-flash",
+    "backend": "gemini"
+  },
+  "_story": {
+    "takeaway": "Reputation-for-veracity is posed by the hypo but not resolved by retrieval.",
+    "beats": []
+  },
+  "_story_timeline": {
+    "items": []
+  },
+  "limited_evidence": true,
+  "established_facts": [
+    "Dan called Zemo and asked about Vic's reputation for veracity in the community. (query)",
+    "Vic's credibility is material because Wes and Vic conflict on the red-light fact. (query)"
+  ],
+  "not_established": [
+    "Whether the reputation question is admissible.",
+    "A retrieved rule governing reputation-for-veracity evidence in this setting."
+  ],
+  "_audit": {
+    "backed_items": 19,
+    "unsupported_items": 0,
+    "fabricated_numeric": 0,
+    "limited_evidence": true,
+    "primary": "network",
+    "diagram_kind": null
+  },
+  "additional_details": {
+    "type": "matrix",
+    "items": [
+      {
+        "id": "m1",
+        "row": "Vic credibility at issue",
+        "column": "Established",
+        "value": "Yes",
+        "symbol": "✓",
+        "description": "Wes vs Vic conflict.",
+        "evidence_ids": [
+          "e1"
+        ]
+      },
+      {
+        "id": "m2",
+        "row": "Reputation question asked",
+        "column": "Established",
+        "value": "Yes",
+        "symbol": "✓",
+        "description": "Zemo question in hypo.",
+        "evidence_ids": [
+          "e1"
+        ]
+      },
+      {
+        "id": "m3",
+        "row": "Governing doctrine retrieved",
+        "column": "Established",
+        "value": "No",
+        "symbol": "✗",
+        "description": "Not in passages.",
+        "evidence_ids": [
+          "e5"
+        ]
+      },
+      {
+        "id": "m4",
+        "row": "Confident ruling",
+        "column": "Established",
+        "value": "No",
+        "symbol": "✗",
+        "description": "Matches generated answer.",
+        "evidence_ids": [
+          "e5"
+        ]
+      }
+    ]
+  }
+}

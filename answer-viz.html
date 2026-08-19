@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LegalRAG — Answer Visualizations</title>
+<style>
+  :root {
+    --ink: #0c1a2e;
+    --paper: #f4f1ea;
+    --panel: #fffcf7;
+    --line: #d6d0c4;
+    --accent: #0f766e;
+    --warn: #b45309;
+    --danger: #9f1239;
+    --blue: #1d4ed8;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    color: var(--ink);
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    background: var(--paper);
+  }
+  .wrap { max-width: 1400px; margin: 0 auto; padding: 0 20px; overflow-x: hidden; }
+  header.top {
+    position: sticky; top: 0; z-index: 40;
+    background: rgba(255,252,247,.96); border-bottom: 1px solid var(--line);
+  }
+  header.top .inner {
+    display: flex; flex-wrap: wrap; gap: 12px; align-items: center; padding: 12px 0;
+  }
+  h1 { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: 1.25rem; }
+  #q-nav { margin-left: auto; display: flex; flex-wrap: wrap; gap: 6px; }
+  #q-nav button {
+    font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 8px;
+    border: 1px solid var(--line); background: #fff; color: var(--ink); cursor: pointer;
+  }
+  #q-nav button.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+  #load-status { font-size: 12px; margin: 0 0 8px; color: var(--accent); min-height: 1em; }
+
+  #workspace { padding: 18px 0 12px; }
+  .card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+    overflow: hidden;
+  }
+  .card-head {
+    padding: 10px 16px; border-bottom: 1px solid var(--line); background: #f7f3ea;
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  }
+  .badge {
+    font-size: 10px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase;
+    color: #fff; padding: 3px 8px; border-radius: 999px;
+  }
+  .badge.warn { background: var(--warn); }
+  .badge.ok { background: var(--accent); }
+  .badge.ink { background: var(--ink); }
+  .badge.blue { background: var(--blue); }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 1100px) {
+    .layout {
+      grid-template-columns: 320px minmax(0, 1fr) 280px;
+      min-height: 560px;
+    }
+    .pane + .pane { border-left: 1px solid var(--line); border-top: 0; }
+  }
+  .pane { padding: 14px 16px; }
+  .pane + .pane { border-top: 1px solid var(--line); }
+  .lbl {
+    font-size: 11px; font-weight: 800; letter-spacing: .07em; text-transform: uppercase;
+    color: #64748b; margin: 0 0 6px;
+  }
+  .body { font-size: 13px; line-height: 1.5; white-space: pre-wrap; margin: 0; }
+  .answer-box {
+    margin-top: 10px; background: #f0fdfa; border: 1px solid #99f6e4; border-radius: 10px; padding: 10px 12px;
+  }
+  .answer-box .lbl { color: #0f766e; }
+  .limited-banner {
+    margin-bottom: 12px; padding: 10px 12px; border-radius: 10px;
+    background: #fff7ed; border: 1px solid #fdba74; color: #9a3412;
+  }
+  .limited-banner strong { display: block; font-size: 13px; margin-bottom: 4px; }
+  .fact-grid { display: grid; grid-template-columns: 1fr; gap: 8px; margin: 10px 0 0; }
+  .fact-box {
+    border-radius: 10px; padding: 8px 10px; font-size: 12px; line-height: 1.4;
+    border: 1px solid var(--line); background: #fff;
+  }
+  .fact-box h5 { margin: 0 0 6px; font-size: 11px; letter-spacing: .04em; text-transform: uppercase; }
+  .fact-box.yes { border-color: #6ee7b7; background: #ecfdf5; }
+  .fact-box.no { border-color: #fca5a5; background: #fff1f2; }
+  .fact-box ul { margin: 0; padding-left: 16px; }
+
+  .viz-head {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 8px;
+  }
+  .viz-stage {
+    background: #f8faf9; border: 1px solid var(--line); border-radius: 12px; padding: 12px; min-height: 320px;
+  }
+  .selection-panel {
+    margin-top: 10px; padding: 10px 12px; border-radius: 10px;
+    background: #fff; border: 1px dashed #c4b9a5; font-size: 12.5px; color: #475569; min-height: 72px;
+  }
+  .selection-panel .sel-actions { margin-top: 8px; }
+  .btn-clear {
+    font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 6px;
+    border: 1px solid var(--line); background: #fff; cursor: pointer; color: #334155;
+  }
+  .ev-side {
+    font-size: 12px; padding: 8px 10px; border-radius: 8px; border: 1px solid var(--line);
+    background: #fff; margin-bottom: 8px;
+  }
+  .evidence-hit { outline: 2px solid var(--accent); background: #ecfdf5 !important; }
+  details.about, details.addl {
+    padding: 10px 16px; border-top: 1px solid var(--line); background: #f7f3ea; font-size: 12px;
+  }
+  details summary { cursor: pointer; font-weight: 700; color: #64748b; }
+  .addl-mount { margin-top: 10px; }
+  .disclosure {
+    margin: 0 0 20px; padding: 10px 14px; border-radius: 10px;
+    background: #fff; border: 1px solid var(--line); font-size: 12px; color: #475569;
+  }
+  footer { font-size: 12px; color: #64748b; padding-bottom: 28px; }
+  .error { background: #fff1f2; border: 1px solid #fda4af; color: #9f1239; padding: 12px; border-radius: 10px; }
+  .boot { background: #fff; border: 1px solid var(--line); color: #475569; padding: 16px; border-radius: 12px; }
+
+  /* ── Selection highlight (works on SVG g elements too) ── */
+  [data-viz-id] { transition: opacity .15s; }
+  [data-viz-id].is-dimmed   { opacity: 0.28; }
+  .vr-svg-node.is-selected rect,
+  .vr-svg-node.is-selected circle  { stroke: var(--accent) !important; stroke-width: 4 !important; }
+  .vr-svg-edge.is-selected line     { stroke: var(--accent) !important; stroke-width: 3 !important; }
+  .vr-cmp-cell.is-selected { box-shadow: 0 0 0 3px var(--accent); }
+  .vr-ev-card.is-selected   { box-shadow: 0 0 0 2px var(--accent); }
+
+  /* ── Shared primitives ── */
+  .vr-error { padding: 10px; border-radius: 8px; background: #fff7ed; border: 1px solid #fdba74; color: #9a3412; font-size: 12.5px; }
+  .vr-diagram-title { font-size: 13.5px; font-weight: 800; margin-bottom: 6px; color: #0f172a; }
+  .vr-muted { font-size: 11.5px; color: #94a3b8; margin: 0 0 6px; }
+  .vr-legend { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .vr-legend-item { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; color: #475569; background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 2px 8px; }
+  .vr-legend-item i { width: 8px; height: 8px; border-radius: 999px; display: inline-block; flex-shrink: 0; }
+
+  /* ── Horizontal SVG timeline (Q4) ── */
+  .vr-timeline-svg-wrap { overflow-x: auto; }
+  .vr-timeline-svg-wrap svg { min-width: 400px; }
+
+  /* ── SVG flowchart (Q5) ── */
+  .vr-flowchart-wrap { overflow-x: auto; }
+  .vr-flowchart-wrap svg { min-width: 400px; }
+
+  /* ── Network graph (Q1, Q3) ── */
+  .vr-network-canvas { border-radius: 12px; border: 1px solid var(--line); background: #fff; overflow: hidden; }
+  .vr-network-canvas svg { width: 100%; height: auto; display: block; max-height: 460px; }
+
+  /* ── Visual comparison scorecard (Q2) ── */
+  .vr-comparison { display: flex; flex-direction: column; gap: 0; }
+  .vr-cmp-header, .vr-cmp-row {
+    display: grid;
+    grid-template-columns: 1fr repeat(2, minmax(0, 200px));
+    gap: 8px; align-items: center;
+    padding: 8px 6px;
+  }
+  .vr-cmp-header { background: #f8fafc; border-radius: 10px 10px 0 0; padding-bottom: 10px; }
+  .vr-cmp-row-alt { background: #f8fafc40; }
+  .vr-cmp-row { border-top: 1px solid #f1f5f9; }
+  .vr-cmp-col-head {
+    font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+    color: #475569; text-align: center; padding: 6px 0;
+    border-bottom: 2px solid #e2e8f0;
+  }
+  .vr-cmp-criterion-label {
+    font-size: 12.5px; font-weight: 600; color: #334155; line-height: 1.4; padding-right: 8px;
+  }
+  .vr-cmp-cell {
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    padding: 12px 8px; border-radius: 12px; border: 2px solid #e2e8f0;
+    background: #f8fafc; cursor: pointer; text-align: center; transition: transform .12s, box-shadow .12s;
+  }
+  .vr-cmp-cell:not(:disabled):hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.08); }
+  .vr-cmp-cell:disabled { cursor: default; opacity: .4; }
+  .vr-cmp-sym {
+    display: grid; place-items: center;
+    width: 38px; height: 38px; border-radius: 999px;
+    font-size: 17px; font-weight: 800; opacity: .85;
+  }
+  .vr-cmp-val { font-size: 11px; font-weight: 700; color: inherit; }
+
+  /* ── Statute / rights hierarchy tree (Q6) ── */
+  .vr-statute-tree-wrap { overflow-x: auto; }
+  .vr-statute-tree-wrap svg { min-width: 420px; }
+
+  /* ── Decision tree (Q8) ── */
+  .vr-decision-tree-wrap { overflow-x: auto; }
+  .vr-decision-tree-wrap svg { min-width: 420px; }
+
+  /* ── Shared tree legend ── */
+  .vr-tree-legend {
+    display: flex; flex-wrap: wrap; gap: 10px 18px;
+    margin-top: 12px; padding: 10px 14px;
+    background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;
+  }
+  .vr-tree-leg-item {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 11.5px; font-weight: 600; color: #334155;
+  }
+  .vr-tree-leg-swatch {
+    display: inline-block; width: 14px; height: 14px; border-radius: 4px;
+    border: 2px solid currentColor; flex-shrink: 0;
+  }
+
+  /* Selected / dimmed states for tree nodes */
+  .vr-svg-node.is-selected rect { filter: drop-shadow(0 0 6px rgba(99,102,241,.6)); }
+  .vr-svg-node.is-dimmed { opacity: .3; }
+
+  /* ── Evidence fallback ── */
+  .vr-evidence-board { display: flex; flex-direction: column; gap: 8px; }
+  .vr-ev-card { width: 100%; text-align: left; border-radius: 10px; padding: 10px 12px; border: 1px solid var(--line); background: #fff; cursor: pointer; }
+  .vr-ev-title { font-weight: 700; font-size: 12.5px; }
+  .vr-ev-text  { font-size: 12.5px; color: #334155; line-height: 1.4; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <div class="inner">
+      <div>
+        <h1>LegalRAG Answer Visualizations</h1>
+      </div>
+      <nav id="q-nav" aria-label="Select query"></nav>
+    </div>
+    <p id="load-status">Starting…</p>
+  </div>
+</header>
+
+<main id="workspace" class="wrap">
+  <div class="boot" id="boot-msg">Loading queries…</div>
+</main>
+
+<div class="wrap">
+  <div class="disclosure" role="note">
+    This visualization organizes information from the generated answer and retrieved evidence. It does not introduce new legal facts or provide legal advice.
+  </div>
+</div>
+<footer class="wrap">Validated JSON specs → deterministic local renderers · five demo queries only.</footer>
+
+<script src="js/viz-renderers.js?v=20260812b"></script>
+<script src="data/answer_viz/bundle.js?v=20260812b"></script>
+<script src="js/answer-viz-app.js?v=20260812b"></script>
+<script>
+(function () {
+  function fail(msg) {
+    var g = document.getElementById("workspace");
+    var s = document.getElementById("load-status");
+    if (s) s.textContent = "Load problem";
+    if (g && !g.querySelector(".card")) {
+      g.innerHTML = '<div class="error"><strong>Could not render the demo.</strong><br>' + msg +
+        '<br><br>Hard-refresh (Ctrl+Shift+R). Check the browser console for details.</div>';
+    }
+  }
+  window.addEventListener("load", function () {
+    setTimeout(function () {
+      var g = document.getElementById("workspace");
+      if (!g) return;
+      if (g.querySelector(".card")) return;
+      if (!window.ANSWER_VIZ_BUNDLE) return fail("Bundle missing: data/answer_viz/bundle.js did not load.");
+      if (!window.VizRenderers) return fail("Renderers missing: js/viz-renderers.js did not load.");
+      fail("App script did not finish. Check js/answer-viz-app.js in the console.");
+    }, 800);
+  });
+})();
+</script>
+</body>
+</html>

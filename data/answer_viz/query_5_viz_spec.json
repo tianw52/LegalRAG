@@ -1,0 +1,212 @@
+{
+  "query_id": "5",
+  "query_type": "geographic",
+  "title": "Res ipsa — chain of control over the tuna",
+  "summary": "Chain-of-control diagram across handling stages, plus party graph and res ipsa element checklist. No verified GPS coordinates.",
+  "primary_view": {
+    "type": "map",
+    "x_label": "Chain of control",
+    "items": [
+      {
+        "id": "loc1",
+        "location_name": "Canco shipment",
+        "region": "Manufacturer",
+        "latitude": null,
+        "longitude": null,
+        "category": "manufacturer",
+        "description": "Undamaged cans from same shipment were fit (query).",
+        "evidence_ids": [
+          "e1"
+        ]
+      },
+      {
+        "id": "loc2",
+        "location_name": "Supermart basement",
+        "region": "Third-party intervention",
+        "latitude": null,
+        "longitude": null,
+        "category": "store",
+        "description": "Workmen dent cans during flood repair (query).",
+        "evidence_ids": [
+          "e1"
+        ]
+      },
+      {
+        "id": "loc3",
+        "location_name": "Sales floor",
+        "region": "Retail",
+        "latitude": null,
+        "longitude": null,
+        "category": "retail",
+        "description": "Dented cans sold; Dotty purchases (query).",
+        "evidence_ids": [
+          "e2"
+        ]
+      },
+      {
+        "id": "loc4",
+        "location_name": "Dotty",
+        "region": "End user",
+        "latitude": null,
+        "longitude": null,
+        "category": "plaintiff",
+        "description": "Illness; negligence claim vs Canco (query).",
+        "evidence_ids": [
+          "e1"
+        ]
+      }
+    ],
+    "flow_edges": [
+      {
+        "source": "loc1",
+        "target": "loc2",
+        "relation": "leaves Canco control",
+        "evidence_ids": [
+          "e1"
+        ]
+      },
+      {
+        "source": "loc2",
+        "target": "loc3",
+        "relation": "dented goods sold",
+        "evidence_ids": [
+          "e2"
+        ]
+      },
+      {
+        "source": "loc3",
+        "target": "loc4",
+        "relation": "purchase / injury",
+        "evidence_ids": [
+          "e1"
+        ]
+      }
+    ]
+  },
+  "secondary_views": [],
+  "legend": [],
+  "annotations": [],
+  "evidence_links": [
+    {
+      "evidence_id": "e1",
+      "document_id": "passages/bd91df6820930784d537c29b07af23bb5fa602c7d5bb1a1bcaf2ed5a420e4c13.txt",
+      "citation": "passages/bd91df6820930784d537c29b07af23bb5fa602c7d5bb1a1bcaf2ed5a420e4c13.txt",
+      "passage": "Res ipsa loquitur is a doctrine addressed to those situations where the facts or circumstances accompanying an injury by their very nature raise a presumption of negligence on the part of [the] defendant.” Bowlin v. Duke Univ., 108 N.C.App. 145, 149, 423 S.E.2d 320, 322 (1992). The doctrine of res ipsa loquitur, “ ‘in its distinctive sense, permits negligence to be inferred from the physical cause of an [injury], without the aid of circumstances pointing to the responsible human cause. Where thi",
+      "source_url": null
+    },
+    {
+      "evidence_id": "e2",
+      "document_id": "passages/172956519cfadbe23bf79af81adde97036dbce90739133a6db22de95afe733e8.txt",
+      "citation": "passages/172956519cfadbe23bf79af81adde97036dbce90739133a6db22de95afe733e8.txt",
+      "passage": "hose cans. One can had a puncture hole in the side. Another was sealed at the top. That can was dented on the side, which had allowed the beer to drain out, rendering it unlikely that someone had consumed that beer. Regardless of the condition of the cans, it remains clear that no evidence at trial established that Clemons consumed the beers. More importantly, even if he did drink them, nothing in the record supports the notion that doing so rendered Clemons so intoxicated that he lost control o",
+      "source_url": null
+    },
+    {
+      "evidence_id": "e3",
+      "document_id": "passages/31bb11f398693184ceb2a3b888a582f331ada6d297a4c184c6ad5319e3de6aeb.txt",
+      "citation": "passages/31bb11f398693184ceb2a3b888a582f331ada6d297a4c184c6ad5319e3de6aeb.txt",
+      "passage": "The res ipsa loquitur doctrine “enables a jury presented only with circumstantial evidence to infer negligence simply from the fact that an event happened.” St. Paul Fire & Marine Ins. Co. v. City of New York, 907 F.2d 299, 302 (2d Cir.1990).  The criteria for applying res ipsa loquitur include  “(1) the event must be of a kind which ordinarily does not occur in the absence of someone's negligence; (2) it must be caused by an agency or instrumentality within the exclusive control of the defendan",
+      "source_url": null
+    },
+    {
+      "evidence_id": "e4",
+      "document_id": "passages/230900df234728a7cb5fcaad1d7c7f500b374fbf06593313468f50c99c79d244.txt",
+      "citation": "passages/230900df234728a7cb5fcaad1d7c7f500b374fbf06593313468f50c99c79d244.txt",
+      "passage": "¶ 1 While riding a roller coaster at the Washington State Fair, Jodi Brugh received a severe injury that resulted in a subdural hematoma that required brain surgery. Brugh sued Fun-Tastic Rides Co., Midway Rides LLC, and John Doe Manufacturer (collectively Fun-Tastic), alleging negligence. She relied on the doctrine of res ipsa loquitur to establish a breach of duty. Fun-Tastic moved for summary judgment on the theory that res ipsa loquitur did not apply, and after reconsideration, the trial cou",
+      "source_url": null
+    },
+    {
+      "evidence_id": "e5",
+      "document_id": "passages/134df8b0193d148f5d975de8e0d84cf2d74aca80948fae45162c412cb3780246.txt",
+      "citation": "passages/134df8b0193d148f5d975de8e0d84cf2d74aca80948fae45162c412cb3780246.txt",
+      "passage": " create an inference of negligence where direct evidence is lacking. Defendants here have not cited to any cases where a party used res ipsa loquitur to defend itself against a claim of negligence or shift liability to a co-defendant. Nor is the Court aware of such authority. Accordingly, the Court finds that res ipsa loquitur does not apply.",
+      "source_url": null
+    }
+  ],
+  "limitations": [
+    "No verified GPS coordinates; diagram is a chain-of-control schematic only.",
+    "Graph and checklist summarize the generated answer and hypo; not independent legal advice."
+  ],
+  "fallback_text": "If Dotty asserts a claim against Canco based on negligence, the doctrine of *res ipsa loquitur* would likely not apply.\n\nThe doctrine of *res ipsa loquitur* permits negligence to be inferred from the physical cause of an injury, without the aid of circumstances pointing to the responsible human cause (Bowlin v. Duke Univ., 108 N.C.App. 145, 149, 423 S.E.2d 320, 322 (1992)). One of the criteria for applying *res ipsa loquitur* is that the event must be caused by an agency or instrumentality within the exclusive control of the defendant (St. Paul Fire & Marine Ins. Co. v. City of New York, 907 F.2d 299, 302 (2d Cir.1990)).\n\nIn this scenario, the facts state that the tuna consumed by Dotty and Guest came from a case that was knocked over by the plumbing contractor's workmen, causing the cans to be dented. The tuna in undamaged cans from the same Canco shipment was fit for consumption. This indicates that the instrumentality causing the tuna to become unfit for consumption (the denting of the cans) was the action of the plumbing contractor's workmen, not Canco. Since the damage occurred while the product was no longer in Canco's control, the requirement that the event be caused by an instrumentality within the exclusive control of the defendant (Canco) is not met.",
+  "_source": {
+    "query": "A water pipe burst in the basement of Supermart, a grocery store, flooding the basement and damaging cases of canned goods on the floor. The Plumbing contractor's workmen, in repairing the leak, knocked over several stacks of canned goods in cases, denting the cans. After settling its claims against the landlord for the water leak and against the plumbing contractor for the damage done by his workmen, Supermart put the goods on special sale. Four weeks later Dotty was shopping in Supermart. Several tables in the market were covered with assorted canned foods, all of which were dirty and dented. A sign on each of the tables read: \"Damaged Cans-Half Price.\" Dotty was having Guest for dinner that evening and purchased two dented cans of tuna, packed by Canco, from one of the tables displaying the damaged cans. Before Guest arrived, Dotty prepared a tuna casserole which she and Guest ate. Both became ill and the medical testimony established that the illness was caused by the tuna's being unfit for consumption. The tuna consumed by Dotty and Guest came from the case that was at the top of one of the stacks knocked over by the workmen. The tuna in undamaged cans from the same Canco shipment was fit for consumption.\nIf Dotty asserts a claim against Canco based on negligence, the doctrine of res ipsa loquitur is",
+    "generated_answer": "If Dotty asserts a claim against Canco based on negligence, the doctrine of *res ipsa loquitur* would likely not apply.\n\nThe doctrine of *res ipsa loquitur* permits negligence to be inferred from the physical cause of an injury, without the aid of circumstances pointing to the responsible human cause (Bowlin v. Duke Univ., 108 N.C.App. 145, 149, 423 S.E.2d 320, 322 (1992)). One of the criteria for applying *res ipsa loquitur* is that the event must be caused by an agency or instrumentality within the exclusive control of the defendant (St. Paul Fire & Marine Ins. Co. v. City of New York, 907 F.2d 299, 302 (2d Cir.1990)).\n\nIn this scenario, the facts state that the tuna consumed by Dotty and Guest came from a case that was knocked over by the plumbing contractor's workmen, causing the cans to be dented. The tuna in undamaged cans from the same Canco shipment was fit for consumption. This indicates that the instrumentality causing the tuna to become unfit for consumption (the denting of the cans) was the action of the plumbing contractor's workmen, not Canco. Since the damage occurred while the product was no longer in Canco's control, the requirement that the event be caused by an instrumentality within the exclusive control of the defendant (Canco) is not met.",
+    "model_id": "gemini-2.5-flash",
+    "backend": "gemini"
+  },
+  "_story": {
+    "takeaway": "Control over time — not a geographic map — explains why res ipsa fails against Canco.",
+    "beats": []
+  },
+  "_story_timeline": {
+    "items": []
+  },
+  "limited_evidence": false,
+  "diagram_kind": "chain_of_control",
+  "established_facts": [
+    "Plumbing workmen knocked over stacks and dented cans at Supermart. (query)",
+    "Undamaged cans from the same Canco shipment were fit for consumption. (query)",
+    "Generated answer: res ipsa likely does not apply against Canco because exclusive control was broken."
+  ],
+  "not_established": [
+    "Verified geographic coordinates for any location.",
+    "That Canco retained exclusive control after the product left its shipment."
+  ],
+  "_audit": {
+    "backed_items": 24,
+    "unsupported_items": 0,
+    "fabricated_numeric": 0,
+    "limited_evidence": false,
+    "primary": "map",
+    "diagram_kind": "chain_of_control"
+  },
+  "additional_details": {
+    "type": "matrix",
+    "items": [
+      {
+        "id": "m1",
+        "row": "Implies negligence",
+        "column": "Supported?",
+        "value": "Maybe",
+        "symbol": "~",
+        "description": "Illness after canned food — suggestive.",
+        "evidence_ids": [
+          "e1"
+        ]
+      },
+      {
+        "id": "m2",
+        "row": "Exclusive control by Canco",
+        "column": "Supported?",
+        "value": "No",
+        "symbol": "✗",
+        "description": "Workmen intervene.",
+        "evidence_ids": [
+          "e1"
+        ]
+      },
+      {
+        "id": "m3",
+        "row": "Plaintiff not at fault",
+        "column": "Supported?",
+        "value": "Likely",
+        "symbol": "○",
+        "description": "Consumer purchaser.",
+        "evidence_ids": [
+          "e1"
+        ]
+      },
+      {
+        "id": "m4",
+        "row": "Res ipsa vs Canco",
+        "column": "Supported?",
+        "value": "Fails",
+        "symbol": "✗",
+        "description": "Generated answer.",
+        "evidence_ids": [
+          "e5"
+        ]
+      }
+    ]
+  }
+}
