@@ -1,0 +1,166 @@
+{
+  "query_id": "10",
+  "query_type": "comparative",
+  "title": "Groupon data collection — purposes & safeguards",
+  "summary": "Comparison of data types Groupon collects against commercial purposes and security controls. Each cell indicates whether that data type is used for the given purpose, as stated in the Groupon Privacy Statement.",
+  "primary_view": {
+    "type": "matrix",
+    "items": [
+      {
+        "id": "m1",
+        "row": "Personal Info\n(name, contact)",
+        "column": "Personalization",
+        "value": "Yes",
+        "description": "Groupon uses personal info to customize site experience and service recommendations.",
+        "evidence_ids": ["e2"]
+      },
+      {
+        "id": "m2",
+        "row": "Personal Info\n(name, contact)",
+        "column": "E-mail Marketing",
+        "value": "Yes",
+        "description": "Groupon uses contact info for promotional e-mails; users may opt out.",
+        "evidence_ids": ["e2"]
+      },
+      {
+        "id": "m3",
+        "row": "Personal Info\n(name, contact)",
+        "column": "Partner Sharing",
+        "value": "Permitted",
+        "description": "Personal info may be shared with Business Partners for Other Programs; scope depends on enrollment.",
+        "evidence_ids": ["e3"]
+      },
+      {
+        "id": "m4",
+        "row": "Personal Info\n(name, contact)",
+        "column": "Security Controls",
+        "value": "Yes",
+        "description": "Administrative, technical, and physical controls safeguard personal information.",
+        "evidence_ids": ["e4"]
+      },
+      {
+        "id": "m5",
+        "row": "Financial Info\n(payment data)",
+        "column": "Personalization",
+        "value": "No",
+        "description": "Payment data is used for transaction processing, not for personalization.",
+        "evidence_ids": ["e1"]
+      },
+      {
+        "id": "m6",
+        "row": "Financial Info\n(payment data)",
+        "column": "E-mail Marketing",
+        "value": "No",
+        "description": "Financial account information is not used for marketing communications.",
+        "evidence_ids": ["e4"]
+      },
+      {
+        "id": "m7",
+        "row": "Financial Info\n(payment data)",
+        "column": "Partner Sharing",
+        "value": "No",
+        "description": "Financial account data is not shared with Business Partners.",
+        "evidence_ids": ["e4"]
+      },
+      {
+        "id": "m8",
+        "row": "Financial Info\n(payment data)",
+        "column": "Security Controls",
+        "value": "Yes",
+        "description": "Industry-standard encryption is applied specifically to Financial Account Information.",
+        "evidence_ids": ["e4"]
+      },
+      {
+        "id": "m9",
+        "row": "Behavioral Data\n(browsing, purchases)",
+        "column": "Personalization",
+        "value": "Yes",
+        "description": "Browsing and purchase history are used to recommend deals and personalize the site.",
+        "evidence_ids": ["e2"]
+      },
+      {
+        "id": "m10",
+        "row": "Behavioral Data\n(browsing, purchases)",
+        "column": "E-mail Marketing",
+        "value": "Yes",
+        "description": "Past purchase behavior informs targeted promotional e-mails.",
+        "evidence_ids": ["e2"]
+      },
+      {
+        "id": "m11",
+        "row": "Behavioral Data\n(browsing, purchases)",
+        "column": "Partner Sharing",
+        "value": "Permitted",
+        "description": "Aggregate behavioral data may be shared with advertising partners and vendors.",
+        "evidence_ids": ["e3"]
+      },
+      {
+        "id": "m12",
+        "row": "Behavioral Data\n(browsing, purchases)",
+        "column": "Security Controls",
+        "value": "Maybe",
+        "description": "General information security program applies; no specific behavioral-data controls are described.",
+        "evidence_ids": ["e4"]
+      }
+    ]
+  },
+  "secondary_views": [],
+  "legend": [
+    {"key": "yes",     "label": "Used for this purpose",     "color_token": "green"},
+    {"key": "no",      "label": "Not used / not shared",     "color_token": "red"},
+    {"key": "maybe",   "label": "Partial / unclear",         "color_token": "amber"},
+    {"key": "offered", "label": "Permitted (conditional)",   "color_token": "blue"}
+  ],
+  "annotations": [],
+  "evidence_links": [
+    {
+      "evidence_id": "e1",
+      "document_id": "privacy_qa/Groupon.txt",
+      "citation": "Groupon Privacy Statement — Data Collection",
+      "passage": "We will collect information, including Personal Information and Non-Identifying Information, when you interact with us and the Site, for example when you: access or use the Site; register, subscribe, or create an account with Groupon; open or respond to our e-mails; purchase products or services on or through the Site.",
+      "source_url": null
+    },
+    {
+      "evidence_id": "e2",
+      "document_id": "privacy_qa/Groupon.txt",
+      "citation": "Groupon Privacy Statement — Data Use",
+      "passage": "We (or our Vendors on our behalf), use information collected as described in this Privacy Statement to: Operate, maintain and improve the Site and our services; provide you with a personalized experience on our Site; send you promotional communications.",
+      "source_url": null
+    },
+    {
+      "evidence_id": "e3",
+      "document_id": "privacy_qa/Groupon.txt",
+      "citation": "Groupon Privacy Statement — Partner Sharing",
+      "passage": "provide information to enroll or participate in Other Programs provided on behalf of, or together with, Business Partners; visit any page online that displays our ads or content.",
+      "source_url": null
+    },
+    {
+      "evidence_id": "e4",
+      "document_id": "privacy_qa/Groupon.txt",
+      "citation": "Groupon Privacy Statement — Security",
+      "passage": "Groupon has implemented an information security program that contains administrative, technical and physical controls that are designed to reasonably safeguard Personal Information. For example, we use industry-standard encryption technology to secure Financial Account Information.",
+      "source_url": null
+    }
+  ],
+  "limitations": [
+    "The 'Permitted' classification for partner sharing reflects the policy's broad language; actual sharing scope depends on user enrollment in 'Other Programs'.",
+    "Groupon's cookie and tracking practices are described separately and are not captured in this matrix.",
+    "Security controls are described qualitatively; no specific certifications (e.g., SOC 2, ISO 27001) are mentioned."
+  ],
+  "fallback_text": "Groupon collects personal information (name, contact), financial information (payment), and behavioral data (browsing, purchases). Personal and behavioral data are used for personalization, e-mail marketing, and may be shared with partners. Financial data receives the strongest security controls (encryption) but is not used for marketing. General security controls apply across all data types.",
+  "_source": {
+    "query": "Consider 'Groupon''s privacy policy; what does Groupon do with collected data, and what security controls are in place?",
+    "generated_answer": "Groupon collects personal information, financial data, and behavioral data. It uses this information to operate and personalize its services, send promotional communications, and share with business partners for affiliated programs. Financial Account Information is specifically protected with industry-standard encryption. A broader information security program with administrative, technical, and physical controls applies to all Personal Information.",
+    "model_id": "gemini-2.5-flash",
+    "backend": "gemini"
+  },
+  "limited_evidence": false,
+  "_audit": {
+    "backed_items": 12,
+    "unsupported_items": 0,
+    "fabricated_numeric": 0,
+    "limited_evidence": false,
+    "primary": "matrix",
+    "diagram_kind": "compliance matrix"
+  }
+}

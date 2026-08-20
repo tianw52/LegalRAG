@@ -1,0 +1,126 @@
+{
+  "query_id": "8",
+  "query_type": "analytical",
+  "title": "Pre-closing conduct — Pandion / Merck merger",
+  "summary": "Decision tree for whether Pandion Therapeutics may take a given action during the pre-closing period under the Agreement and Plan of Merger with Merck Sharp & Dohme Corp. (Feb 24, 2021).",
+  "primary_view": {
+    "type": "decision_tree",
+    "items": [
+      {
+        "id": "root",
+        "label": "Action planned during\npre-closing period?",
+        "node_type": "question",
+        "detail": "Section 7.1 governs all Company conduct between signing (Feb 24, 2021) and the Effective Time of the Merger.",
+        "evidence_ids": ["e1"]
+      },
+      {
+        "id": "ordinary",
+        "label": "Ordinary course of\nbusiness (past practice)",
+        "parent": "root",
+        "edge_label": "Routine / normal",
+        "node_type": "question",
+        "detail": "Company must conduct operations in all material respects consistent with past practice unless an exception applies.",
+        "evidence_ids": ["e1"]
+      },
+      {
+        "id": "extraordinary",
+        "label": "Material / extraordinary\naction",
+        "parent": "root",
+        "edge_label": "Out of ordinary course",
+        "node_type": "question",
+        "detail": "Material acquisitions, dispositions, equity issuances, debt incurrence, or other listed actions require Merck's written consent.",
+        "evidence_ids": ["e2"]
+      },
+      {
+        "id": "allowed_ordinary",
+        "label": "Proceed without\nMerck's consent",
+        "parent": "ordinary",
+        "edge_label": "Yes — consistent\nwith past practice",
+        "node_type": "outcome",
+        "outcome": "allowed",
+        "detail": "Ordinary-course actions (hiring, routine R&D, vendor payments) may proceed without notifying Merck.",
+        "evidence_ids": ["e1"]
+      },
+      {
+        "id": "need_consent",
+        "label": "Seek Merck's prior\nwritten consent",
+        "parent": "extraordinary",
+        "edge_label": "Listed restricted\naction",
+        "node_type": "question",
+        "detail": "Examples include: acquiring a business worth ≥15% of consolidated assets, issuing new equity, or incurring material debt.",
+        "evidence_ids": ["e2"]
+      },
+      {
+        "id": "consent_granted",
+        "label": "Action permitted\n(consent received)",
+        "parent": "need_consent",
+        "edge_label": "Merck consents",
+        "node_type": "outcome",
+        "outcome": "allowed",
+        "detail": "Merck's written consent removes the restriction for that specific action.",
+        "evidence_ids": ["e3"]
+      },
+      {
+        "id": "consent_denied",
+        "label": "Action prohibited\nuntil closing",
+        "parent": "need_consent",
+        "edge_label": "Merck declines\nor no response",
+        "node_type": "outcome",
+        "outcome": "prohibited",
+        "detail": "Without consent, the action is prohibited during the pre-closing period; proceeding would constitute a breach.",
+        "evidence_ids": ["e2"]
+      }
+    ]
+  },
+  "secondary_views": [],
+  "legend": [
+    {"key": "question", "label": "Decision point",    "color_token": "blue"},
+    {"key": "allowed",  "label": "Permitted outcome", "color_token": "green"},
+    {"key": "prohibited","label": "Prohibited outcome","color_token": "red"}
+  ],
+  "annotations": [],
+  "evidence_links": [
+    {
+      "evidence_id": "e1",
+      "document_id": "maud/Pandion Therapeutics, Inc._Merck _ Co., Inc..txt",
+      "citation": "§7.1(a) Conduct of the Company",
+      "passage": "During the Pre-Closing Period, except (i) as set forth in Section 7.1 of the Company Disclosure Letter, (ii) as required by the express terms of this Agreement, or (iii) as otherwise consented to by Parent in writing, the Company shall, and shall cause each Company Subsidiary to, conduct its operations in all material respects in the ordinary course of business consistent with past practice.",
+      "source_url": null
+    },
+    {
+      "evidence_id": "e2",
+      "document_id": "maud/Pandion Therapeutics, Inc._Merck _ Co., Inc..txt",
+      "citation": "§7.1(b) Restricted Actions",
+      "passage": "Without limiting the generality of the foregoing, during the Pre-Closing Period, except as expressly permitted or required by this Agreement or the Company Disclosure Letter, the Company shall not, and shall cause each Company Subsidiary not to, without the prior written consent of Parent: (i) issue, sell, or authorize any shares of capital stock; (ii) acquire or agree to acquire any assets constituting 15% or more of consolidated revenue, net income or assets; (iii) incur indebtedness for borrowed money in excess of applicable thresholds.",
+      "source_url": null
+    },
+    {
+      "evidence_id": "e3",
+      "document_id": "maud/Pandion Therapeutics, Inc._Merck _ Co., Inc..txt",
+      "citation": "§7.1 — Consent mechanism",
+      "passage": "As used in this Agreement, 'ordinary course of business consistent with past practice' means, with respect to any action by the Company, an action that is consistent in nature, scope and magnitude with the past practices of the Company and that is taken in the ordinary course of the normal day-to-day operations of the Company.",
+      "source_url": null
+    }
+  ],
+  "limitations": [
+    "The Company Disclosure Letter (§7.1 exceptions list) is not publicly available; additional permitted actions may exist.",
+    "The merger closed in May 2021; this analysis reflects conditions as of the Feb 24, 2021 signing date.",
+    "Thresholds for 'material' actions are defined by reference to consolidated financials not shown here."
+  ],
+  "fallback_text": "During the pre-closing period, Pandion must operate in the ordinary course of business. Any extraordinary or listed actions — such as issuing equity, making material acquisitions, or incurring significant debt — require Merck's prior written consent. Without consent, such actions are prohibited until the merger closes.",
+  "_source": {
+    "query": "Consider the Merger Agreement between Merck Sharp & Dohme Corp. and Pandion Therapeutics Inc.; What restrictions govern Pandion's conduct during the pre-closing period?",
+    "generated_answer": "Under §7.1, Pandion must conduct its operations in the ordinary course of business consistent with past practice during the pre-closing period. It may not, without Merck's prior written consent, issue new equity, make material acquisitions (≥15% of consolidated assets), incur material debt, or take other listed extraordinary actions. Ordinary business operations may continue without seeking consent.",
+    "model_id": "gemini-2.5-flash",
+    "backend": "gemini"
+  },
+  "limited_evidence": false,
+  "_audit": {
+    "backed_items": 7,
+    "unsupported_items": 0,
+    "fabricated_numeric": 0,
+    "limited_evidence": false,
+    "primary": "decision_tree",
+    "diagram_kind": "decision tree"
+  }
+}
