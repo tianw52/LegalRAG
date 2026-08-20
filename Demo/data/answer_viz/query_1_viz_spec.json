@@ -1,0 +1,265 @@
+{
+  "query_id": "1",
+  "query_type": "relational",
+  "title": "Vic's testimony — witness conflict",
+  "summary": "Party/witness relationships from the hypo, with a qualitative contrast of Vic's live testimony vs the retrieved hearsay excerpt.",
+  "primary_view": {
+    "type": "network",
+    "items": [],
+    "layout": "hierarchical",
+    "network": {
+      "nodes": [
+        {
+          "id": "issue",
+          "label": "Vic testimony?",
+          "entity_type": "doctrine",
+          "description": "Should the judge admit Vic after Wes testified unfavorably?",
+          "evidence_ids": [
+            "e1"
+          ],
+          "layer": 0
+        },
+        {
+          "id": "paul",
+          "label": "Paul",
+          "entity_type": "plaintiff",
+          "description": "Plaintiff; calls Wes, then offers Vic.",
+          "evidence_ids": [
+            "e1"
+          ],
+          "layer": 1
+        },
+        {
+          "id": "wes",
+          "label": "Wes",
+          "entity_type": "actor",
+          "description": "Testifies Dan did NOT run the light.",
+          "evidence_ids": [
+            "e1"
+          ],
+          "layer": 2
+        },
+        {
+          "id": "vic",
+          "label": "Vic",
+          "entity_type": "actor",
+          "description": "Offered to say Dan DID run the light.",
+          "evidence_ids": [
+            "e2"
+          ],
+          "layer": 2
+        },
+        {
+          "id": "dan",
+          "label": "Dan",
+          "entity_type": "defendant",
+          "description": "Driver alleged to have run the light.",
+          "evidence_ids": [
+            "e1"
+          ],
+          "layer": 3
+        }
+      ],
+      "edges": [
+        {
+          "source": "paul",
+          "target": "wes",
+          "relation": "calls",
+          "description": "Paul calls Wes as eyewitness.",
+          "evidence_ids": [
+            "e1"
+          ]
+        },
+        {
+          "source": "wes",
+          "target": "dan",
+          "relation": "denies red light",
+          "description": "Wes says Dan did not run the light.",
+          "evidence_ids": [
+            "e1"
+          ]
+        },
+        {
+          "source": "paul",
+          "target": "vic",
+          "relation": "offers",
+          "description": "Paul offers Vic to contradict Wes.",
+          "evidence_ids": [
+            "e2"
+          ]
+        },
+        {
+          "source": "vic",
+          "target": "dan",
+          "relation": "asserts red light",
+          "description": "Vic would say Dan ran the light.",
+          "evidence_ids": [
+            "e2"
+          ]
+        }
+      ]
+    }
+  },
+  "secondary_views": [],
+  "legend": [
+    {
+      "key": "party",
+      "label": "Parties / witnesses",
+      "color_token": "teal"
+    },
+    {
+      "key": "doctrine",
+      "label": "Retrieved doctrine",
+      "color_token": "blue"
+    }
+  ],
+  "annotations": [
+    {
+      "id": "a1",
+      "text": "Key story beat: Wes and Vic collide on the same fact.",
+      "target_item_id": "t2",
+      "evidence_ids": [
+        "e1"
+      ]
+    }
+  ],
+  "evidence_links": [
+    {
+      "evidence_id": "e1",
+      "document_id": "passages/e451f42aede23c6cd711ed87b0a18dd138c1dee6a0d868525c94d13ab3aa7c83.txt",
+      "citation": "passages/e451f42aede23c6cd711ed87b0a18dd138c1dee6a0d868525c94d13ab3aa7c83.txt",
+      "passage": "apturing the driver of one car stating that the other driver ran a red light would be hearsay when offered to prove that the other driver ran a red light.",
+      "source_url": null
+    },
+    {
+      "evidence_id": "e2",
+      "document_id": "passages/4349fc11baa7ce5c0f5f48b0dec7244d604d974755825af1934aba50444b2470.txt",
+      "citation": "passages/4349fc11baa7ce5c0f5f48b0dec7244d604d974755825af1934aba50444b2470.txt",
+      "passage": "Ms. Primo testified that she witnessed the accident at issue. She testified that she was the first car in line in the left lane on Severn Avenue, facing Airline, waiting on the red light to turn green. She testified that she was sitting at the red light listening to music and looking straight ahead on Severn Avenue when she saw Mr. Windmann's car \"out of the left peripheral vision.\" According to Ms. Primo, Mr. Murray was riding his bike on the street about two or three car lengths away from the ",
+      "source_url": null
+    },
+    {
+      "evidence_id": "e3",
+      "document_id": "passages/5247b5c1e7da6fcf16b80be2ae1eb0b8222cd68534fddee29865f6d8f12fefb8.txt",
+      "citation": "passages/5247b5c1e7da6fcf16b80be2ae1eb0b8222cd68534fddee29865f6d8f12fefb8.txt",
+      "passage": "In this case, the Plaintiff claims that Dan's Car World was told by its Zurich insurance agent, Scott Beresford, that Salvatore was covered under the insurance issued to Dan's Car World. While Tiffany Moine, Dan's Car World's Rule 30(b)(7) deponent, testified that she did not know what Mr. Beresford specifically told Dan Cava, she also testified that she was made aware by Dan Cava of a conversation between himself and Zurich's agent on adding Salvatore to Dan's Car World's policy. And after that",
+      "source_url": null
+    },
+    {
+      "evidence_id": "e4",
+      "document_id": "passages/3ed089eb7d86a3b564458c302b2cd58c351eec389f64aba8deb5ce5b9072cc88.txt",
+      "citation": "passages/3ed089eb7d86a3b564458c302b2cd58c351eec389f64aba8deb5ce5b9072cc88.txt",
+      "passage": "Reduced to its essence, Ms. Moine testified that Mr. Cava told her that he asked Petitioners' agent to add Salvatore Cava to the policy. After Ms. Moine's deposition the Petitioners filed a motion to compel Dan's Car World to produce a Rule 30(b)(7) witness who could testify about what its agent said to Mr. Cava regarding adding Salvatore Cava to the policy. Dan's Car World opposed the motion. In doing so, it argued, \"to the extent [Dan's Car World's] representative was unaware of information so",
+      "source_url": null
+    },
+    {
+      "evidence_id": "e5",
+      "document_id": "passages/5247b5c1e7da6fcf16b80be2ae1eb0b8222cd68534fddee29865f6d8f12fefb8.txt",
+      "citation": "passages/5247b5c1e7da6fcf16b80be2ae1eb0b8222cd68534fddee29865f6d8f12fefb8.txt",
+      "passage": "alvatore to Dan's Car World's policy. And after that conversation, Mr. Cava was \"under the assumption that\" Salvatore had been added to the policy. Like Ms. Moine, Dan Cava testified that he had a conversation with Mr. Beresford in which he wanted to add Salvatore to Dan's Car World's policy as a named insured and Mr. Beresford advised him that his son was covered. The positions taken by Dan's Car World and Dan Cava are not inconsistent, as both Dan's Car World and Dan Cava testified regarding a",
+      "source_url": null
+    }
+  ],
+  "limitations": [
+    "The provided evidence does not contain sufficient legal rules or precedents to determine the admissibility of Vic's testimony.",
+    "The distinction between hearsay (Excerpt 1) and direct witness testimony is crucial but not fully addressed by the available documents.",
+    "Story visuals summarize the hypo + model answer; they are not a judicial ruling."
+  ],
+  "fallback_text": "The available legal documents do not provide enough information to determine how the trial judge should rule on Vic's testimony. The excerpts discuss hearsay and factual scenarios, but not the specific rules of evidence applicable to direct witness testimony in this context.",
+  "_source": {
+    "query": "Paul, the Plaintiff in a personal injury action, called Wes as a witness to testify that Dan's car, in which Paul had been riding. ran a red light. Wes, however, testified that Dan's car did not run the light.\nPaul then called Vic to testify that Dan's car did run the light. The trial judge should rule that Vic's testimony is",
+    "generated_answer": "The provided legal document excerpts do not contain sufficient information to determine how the trial judge should rule on Vic's testimony. Excerpt 1 discusses hearsay in the context of \"the driver of one car stating that the other driver ran a red light,\" which is distinct from a witness (Vic) directly testifying to what they observed. The other excerpts describe factual scenarios or deposition testimony and do not provide general rules of evidence applicable to Vic's direct testimony.",
+    "model_id": "gemini-2.5-flash",
+    "backend": "gemini"
+  },
+  "_story": {
+    "takeaway": "Direct eyewitness offer vs out-of-court hearsay excerpt — retrieved law does not clearly decide Vic.",
+    "beats": []
+  },
+  "_story_timeline": {
+    "items": []
+  },
+  "limited_evidence": true,
+  "established_facts": [
+    "Paul called Wes; Wes testified Dan's car did not run the light. (query)",
+    "Paul then offered Vic to testify that Dan's car did run the light. (query)",
+    "Retrieved excerpt discusses hearsay for an out-of-court driver statement about a red light. (e1)"
+  ],
+  "not_established": [
+    "How the trial judge should rule on Vic's testimony.",
+    "A retrieved rule of evidence that directly governs Vic's live in-court testimony."
+  ],
+  "_audit": {
+    "backed_items": 24,
+    "unsupported_items": 0,
+    "fabricated_numeric": 0,
+    "limited_evidence": true,
+    "primary": "network",
+    "diagram_kind": null
+  },
+  "additional_details": {
+    "type": "matrix",
+    "items": [
+      {
+        "id": "m1",
+        "row": "Vic live",
+        "column": "In-court",
+        "value": "Yes",
+        "description": "Offered as live witness.",
+        "evidence_ids": [
+          "e1"
+        ]
+      },
+      {
+        "id": "m2",
+        "row": "Vic live",
+        "column": "Covered by e1 hearsay?",
+        "value": "No",
+        "description": "e1 is about out-of-court statements.",
+        "evidence_ids": [
+          "e1"
+        ]
+      },
+      {
+        "id": "m3",
+        "row": "e1 driver statement",
+        "column": "In-court",
+        "value": "No",
+        "description": "Out-of-court assertion.",
+        "evidence_ids": [
+          "e1"
+        ]
+      },
+      {
+        "id": "m4",
+        "row": "e1 driver statement",
+        "column": "Covered by e1 hearsay?",
+        "value": "Yes",
+        "description": "Classic hearsay hypo in retrieval.",
+        "evidence_ids": [
+          "e1"
+        ]
+      },
+      {
+        "id": "m5",
+        "row": "Rule deciding Vic",
+        "column": "In-court",
+        "value": "Missing",
+        "description": "Not in retrieved set.",
+        "evidence_ids": [
+          "e5"
+        ]
+      },
+      {
+        "id": "m6",
+        "row": "Rule deciding Vic",
+        "column": "Covered by e1 hearsay?",
+        "value": "N/A",
+        "description": "Wrong analogy.",
+        "evidence_ids": [
+          "e5"
+        ]
+      }
+    ]
+  }
+}

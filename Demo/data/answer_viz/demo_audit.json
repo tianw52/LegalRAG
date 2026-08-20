@@ -1,0 +1,119 @@
+{
+  "validated_at": "2026-08-12",
+  "method": "static_spec_validation + node_syntax_check + renderer_smoke_with_dom_shim (Node.js 20)",
+  "total_queries": 10,
+  "total_pass": 10,
+  "total_fail": 0,
+  "queries": [
+    {
+      "query_id": "1",
+      "viz_type": "network",
+      "limited_evidence": true,
+      "backed_items": 24,
+      "unsupported_items": 0,
+      "fabricated_numeric": 0,
+      "smoke_test": "PASS",
+      "runtime_errors": 0,
+      "overlap_clipping": 0
+    },
+    {
+      "query_id": "2",
+      "viz_type": "matrix",
+      "limited_evidence": true,
+      "backed_items": 23,
+      "unsupported_items": 0,
+      "fabricated_numeric": 0,
+      "smoke_test": "PASS",
+      "runtime_errors": 0,
+      "overlap_clipping": 0
+    },
+    {
+      "query_id": "3",
+      "viz_type": "network",
+      "limited_evidence": true,
+      "backed_items": 19,
+      "unsupported_items": 0,
+      "fabricated_numeric": 0,
+      "smoke_test": "PASS",
+      "runtime_errors": 0,
+      "overlap_clipping": 0
+    },
+    {
+      "query_id": "4",
+      "viz_type": "timeline",
+      "limited_evidence": false,
+      "backed_items": 19,
+      "unsupported_items": 0,
+      "fabricated_numeric": 0,
+      "smoke_test": "PASS",
+      "runtime_errors": 0,
+      "overlap_clipping": 0
+    },
+    {
+      "query_id": "5",
+      "viz_type": "map",
+      "limited_evidence": false,
+      "backed_items": 24,
+      "unsupported_items": 0,
+      "fabricated_numeric": 0,
+      "smoke_test": "PASS",
+      "runtime_errors": 0,
+      "overlap_clipping": 0
+    },
+    {
+      "query_id": "6",
+      "viz_type": "statute_tree",
+      "limited_evidence": false,
+      "backed_items": 10,
+      "unsupported_items": 0,
+      "fabricated_numeric": 0,
+      "smoke_test": "PASS",
+      "runtime_errors": 0,
+      "overlap_clipping": 0
+    },
+    {
+      "query_id": "7",
+      "viz_type": "network",
+      "limited_evidence": false,
+      "backed_items": 14,
+      "unsupported_items": 0,
+      "fabricated_numeric": 0,
+      "smoke_test": "PASS",
+      "runtime_errors": 0,
+      "overlap_clipping": 0
+    },
+    {
+      "query_id": "8",
+      "viz_type": "decision_tree",
+      "limited_evidence": false,
+      "backed_items": 7,
+      "unsupported_items": 0,
+      "fabricated_numeric": 0,
+      "smoke_test": "PASS",
+      "runtime_errors": 0,
+      "overlap_clipping": 0
+    },
+    {
+      "query_id": "9",
+      "viz_type": "map",
+      "limited_evidence": false,
+      "backed_items": 9,
+      "unsupported_items": 0,
+      "fabricated_numeric": 0,
+      "smoke_test": "PASS",
+      "runtime_errors": 0,
+      "overlap_clipping": 0
+    },
+    {
+      "query_id": "10",
+      "viz_type": "matrix",
+      "limited_evidence": false,
+      "backed_items": 12,
+      "unsupported_items": 0,
+      "fabricated_numeric": 0,
+      "smoke_test": "PASS",
+      "runtime_errors": 0,
+      "overlap_clipping": 0
+    }
+  ]
+}

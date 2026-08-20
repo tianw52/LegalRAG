@@ -1,0 +1,159 @@
+{
+  "query_id": "4",
+  "query_type": "temporal",
+  "title": "Jim's burglary — intent at entry",
+  "summary": "Sequence of events from the hypo, linked to the generated defense theory and retrieved intent-at-entry language.",
+  "primary_view": {
+    "type": "timeline",
+    "x_label": "Sequence (from hypo; no calendar dates in evidence)",
+    "items": [
+      {
+        "id": "t1",
+        "date": null,
+        "date_label": "Stage 1 · Planning",
+        "date_certainty": "sequence_only",
+        "event": "Planned hold-up; bought toy gun",
+        "description": "Stated in the query narrative.",
+        "category": "preparation",
+        "evidence_ids": [
+          "e1"
+        ]
+      },
+      {
+        "id": "t2",
+        "date": null,
+        "date_label": "Stage 2 · Entry",
+        "date_certainty": "sequence_only",
+        "event": "Entered store near closing",
+        "description": "Critical burglary moment in the hypo.",
+        "category": "entry",
+        "evidence_ids": [
+          "e2"
+        ]
+      },
+      {
+        "id": "t3",
+        "date": null,
+        "date_label": "Stage 3 · Retreat",
+        "date_certainty": "sequence_only",
+        "event": "Frightened; moved toward the door",
+        "description": "From the query; used in the defense theory.",
+        "category": "retreat",
+        "evidence_ids": [
+          "e2"
+        ]
+      },
+      {
+        "id": "t4",
+        "date": null,
+        "date_label": "Stage 4 · Defense",
+        "date_certainty": "sequence_only",
+        "event": "Argue no felony intent at entry",
+        "description": "Generated answer + retrieved intent-at-entry language (e2).",
+        "category": "legal",
+        "evidence_ids": [
+          "e2"
+        ]
+      }
+    ]
+  },
+  "secondary_views": [],
+  "legend": [],
+  "annotations": [],
+  "evidence_links": [
+    {
+      "evidence_id": "e1",
+      "document_id": "passages/7567ea4c221c6faa2cf168c47348dde9bd23ac58c4571cda72324c86fc00e829.txt",
+      "citation": "passages/7567ea4c221c6faa2cf168c47348dde9bd23ac58c4571cda72324c86fc00e829.txt",
+      "passage": "He entered through the front door; pointed a black handgun at Kenny Butler; and watched Butler place cash from the register, cigarettes, and Patrón tequila (two pint-sized bottles in green boxes) into a bag. The videos also show the robber placing his hands and gun on the service counter, right in front of Butler, and ripping apart the store's phone. They next display the robber moving his gun toward his waist or sweatshirt pocket as he exited the same door he entered. One video shows him walkin",
+      "source_url": null
+    },
+    {
+      "evidence_id": "e2",
+      "document_id": "passages/041ac5eddc891d9c4f84f99a951daef5c31c04560d32df3a8f8473855dd47393.txt",
+      "citation": "passages/041ac5eddc891d9c4f84f99a951daef5c31c04560d32df3a8f8473855dd47393.txt",
+      "passage": "ot follow that Soto 's reasoning bears on burglary charges-which are based on the defendant's intent at the moment of entering a store, regardless of whether violence actually occurred.",
+      "source_url": null
+    },
+    {
+      "evidence_id": "e3",
+      "document_id": "passages/0b684607f3703b741702b200bc6a0671cac531001e55ab580e474f6781e422e2.txt",
+      "citation": "passages/0b684607f3703b741702b200bc6a0671cac531001e55ab580e474f6781e422e2.txt",
+      "passage": "The state charged Martin with committing this offense by possessing the handgun during the burglary of the alterations shop, See OCGA § 16-11-106 (b) (2) (offense is committed, among other ways, when person has \"on or within arm's reach of his ... person a firearm ... during the commission of ... [t]he unlawful entry into a building\"). Martin argues that, because there were no eyewitnesses to the burglary of the alterations shop, there was no evidence that he possessed the gun when he entered th",
+      "source_url": null
+    },
+    {
+      "evidence_id": "e4",
+      "document_id": "passages/a3eccf2ce1001a2ac678fa5247d0aa5dd273e3bd93b4d2306f8677254a8a13a1.txt",
+      "citation": "passages/a3eccf2ce1001a2ac678fa5247d0aa5dd273e3bd93b4d2306f8677254a8a13a1.txt",
+      "passage": "Finally, Petitioner explained how he wound up shooting the victim. He said he took the money and was backing out of the shop without looking at the door. He heard someone coming to the door and turned around-at that point, the victim grabbed a gun. Petitioner turned back, apparently saw the gun, and fired a shot. This shot, Petitioner claimed, was the one that hit the counter. Petitioner backed out of the shop and ran into a person trying to enter. By this time, the victim had fired his own shot",
+      "source_url": null
+    },
+    {
+      "evidence_id": "e5",
+      "document_id": "passages/95a684dda31260841eb1eef8f27b1af13d8c9d8478f66ac8e635cd691ad0e82b.txt",
+      "citation": "passages/95a684dda31260841eb1eef8f27b1af13d8c9d8478f66ac8e635cd691ad0e82b.txt",
+      "passage": "¶14. Osbourne said his heart was still pounding from the incident on I-55. He got out of his van and grabbed his gun. He explained that he always carries a gun because he often has to travel to Memphis, Tennessee. Osbourne said he started walking toward the door of the store, when McCarver quickly walked up to him and put his chest against his. Osbourne said that he did not hit McCarver but instead that he pushed McCarver away from him. He claimed that McCarver reached for something in his right",
+      "source_url": null
+    }
+  ],
+  "limitations": [
+    "Timeline steps are grounded in the query narrative and generated answer.",
+    "Retrieved cases may describe similar robberies; they are not a holding on this exact hypo."
+  ],
+  "fallback_text": "Jim's best defense on a charge of burglary would be that he lacked the intent to commit a felony or to steal at the moment he entered the store.\n\nBurglary charges are \"based on the defendant's intent at the moment of entering a store\" (Court: unknown, Citation: passages/041ac5eddc891d9c4f84f99a951daef5c31c04560d32df3a8f8473855dd47393.txt). Although Jim had planned the hold-up and brought a toy gun, his immediate fright and retreat upon entering the store could be argued as evidence that he did not possess the requisite intent to commit a felony or to steal *at the precise moment he entered*.",
+  "_source": {
+    "query": "nan\nJim watched a liquor store furtively for some time, planning to hold it up. He bought a realistic-looking toy gun for the job. One night, just before the store's closing time, he drove to the store, opened the front door and entered. He reached in his pocket for the toy gun, but then became frightened and began to move back toward the front door. However, the shopkeeper had seen the butt of the gun. Fearing a hold up, the shopkeeper produced a gun from under the counter, pointed it at Jim, and yelled, \"Stop!\" Jim ran to the door and the toy gun fell from his pocket. The shopkeeper fired. The shot missed Jim, but struck and killed a passerby outside the store. A statute in the jurisdiction defines burglary as \"breaking and entering any building or structure with the intent to commit a felony or to steal therein.\" On a charge of burglary, Jim's best defense would be that",
+    "generated_answer": "Jim's best defense on a charge of burglary would be that he lacked the intent to commit a felony or to steal at the moment he entered the store.\n\nBurglary charges are \"based on the defendant's intent at the moment of entering a store\" (Court: unknown, Citation: passages/041ac5eddc891d9c4f84f99a951daef5c31c04560d32df3a8f8473855dd47393.txt). Although Jim had planned the hold-up and brought a toy gun, his immediate fright and retreat upon entering the store could be argued as evidence that he did not possess the requisite intent to commit a felony or to steal *at the precise moment he entered*.",
+    "model_id": "gemini-2.5-flash",
+    "backend": "gemini"
+  },
+  "_story": {
+    "takeaway": "Timing of intent at the threshold is the defense hinge.",
+    "beats": []
+  },
+  "_story_timeline": {
+    "items": []
+  },
+  "limited_evidence": false,
+  "established_facts": [
+    "Jim planned a hold-up, bought a toy gun, entered near closing, then became frightened and moved back toward the door. (query)",
+    "Retrieved passage: burglary charges are based on intent at the moment of entering a store. (e2)",
+    "Generated answer: best defense is lack of felony/theft intent at entry."
+  ],
+  "not_established": [
+    "That a court has already ruled this exact hypo in Jim's favor."
+  ],
+  "_audit": {
+    "backed_items": 19,
+    "unsupported_items": 0,
+    "fabricated_numeric": 0,
+    "limited_evidence": false,
+    "primary": "timeline",
+    "diagram_kind": null
+  },
+  "additional_details": {
+    "type": "evidence_view",
+    "items": [
+      {
+        "id": "claim-1",
+        "title": "Generated defense",
+        "text": "Jim's best defense on a charge of burglary would be that he lacked the intent to commit a felony or to steal at the moment he entered the store.\n\nBurglary charges are \"based on the defendant's intent at the moment of entering a store\" (Court: unknown, Citation: passages/041ac5eddc891d9c4f84f99a951daef5c31c04560d32df3a8f8473855dd47393.txt). Although Jim had planned the hold-up and brought a toy gun, his immediate fright and retreat upon entering the store could be argued as evidence that he did n",
+        "role": "claim",
+        "evidence_ids": [
+          "e1",
+          "e2"
+        ]
+      },
+      {
+        "id": "ev-e2",
+        "title": "Retrieved intent-at-entry language",
+        "text": "Burglary charges are based on intent at the moment of entering a store (e2).",
+        "role": "evidence",
+        "evidence_ids": [
+          "e2"
+        ]
+      }
+    ]
+  }
+}
