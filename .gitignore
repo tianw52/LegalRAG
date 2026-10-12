@@ -33,3 +33,10 @@ legalbenchrag/
 
 
 logs/queries.log
+
+data/extracted_court_documents/
+data/subset
+
+# Query run logs (keep directory, ignore log files)
+logs/*.log
+.vercel
