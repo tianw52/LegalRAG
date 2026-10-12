@@ -1,0 +1,117 @@
+# Exploration app — policy & profile template
+# ────────────────────────────────────────────────────────────────────────────
+# TEMPLATE — every value marked "DECIDE" is a placeholder for the team to edit.
+# Loaded by legalrag/explore/*.py and served to the web UI via GET /api/options.
+# Restart the API after editing (prompt files are cached per process).
+
+# ── Profile onboarding options ───────────────────────────────────────────────
+profile:
+  # Location → jurisdiction code (codes must match legalrag/ingestion/canlegal_courts.yaml)
+  provinces:
+    - {code: BC, label: British Columbia}
+    - {code: AB, label: Alberta}
+    - {code: SK, label: Saskatchewan}
+    - {code: MB, label: Manitoba}
+    - {code: ON, label: Ontario}
+    - {code: QC, label: Quebec}
+    - {code: NB, label: New Brunswick}
+    - {code: NS, label: Nova Scotia}
+    - {code: PE, label: Prince Edward Island}
+    - {code: NL, label: Newfoundland and Labrador}
+    - {code: YT, label: Yukon}
+    - {code: NT, label: Northwest Territories}
+    - {code: NU, label: Nunavut}
+    - {code: "", label: "Outside Canada / prefer not to say"}
+
+  # DECIDE: familiarity levels and how each changes the generated views.
+  # `audience` is injected verbatim into every view-generation prompt.
+  familiarity:
+    - key: new
+      label: "New to law"
+      description: "I've never dealt with a legal issue like this."
+      audience: >-
+        The reader has no legal training. Use plain language, define any legal
+        term the first time it appears, and prefer short labels over jargon.
+    - key: some
+      label: "Some familiarity"
+      description: "I've read about legal topics or been through a legal process."
+      audience: >-
+        The reader has some general legal literacy. Use standard legal terms
+        but briefly gloss specialised doctrine.
+    - key: professional
+      label: "Legal background"
+      description: "Law student, paralegal, lawyer, or similar."
+      audience: >-
+        The reader is legally trained. Use precise doctrinal terminology, name
+        tests and statutory provisions, and keep explanations concise.
+
+  # DECIDE: user goals and which ad-hoc view kinds the planner should favour.
+  goals:
+    - key: explore
+      label: "Just exploring"
+      description: "I'm curious and want to understand how the law works here."
+      planner_hint: >-
+        The user is browsing without a specific problem. Favour views that map
+        the landscape (concept_map, comparison) and suggest broad follow-ups.
+    - key: specific_problem
+      label: "I have a specific situation"
+      description: "Something happened and I want to understand where I stand."
+      planner_hint: >-
+        The user has a concrete situation. Favour views that show how the law
+        applies step by step (legal_test, process_flow, scenario_timeline) and
+        follow-ups that surface missing facts.
+    - key: learn_topic
+      label: "Learning a topic"
+      description: "I'm studying an area of law."
+      planner_hint: >-
+        The user is studying. Favour views that show structure and doctrine
+        (rule_hierarchy, legal_test, comparison) and follow-ups that deepen
+        understanding.
+
+  # DECIDE: interest chips offered during onboarding (free text also allowed)
+  interests:
+    - Employment & EI benefits
+    - Housing & tenancy
+    - Family law
+    - Human rights & discrimination
+    - Immigration
+    - Tax
+    - Contracts & consumer
+    - Personal injury
+    - Criminal law
+    - Privacy & access to information
+
+# ── Retrieval ────────────────────────────────────────────────────────────────
+retrieval:
+  use_formulator: true        # LLM query rewrite before retrieval (adds one LLM call)
+  top_k: 60                   # hybrid candidates fetched
+  evidence_k: 20              # kept after cross-encoder rerank → shown as evidence
+  llm_evidence_k: 15          # of those, how many are given to view-generation prompts
+
+# DECIDE: how the profile location filters jurisdictions
+jurisdiction_policy:
+  mode: filter                # "filter" (restrict) | "off" (search all of Canada)
+  always_include: [federal, unknown]   # added to the user's province code
+  min_results: 8              # fewer hits than this → retry without filter ("relaxed")
+
+# ── Grounding ────────────────────────────────────────────────────────────────
+grounding:
+  # Every view item must cite evidence ids (e1..eN) from retrieval, or "q" for
+  # facts taken from the user's own question.  Unknown ids are stripped; items
+  # left with no ids are not rendered (the renderers hide them).
+  question_evidence_id: q
+
+# ── LLM ──────────────────────────────────────────────────────────────────────
+llm:
+  # pydantic-ai structured-output mode: "tool" | "native" | "prompted".
+  # "prompted" is the most portable across OpenAI-compatible providers.
+  output_mode: prompted
+  temperature: 0
+  retries: 2
+  # Qwen3 hybrid-thinking models: disable <think> output (slow, breaks JSON).
+  # Appends "/no_think" to every user prompt (honoured by vLLM + Ollama) and
+  # sends chat_template_kwargs.enable_thinking=false (vLLM; ignored elsewhere).
+  # Set false for non-Qwen3 models or Qwen3 *-Instruct-2507 variants.
+  qwen3_no_think: true
+  # vLLM/Ollama models can be slow on first token; seconds per LLM call
+  timeout: 180

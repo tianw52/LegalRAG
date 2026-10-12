@@ -119,6 +119,8 @@ class StructuredQuery(BaseModel):
     citation_filter: str | None = None
     date_from: date | None = None
     date_to: date | None = None
+    # Set from the user profile (not the LLM): match any of these jurisdictions
+    jurisdiction_filter: list[str] | None = None
 
 
 class RetrievedChunk(BaseModel):

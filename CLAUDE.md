@@ -203,6 +203,18 @@ curl -s http://localhost:9200/lbr-hier-<model-label>/_mapping \
 
 ---
 
+## Exploration App (CanLegalRAGBench)
+
+Exploration-first UI over the UBC-VL/CanLegalRAGBench corpus: React + Vite (`web/`) →
+FastAPI (`legalrag/api/app.py`) → `legalrag/explore/`. Index `canlegal-qwen3`
+(Qwen3-Embedding-0.6B, flat RCTS 1024/128).
+
+- Run guide, architecture, open decisions: `docs/explore_app.md`
+- **Ingestion on the lab GPU + copying the index to the laptop: `docs/lab_ingestion.md`**
+- Session log: `CODING_SESSION.md`
+
+---
+
 ## Architecture
 
 ### Ingestion Pipeline

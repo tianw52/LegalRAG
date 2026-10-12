@@ -70,13 +70,15 @@ class OpenSearchRetriever(BaseRetriever):
 
     # ── Helpers ───────────────────────────────────────────────────────────────
 
-    def _build_filters(self, query: StructuredQuery) -> dict[str, str | None]:
+    def _build_filters(self, query: StructuredQuery) -> dict[str, str | list[str] | None]:
         """Translate StructuredQuery metadata filters to OpenSearch terms."""
-        filters: dict[str, str | None] = {}
+        filters: dict[str, str | list[str] | None] = {}
         if query.court_filter:
             filters["court"] = query.court_filter
         if query.citation_filter:
             filters["citation"] = query.citation_filter
+        if query.jurisdiction_filter:
+            filters["jurisdiction"] = query.jurisdiction_filter
         # Date range handled separately if needed via range query; placeholder for now
         return filters
 
@@ -93,6 +95,12 @@ class OpenSearchRetriever(BaseRetriever):
             source_path=src.get("source_path", ""),
             court=src.get("court"),
             citation=src.get("citation"),
+            court_abbrev=src.get("court_abbrev"),
+            case_name=src.get("case_name"),
+            jurisdiction=src.get("jurisdiction"),
+            year=src.get("year"),
+            url=src.get("url"),
+            doc_type=src.get("doc_type"),
         )
         chunk = Chunk(
             chunk_id=src.get("chunk_id", hit["_id"]),

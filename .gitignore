@@ -40,3 +40,13 @@ data/subset
 # Query run logs (keep directory, ignore log files)
 logs/*.log
 .vercel
+
+# CanLegalRAGBench corpus (downloaded from HF Hub) + exploration app runtime data
+data/CanLegalRAGBench/
+data/app/
+
+# OpenSearch snapshot repository (bind-mounted into the container)
+opensearch-snapshots/
+
+# Local dev process logs (uvicorn / ingest / ollama)
+logs/*.out

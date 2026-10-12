@@ -1,0 +1,110 @@
+# CanLegalRAGBench court / jurisdiction mapping
+# ────────────────────────────────────────────────────────────────────────────
+# TEMPLATE — review and edit.  Used by legalrag/ingestion/canlegal_loader.py.
+#
+# Jurisdiction codes: two-letter province/territory codes + "federal".
+#   BC AB SK MB ON QC NB NS PE NL YT NT NU federal
+# The UI's profile "location" maps to the same codes, and retrieval filters
+# on `jurisdiction` (see legalrag/prompts/explore.yaml → jurisdiction_policy).
+#
+# Re-ingest after editing (the jurisdiction is stored in the index).
+
+# `original_source` code in the dataset → [court name, jurisdiction]
+courts:
+  SCC:     ["Supreme Court of Canada", "federal"]
+  FCA:     ["Federal Court of Appeal", "federal"]
+  FC:      ["Federal Court", "federal"]
+  FCT:     ["Federal Court (Trial Division)", "federal"]
+  TCC:     ["Tax Court of Canada", "federal"]
+  CHRT:    ["Canadian Human Rights Tribunal", "federal"]
+  SST:     ["Social Security Tribunal of Canada", "federal"]
+  CM:      ["Court Martial", "federal"]                    # TODO verify what "CM" denotes
+  BCCA:    ["Court of Appeal for British Columbia", "BC"]
+  BCSC:    ["Supreme Court of British Columbia", "BC"]
+  BCPC:    ["Provincial Court of British Columbia", "BC"]
+  BCHRT:   ["British Columbia Human Rights Tribunal", "BC"]
+  BCCRT:   ["Civil Resolution Tribunal (BC)", "BC"]
+  ABCA:    ["Court of Appeal of Alberta", "AB"]
+  ABQB:    ["Court of Queen's Bench of Alberta", "AB"]
+  ABKB:    ["Court of King's Bench of Alberta", "AB"]
+  ABPC:    ["Provincial Court of Alberta", "AB"]
+  ABCJ:    ["Alberta Court of Justice", "AB"]
+  AHRC:    ["Alberta Human Rights Commission", "AB"]
+  ALRB:    ["Alberta Labour Relations Board", "AB"]
+  SKCA:    ["Court of Appeal for Saskatchewan", "SK"]
+  SKQB:    ["Court of Queen's Bench for Saskatchewan", "SK"]
+  SKKB:    ["Court of King's Bench for Saskatchewan", "SK"]
+  SKPC:    ["Provincial Court of Saskatchewan", "SK"]
+  MBCA:    ["Court of Appeal of Manitoba", "MB"]
+  MBQB:    ["Court of Queen's Bench of Manitoba", "MB"]
+  ONCA:    ["Court of Appeal for Ontario", "ON"]
+  ONSC:    ["Ontario Superior Court of Justice", "ON"]
+  ONSCDC:  ["Ontario Superior Court of Justice (Divisional Court)", "ON"]
+  ONSCSM:  ["Ontario Superior Court of Justice (Small Claims)", "ON"]
+  ONCJ:    ["Ontario Court of Justice", "ON"]
+  HRTO:    ["Human Rights Tribunal of Ontario", "ON"]
+  QCCA:    ["Court of Appeal of Quebec", "QC"]
+  QCCS:    ["Superior Court of Quebec", "QC"]
+  QCCQ:    ["Court of Quebec", "QC"]
+  NBCA:    ["Court of Appeal of New Brunswick", "NB"]
+  NBQB:    ["Court of Queen's Bench of New Brunswick", "NB"]
+  NBKB:    ["Court of King's Bench of New Brunswick", "NB"]
+  NSCA:    ["Nova Scotia Court of Appeal", "NS"]
+  NSSC:    ["Supreme Court of Nova Scotia", "NS"]
+  NSPC:    ["Provincial Court of Nova Scotia", "NS"]
+  NSSM:    ["Small Claims Court of Nova Scotia", "NS"]
+  PECA:    ["Court of Appeal of Prince Edward Island", "PE"]
+  PESCAD:  ["Supreme Court of PEI (Appeal Division)", "PE"]
+  PESCTD:  ["Supreme Court of PEI (Trial Division)", "PE"]
+  NLCA:    ["Court of Appeal of Newfoundland and Labrador", "NL"]
+  NLSC:    ["Supreme Court of Newfoundland and Labrador", "NL"]
+  NLSCTD:  ["Supreme Court of Newfoundland and Labrador (Trial Division)", "NL"]
+  NLTD:    ["Supreme Court of Newfoundland and Labrador (Trial Division)", "NL"]
+  NLPC:    ["Provincial Court of Newfoundland and Labrador", "NL"]
+  YKCA:    ["Court of Appeal of Yukon", "YT"]
+  YKSC:    ["Supreme Court of Yukon", "YT"]
+  YKTC:    ["Territorial Court of Yukon", "YT"]
+  NWTCA:   ["Court of Appeal for the Northwest Territories", "NT"]
+  NWTSC:   ["Supreme Court of the Northwest Territories", "NT"]
+  NWTTC:   ["Territorial Court of the Northwest Territories", "NT"]
+
+# For original_source == UNKNOWN or STATUTE: first regex that matches
+# "<citation> <name>" wins.  Order matters (e.g. SOR/ before SO).
+# Prefix a pattern with (?i) for case-insensitive matching.
+# Rows matching nothing get jurisdiction "unknown".
+citation_rules:
+  # court hints that appear in the `name` field of CANLII-cited rows
+  - ['\((SCC|FC|FCA|TCC)\)|\bS\.C\.J\.|\bF\.C\.J\.|\bSCR\b', "federal"]
+  - ['\(BC ?HRT\)|\(BC Bd|\(BCSC\)|\(BCCA\)', "BC"]
+  - ['\bJ\.?Q\.? no\b', "QC"]
+  # provincial regulation series
+  - ['^BCREG/', "BC"]
+  - ['^NLR/', "NL"]
+  - ['^YOIC/', "YT"]
+  - ['(?i)CARSWELLNAT', "federal"]
+  - ['(?i)CARSWELLONT', "ON"]
+  - ['(?i)CARSWELLBC', "BC"]
+  - ['(?i)CARSWELLALTA', "AB"]
+  - ['(?i)CARSWELLSASK', "SK"]
+  - ['(?i)CARSWELLMAN', "MB"]
+  - ['(?i)CARSWELLQUE', "QC"]
+  - ['(?i)CARSWELLNB', "NB"]
+  - ['(?i)CARSWELLNS', "NS"]
+  - ['(?i)CARSWELLPEI', "PE"]
+  - ['(?i)CARSWELLNFLD', "NL"]
+  - ['(?i)CARSWELLYUK', "YT"]
+  - ['(?i)CARSWELLNWT', "NT"]
+  - ['^(SOR|SI)/|\bR\.?S\.?C\.? |\bS\.?C\.? \d{4}|\bC\.?R\.?C\.?\b', "federal"]
+  - ['\bR\.?S\.?O\.? |\bS\.?O\.? \d{4}|\bO\.? ?Reg\b', "ON"]
+  - ['ALTAREG|Alta Reg|\bR\.?S\.?A\.? |\bS\.?A\.? \d{4}', "AB"]
+  - ['\bR\.?S\.?B\.?C\.? |\bS\.?B\.?C\.? \d{4}|\bB\.?C\.? Reg\b', "BC"]
+  - ['\bR\.?S\.?S\.? |\bS\.?S\.? \d{4}', "SK"]
+  - ['\bC\.?C\.?S\.?M\.?\b|\bS\.?M\.? \d{4}', "MB"]
+  - ['\bCQLR\b|\bRLRQ\b', "QC"]
+  - ['\bR\.?S\.?N\.?B\.? |\bS\.?N\.?B\.? \d{4}', "NB"]
+  - ['\bR\.?S\.?N\.?S\.? |\bS\.?N\.?S\.? \d{4}', "NS"]
+  - ['\bR\.?S\.?P\.?E\.?I\.? |\bS\.?P\.?E\.?I\.? \d{4}', "PE"]
+  - ['\bR\.?S\.?N\.?L\.? |\bS\.?N\.?L\.? \d{4}', "NL"]
+  - ['\bR\.?S\.?Y\.? |\bS\.?Y\.? \d{4}', "YT"]
+  - ['\bR\.?S\.?N\.?W\.?T\.? |\bS\.?N\.?W\.?T\.? \d{4}', "NT"]
+  - ['\bS\.?Nu\.? \d{4}', "NU"]

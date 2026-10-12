@@ -1,0 +1,95 @@
+/* Extracted from Demo/answer-viz.html <style> (renderer + selection rules only) — keep in sync. */
+  /* ── Selection highlight (works on SVG g elements too) ── */
+  [data-viz-id] { transition: opacity .15s; }
+  [data-viz-id].is-dimmed   { opacity: 0.28; }
+  .vr-svg-node.is-selected rect,
+  .vr-svg-node.is-selected circle  { stroke: var(--accent) !important; stroke-width: 4 !important; }
+  .vr-svg-edge.is-selected line     { stroke: var(--accent) !important; stroke-width: 3 !important; }
+  .vr-cmp-cell.is-selected { box-shadow: 0 0 0 3px var(--accent); }
+  .vr-ev-card.is-selected   { box-shadow: 0 0 0 2px var(--accent); }
+
+  /* ── Shared primitives ── */
+  .vr-error { padding: 10px; border-radius: 8px; background: #fff7ed; border: 1px solid #fdba74; color: #9a3412; font-size: 12.5px; }
+  .vr-diagram-title { font-size: 13.5px; font-weight: 800; margin-bottom: 6px; color: #0f172a; }
+  .vr-muted { font-size: 11.5px; color: #94a3b8; margin: 0 0 6px; }
+  .vr-legend { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .vr-legend-item { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; color: #475569; background: #fff; border: 1px solid var(--line); border-radius: 999px; padding: 2px 8px; }
+  .vr-legend-item i { width: 8px; height: 8px; border-radius: 999px; display: inline-block; flex-shrink: 0; }
+
+  /* ── Horizontal SVG timeline (Q4) ── */
+  .vr-timeline-svg-wrap { overflow-x: auto; }
+  .vr-timeline-svg-wrap svg { min-width: 400px; }
+
+  /* ── SVG flowchart (Q5) ── */
+  .vr-flowchart-wrap { overflow-x: auto; }
+  .vr-flowchart-wrap svg { min-width: 400px; }
+
+  /* ── Network graph (Q1, Q3) ── */
+  .vr-network-canvas { border-radius: 12px; border: 1px solid var(--line); background: #fff; overflow: hidden; }
+  .vr-network-canvas svg { width: 100%; height: auto; display: block; max-height: 460px; }
+
+  /* ── Visual comparison scorecard (Q2) ── */
+  .vr-comparison { display: flex; flex-direction: column; gap: 0; }
+  .vr-cmp-header, .vr-cmp-row {
+    display: grid;
+    grid-template-columns: 1fr repeat(2, minmax(0, 200px));
+    gap: 8px; align-items: center;
+    padding: 8px 6px;
+  }
+  .vr-cmp-header { background: #f8fafc; border-radius: 10px 10px 0 0; padding-bottom: 10px; }
+  .vr-cmp-row-alt { background: #f8fafc40; }
+  .vr-cmp-row { border-top: 1px solid #f1f5f9; }
+  .vr-cmp-col-head {
+    font-size: 11px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase;
+    color: #475569; text-align: center; padding: 6px 0;
+    border-bottom: 2px solid #e2e8f0;
+  }
+  .vr-cmp-criterion-label {
+    font-size: 12.5px; font-weight: 600; color: #334155; line-height: 1.4; padding-right: 8px;
+  }
+  .vr-cmp-cell {
+    display: flex; flex-direction: column; align-items: center; gap: 5px;
+    padding: 12px 8px; border-radius: 12px; border: 2px solid #e2e8f0;
+    background: #f8fafc; cursor: pointer; text-align: center; transition: transform .12s, box-shadow .12s;
+  }
+  .vr-cmp-cell:not(:disabled):hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.08); }
+  .vr-cmp-cell:disabled { cursor: default; opacity: .4; }
+  .vr-cmp-sym {
+    display: grid; place-items: center;
+    width: 38px; height: 38px; border-radius: 999px;
+    font-size: 17px; font-weight: 800; opacity: .85;
+  }
+  .vr-cmp-val { font-size: 11px; font-weight: 700; color: inherit; }
+
+  /* ── Statute / rights hierarchy tree (Q6) ── */
+  .vr-statute-tree-wrap { overflow-x: auto; }
+  .vr-statute-tree-wrap svg { min-width: 420px; }
+
+  /* ── Decision tree (Q8) ── */
+  .vr-decision-tree-wrap { overflow-x: auto; }
+  .vr-decision-tree-wrap svg { min-width: 420px; }
+
+  /* ── Shared tree legend ── */
+  .vr-tree-legend {
+    display: flex; flex-wrap: wrap; gap: 10px 18px;
+    margin-top: 12px; padding: 10px 14px;
+    background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0;
+  }
+  .vr-tree-leg-item {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 11.5px; font-weight: 600; color: #334155;
+  }
+  .vr-tree-leg-swatch {
+    display: inline-block; width: 14px; height: 14px; border-radius: 4px;
+    border: 2px solid currentColor; flex-shrink: 0;
+  }
+
+  /* Selected / dimmed states for tree nodes */
+  .vr-svg-node.is-selected rect { filter: drop-shadow(0 0 6px rgba(99,102,241,.6)); }
+  .vr-svg-node.is-dimmed { opacity: .3; }
+
+  /* ── Evidence fallback ── */
+  .vr-evidence-board { display: flex; flex-direction: column; gap: 8px; }
+  .vr-ev-card { width: 100%; text-align: left; border-radius: 10px; padding: 10px 12px; border: 1px solid var(--line); background: #fff; cursor: pointer; }
+  .vr-ev-title { font-weight: 700; font-size: 12.5px; }
+  .vr-ev-text  { font-size: 12.5px; color: #334155; line-height: 1.4; white-space: pre-wrap; }

@@ -74,6 +74,28 @@ class RetrievalSettings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", extra="ignore", populate_by_name=True)
 
 
+class ExploreSettings(BaseSettings):
+    """Settings for the exploration app (API + web UI) over CanLegalRAGBench.
+
+    Kept separate from the stable CanLII settings above so both indices can
+    coexist.  The embedding model MUST match the one used to build the index.
+    """
+
+    index_name: str = Field("canlegal-qwen3", alias="EXPLORE_INDEX_NAME")
+    embedding_provider: str = Field("sentence_transformers", alias="EXPLORE_EMBEDDING_PROVIDER")
+    embedding_model: str = Field(
+        "Qwen/Qwen3-Embedding-0.6B", alias="EXPLORE_EMBEDDING_MODEL"
+    )
+    # LLM used for view generation; empty → fall back to LLM_MODEL
+    llm_model: str = Field("", alias="EXPLORE_LLM_MODEL")
+    profiles_dir: str = Field("data/app/profiles", alias="EXPLORE_PROFILES_DIR")
+    cors_origins: str = Field("http://localhost:5173", alias="EXPLORE_CORS_ORIGINS")
+
+    # No populate_by_name: it would also match env vars by field name, so
+    # EMBEDDING_MODEL / LLM_MODEL from .env would leak into these fields.
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+
+
 class Settings(BaseSettings):
     """Aggregate settings object – import this everywhere."""
 
@@ -81,6 +103,7 @@ class Settings(BaseSettings):
     embedding: EmbeddingSettings = Field(default_factory=EmbeddingSettings)
     opensearch: OpenSearchSettings = Field(default_factory=OpenSearchSettings)
     retrieval: RetrievalSettings = Field(default_factory=RetrievalSettings)
+    explore: ExploreSettings = Field(default_factory=ExploreSettings)
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 

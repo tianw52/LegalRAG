@@ -11,8 +11,9 @@ RecursiveCharacterTextSplitter
     Flat chunker inspired by LangChain's RecursiveCharacterTextSplitter.  Tries to
     split on progressively finer separators (paragraph → sentence → word →
     character) so that each chunk stays under *chunk_size* characters while
-    preserving as much natural language structure as possible.  Consecutive chunks
-    share *chunk_overlap* characters so context is not abruptly lost at boundaries.
+    preserving as much natural language structure as possible.  Like LangChain,
+    consecutive chunks share whole trailing pieces totalling ≤ *chunk_overlap*
+    characters (none when the last piece is longer), so chunks start on boundaries.
 
 Implementation note
 -------------------
@@ -132,7 +133,9 @@ class HierarchicalChunker(BaseChunker):
 
         for p_start, p_end in parent_spans:
             parent_text = text[p_start:p_end]
-            parent_id = stable_id(doc_id, str(p_start), str(p_end))
+            # "parent" tag: a parent no longer than one child would otherwise
+            # share its child's (doc_id, start, end) id and be overwritten on upsert
+            parent_id = stable_id(doc_id, "parent", str(p_start), str(p_end))
 
             parent_chunk = Chunk(
                 chunk_id=parent_id,
@@ -221,15 +224,16 @@ class RecursiveCharacterTextSplitter(BaseChunker):
     always consistent with the original document text.
 
     All produced chunks have ``parent_chunk_id=None`` (flat, no hierarchy).
-    Consecutive chunks share *chunk_overlap* characters for context continuity.
+    Consecutive chunks share whole trailing pieces totalling ≤ *chunk_overlap*
+    characters (LangChain semantics), so every chunk starts on a separator boundary.
 
     Parameters
     ----------
     chunk_size:
         Maximum character length of a single chunk (default from config).
     chunk_overlap:
-        Number of characters shared between consecutive chunks (default from
-        config).
+        Maximum characters carried over (as whole pieces) between consecutive
+        chunks (default from config).
     separators:
         Ordered sequence of separator strings tried from coarsest to finest.
         The splitter uses the first separator that keeps all pieces ≤
@@ -339,27 +343,30 @@ class RecursiveCharacterTextSplitter(BaseChunker):
         """Merge spans into windows of ≤ chunk_size with chunk_overlap.
 
         Adjacent spans are accumulated until adding the next one would exceed
-        *chunk_size*.  When a window is emitted, the next window starts
-        *chunk_overlap* characters before the current window end so context
-        is preserved across boundaries.
+        *chunk_size*.  Overlap follows LangChain's ``_merge_splits``: the next
+        window carries over only *whole* trailing spans that fit within
+        *chunk_overlap* (and still fit with the incoming span), so every window
+        starts on a separator boundary.  When the last span is longer than
+        *chunk_overlap* there is no overlap.
         """
         if not spans:
             return []
 
         windows: list[tuple[int, int]] = []
-        win_start = spans[0][0]
-        win_end = spans[0][1]
+        current = [spans[0]]
 
-        for span_start, span_end in spans[1:]:
-            candidate_len = span_end - win_start
-            if candidate_len <= self._chunk_size:
-                win_end = span_end
-            else:
-                windows.append((win_start, win_end))
-                # Next window begins chunk_overlap chars before current end
-                overlap_start = max(win_start, win_end - self._chunk_overlap)
-                win_start = overlap_start
-                win_end = span_end
+        for span in spans[1:]:
+            if span[1] - current[0][0] <= self._chunk_size:
+                current.append(span)
+                continue
+            windows.append((current[0][0], current[-1][1]))
+            win_end = current[-1][1]
+            current = [
+                s
+                for s in current
+                if s[0] >= win_end - self._chunk_overlap and span[1] - s[0] <= self._chunk_size
+            ]
+            current.append(span)
 
-        windows.append((win_start, win_end))
+        windows.append((current[0][0], current[-1][1]))
         return windows

@@ -216,7 +216,8 @@ def test_recursive_metadata_propagated(long_doc: RawDocument) -> None:
 
 
 def test_recursive_overlap_creates_shared_context(long_doc: RawDocument) -> None:
-    """Consecutive chunks must share at least some characters (overlap > 0)."""
+    """Overlap is ≤ chunk_overlap (whole pieces, LangChain semantics) and present when
+    the trailing pieces are short enough to carry over."""
     chunker = RecursiveCharacterTextSplitter(chunk_size=120, chunk_overlap=30)
     chunks = chunker.chunk(long_doc)
 
@@ -224,10 +225,16 @@ def test_recursive_overlap_creates_shared_context(long_doc: RawDocument) -> None
         pytest.skip("Document too short to test overlap")
 
     for a, b in zip(chunks, chunks[1:]):
-        assert b.char_start < a.char_end, (
-            f"Expected overlap between consecutive chunks: "
-            f"chunk[i] ends at {a.char_end}, chunk[i+1] starts at {b.char_start}"
-        )
+        assert 0 <= a.char_end - b.char_start <= 30
+
+    # Short word-level pieces always fit in the overlap budget
+    words = RawDocument(
+        metadata=LegalDocumentMetadata(source_path="/tmp/words.txt"),
+        text=" ".join(["appeal"] * 60),
+    )
+    word_chunks = chunker.chunk(words)
+    assert len(word_chunks) >= 2
+    assert all(b.char_start < a.char_end for a, b in zip(word_chunks, word_chunks[1:]))
 
 
 def test_recursive_short_doc_yields_single_chunk() -> None:
@@ -241,3 +248,41 @@ def test_recursive_short_doc_yields_single_chunk() -> None:
 
     assert len(chunks) == 1
     assert chunks[0].text == text
+
+
+# ── Regression tests ──────────────────────────────────────────────────────────
+
+
+def test_parent_and_single_child_ids_do_not_collide(sample_doc: RawDocument) -> None:
+    """A parent no longer than one child must not share the child's chunk_id."""
+    chunker = HierarchicalChunker(parent_size=1000, child_size=1000, child_overlap=10)
+    chunks = chunker.chunk(sample_doc)
+    ids = [c.chunk_id for c in chunks]
+    assert len(ids) == len(set(ids)), "parent and child chunk_ids collide"
+
+
+def test_recursive_overlap_never_exceeds_chunk_size() -> None:
+    """Overlap carried into a new window must not push it past chunk_size."""
+    # Sentence pieces of ~90 chars: overlap (40) + next piece (90) > chunk_size (100)
+    sentence = "The court considered the evidence carefully and found the claim unproven on balance. "
+    doc = RawDocument(
+        metadata=LegalDocumentMetadata(source_path="/tmp/overlap.txt"), text=sentence * 6
+    )
+    chunker = RecursiveCharacterTextSplitter(chunk_size=100, chunk_overlap=40)
+    chunks = chunker.chunk(doc)
+    assert all(len(c.text) <= 100 for c in chunks), [len(c.text) for c in chunks]
+    covered = bytearray(len(doc.text))
+    for c in chunks:
+        covered[c.char_start:c.char_end] = b"\x01" * (c.char_end - c.char_start)
+    assert all(covered)
+
+
+def test_recursive_chunks_start_on_piece_boundaries(long_doc: RawDocument) -> None:
+    """Overlap carries whole pieces (LangChain semantics), so no chunk starts mid-word."""
+    chunker = RecursiveCharacterTextSplitter(chunk_size=100, chunk_overlap=40)
+    text = long_doc.text
+    for chunk in chunker.chunk(long_doc):
+        s = chunk.char_start
+        assert s == 0 or not (text[s - 1].isalnum() and text[s].isalnum()), (
+            f"chunk starts mid-word: {text[max(0, s - 10):s]!r}|{text[s:s + 10]!r}"
+        )

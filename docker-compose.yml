@@ -21,6 +21,9 @@ services:
       # Skip the demo config installer (which validates the admin password)
       # Without this, OpenSearch 2.12+ aborts before security.disabled takes effect
       - DISABLE_INSTALL_DEMO_CONFIG=true
+      # Snapshot repository (used to restore indices built on the lab machine;
+      # see docs/lab_ingestion.md)
+      - path.repo=/usr/share/opensearch/snapshots
     ulimits:
       memlock:
         soft: -1
@@ -30,6 +33,7 @@ services:
         hard: 65536
     volumes:
       - opensearch-data:/usr/share/opensearch/data
+      - ./opensearch-snapshots:/usr/share/opensearch/snapshots
     ports:
       # Bound to localhost only – not reachable from the network
       - "127.0.0.1:9200:9200"   # REST API

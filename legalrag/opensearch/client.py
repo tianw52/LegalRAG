@@ -190,6 +190,12 @@ class OpenSearchClient:
                     "court": {"type": "keyword"},
                     "citation": {"type": "keyword"},
                     "decision_date": {"type": "date", "format": "yyyy-MM-dd"},
+                    "court_abbrev": {"type": "keyword"},
+                    "jurisdiction": {"type": "keyword"},
+                    "doc_type": {"type": "keyword"},
+                    "year": {"type": "integer"},
+                    "case_name": {"type": "text", "fields": {"raw": {"type": "keyword"}}},
+                    "url": {"type": "keyword", "index": False},
                     # Dense vector for ANN search
                     "embedding": {
                         "type": "knn_vector",
@@ -238,11 +244,7 @@ class OpenSearchClient:
         Uses OpenSearch's native knn query backed by the Lucene HNSW engine.
         ``ef_search`` overrides the index-level default for this request only.
         """
-        filter_clauses: list[dict] = [{"term": {"is_parent": False}}]
-        if filters:
-            filter_clauses.extend(
-                {"term": {field: val}} for field, val in filters.items() if val is not None
-            )
+        filter_clauses: list[dict] = [{"term": {"is_parent": False}}, *_filter_clauses(filters)]
 
         knn_clause: dict[str, Any] = {
             "vector": vector,
@@ -270,11 +272,7 @@ class OpenSearchClient:
             {"match": {"text": {"query": query_text}}},
             {"term": {"is_parent": False}},
         ]
-        filter_clauses: list[dict] = []
-        if filters:
-            filter_clauses = [
-                {"term": {field: val}} for field, val in filters.items() if val is not None
-            ]
+        filter_clauses = _filter_clauses(filters)
         query: dict[str, Any] = {
             "size": k,
             "query": {
@@ -302,11 +300,7 @@ class OpenSearchClient:
 
         Falls back to manual RRF if the pipeline is unavailable.
         """
-        filter_clauses: list[dict] = [{"term": {"is_parent": False}}]
-        if filters:
-            filter_clauses.extend(
-                {"term": {field: val}} for field, val in filters.items() if val is not None
-            )
+        filter_clauses: list[dict] = [{"term": {"is_parent": False}}, *_filter_clauses(filters)]
         bool_filter = {"bool": {"must": filter_clauses}}
 
         query: dict[str, Any] = {
@@ -402,6 +396,43 @@ class OpenSearchClient:
     def get_parent(self, parent_chunk_id: str) -> dict[str, Any] | None:
         """Fetch the parent chunk for context expansion."""
         return self.get_by_chunk_id(parent_chunk_id)
+
+    def index_exists(self) -> bool:
+        return bool(self._client.indices.exists(index=self.index_name))
+
+    def get_chunks_by_doc_id(self, doc_id: str, *, parents: bool) -> list[dict]:
+        """Return all parent (or child) chunk _sources for *doc_id*, ordered by char_start."""
+        resp = self._client.search(
+            index=self.index_name,
+            body={
+                "query": {
+                    "bool": {
+                        "filter": [
+                            {"term": {"doc_id": doc_id}},
+                            {"term": {"is_parent": parents}},
+                        ]
+                    }
+                },
+                "_source": {"excludes": ["embedding"]},
+                "sort": [{"char_start": "asc"}],
+                "size": 10_000,
+            },
+        )
+        return [h["_source"] for h in resp["hits"]["hits"]]
+
+
+# ── Helpers ───────────────────────────────────────────────────────────────────
+
+
+def _filter_clauses(filters: dict[str, Any] | None) -> list[dict]:
+    """Exact-match filters: scalar → ``term``, list → ``terms`` (match any)."""
+    if not filters:
+        return []
+    return [
+        {"terms" if isinstance(val, list) else "term": {field: val}}
+        for field, val in filters.items()
+        if val is not None
+    ]
 
 
 # ── Fallback utility ──────────────────────────────────────────────────────────

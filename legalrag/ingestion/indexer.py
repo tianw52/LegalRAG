@@ -64,6 +64,12 @@ class OpenSearchIndexer(BaseIndexer):
                     if chunk.metadata.decision_date
                     else None
                 ),
+                "court_abbrev": chunk.metadata.court_abbrev,
+                "jurisdiction": chunk.metadata.jurisdiction,
+                "doc_type": chunk.metadata.doc_type,
+                "year": chunk.metadata.year,
+                "case_name": chunk.metadata.case_name,
+                "url": chunk.metadata.url,
             }
             if vector and chunk.embedding is not None:
                 doc["embedding"] = chunk.embedding
