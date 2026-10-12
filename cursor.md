@@ -1,0 +1,12 @@
+## Session Log
+
+| Date | Session | Summary |
+|---|---|---|
+| 2026-02-28 | Initial build | Scaffolded full modular architecture: ingestion + query pipelines, OpenSearch client, hierarchical chunker, hybrid retrieval, cross-encoder reranker, threshold router with Deep Search placeholder (RLM-inspired), LLM generator with parent expansion |
+| 2026-02-28 | Data integration | Analysed 3000 CanLII documents; rewrote metadata extractor to parse structured headers (98.6% court coverage); added text cleaning step to strip page markers before chunking |
+| 2026-02-28 | LLM backend | Switched default LLM to Qwen3.5-397B-A17B via HuggingFace Inference Router; added HF_TOKEN fallback; centralised client factory in `legalrag/utils/llm_client.py` |
+| 2026-03-02 | Content-based IDs | Added `doc_id_from_citation()` in `legalrag/core/models.py`: `doc_id` now hashes the neutral citation (e.g. "2010 BCCA 220") making it path-independent; falls back to filename stem for the ~0.7% of docs without a parseable citation. `IngestionPipeline` calls this after metadata extraction (Step 2). Chunk IDs derive from `doc_id` so they are also citation-stable. |
+| 2026-03-03 | pydantic-ai + YAML prompts | Refactored `formulator.py` to use a pydantic-ai Agent with structured output; moved all system prompts and message templates to `legalrag/prompts/formulator.yaml` and `generator.yaml`; added `legalrag/prompts/loader.py` (lru_cache YAML loader); added `pydantic-ai` + `pyyaml` to `pyproject.toml` |
+| 2026-03-03 | Query run logging | Updated `legalrag/utils/logging.py` to write to `logs/queries.log` (append, plain text); updated `pipeline.py` to log reformulated query, all retrieved chunks with scores, all reranked results, and final answer at INFO level; third-party HTTP loggers (`httpx`, `opensearch`, `sentence_transformers`) suppressed to WARNING |
+| 2026-03-03 | OpenSearch security + localhost | Enabled localhost-only port binding (`127.0.0.1`) in `docker-compose.yml`; toggled security on/off (settled on disabled for local dev); regenerated `.env.example` after it was accidentally deleted |
+| 2026-03-03 | Documentation | Added `CLAUDE.md` (project context for AI assistants), `docs/pipeline_breakdown.md` (full technical pipeline walkthrough), `docs/evaluation.md` (CLERC + LegalBench-RAG evaluation guides with runnable code) |

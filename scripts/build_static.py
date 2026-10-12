@@ -101,8 +101,7 @@ def build_combo(model: str, embedder: str, out_dir: pathlib.Path,
             cid   = chunk["chunk_id"]
             hinfo = hit_map.get(cid, {})
             is_hit = hinfo.get("is_chunk_hit", False)
-            # Include corpus text only for hit chunks to keep file size down
-            text = _read_corpus(chunk["file"], chunk["char_start"], chunk["char_end"]) if is_hit else None
+            text = _read_corpus(chunk["file"], chunk["char_start"], chunk["char_end"])
             retrieved.append({
                 "rank":        chunk["rank"],
                 "file":        chunk["file"],
