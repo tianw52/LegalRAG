@@ -33,6 +33,8 @@ export const api = {
   examples: (province) =>
     request(`/api/examples?province=${encodeURIComponent(province || "")}&n=4`),
   document: (docId) => request(`/api/document/${encodeURIComponent(docId)}`),
+  traces: (limit = 20) => request(`/api/traces?limit=${limit}`),
+  trace: (traceId) => request(`/api/traces/${encodeURIComponent(traceId)}`),
 };
 
 // POST /api/explore returns NDJSON: one event object per line.

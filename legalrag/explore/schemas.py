@@ -59,11 +59,44 @@ class View(BaseModel):
     audit: dict[str, Any] = Field(default_factory=dict)
 
 
+# ── LLM output: query rewrite (prompt: formulator.yaml) ───────────────────────
+
+
+class QueryRewriteOutput(BaseModel):
+    """Search-ready rewrite of the user's question."""
+
+    reformulated_query: str = Field(
+        description="Concise, precise version of the question optimised for semantic search."
+    )
+    lexical_keywords: list[str] = Field(
+        default_factory=list,
+        description="Legal terms and keywords for BM25 retrieval.",
+    )
+    court_filter: str | None = Field(
+        default=None,
+        description="Exact court name filter; null when not specified.",
+    )
+    citation_filter: str | None = Field(
+        default=None,
+        description="Neutral citation filter (e.g. '2010 BCCA 220'); null when not specified.",
+    )
+    date_from: str | None = Field(
+        default=None,
+        description="Start of date range in YYYY-MM-DD format; null when not specified.",
+    )
+    date_to: str | None = Field(
+        default=None,
+        description="End of date range in YYYY-MM-DD format; null when not specified.",
+    )
+
+
 # ── LLM output: fact toggles (pre-defined view) ───────────────────────────────
 
 
 class Fact(BaseModel):
-    id: str = Field(description="Short unique id, e.g. f1.")
+    # No id field: small models fill it with the status ("stated", "unknown"), so ids
+    # collide and the UI toggles every fact with that status at once.  views.fact_toggle
+    # assigns f1..fN instead.
     text: str = Field(description="The fact, one short sentence.")
     status: Literal["stated", "assumed", "unknown"] = Field(
         description="stated = user said it; assumed = implied; unknown = decisive but not mentioned."
@@ -90,12 +123,18 @@ class PlannedView(BaseModel):
     title: str = Field(description="Short title shown above the view.")
     purpose: str = Field(description="One sentence: what the user will understand from this view.")
     focus: str = Field(description="What the view should contain.")
+    why_useful: str = Field(description="One sentence: what this view adds beyond the built-in views.")
 
 
 class ExplorationPlan(BaseModel):
     topic: str = Field(description="Topic in 2-6 words.")
     orientation: str = Field(description="At most two neutral sentences describing what the sources cover.")
-    views: list[PlannedView] = Field(description="1-2 views from the catalog.")
+    extra_views_reason: str = Field(
+        description="One sentence: why these extra views were chosen, or why none would help."
+    )
+    views: list[PlannedView] = Field(
+        description="0 to the stated maximum extra views from the catalog; empty if none would add value."
+    )
     follow_up_questions: list[str] = Field(description="3-5 questions the user could explore next.")
 
 

@@ -11,10 +11,19 @@ Prompts: legalrag/prompts/explore_views.yaml.  Schemas: explore/schemas.py.
 from __future__ import annotations
 
 import logging
+import time
 from typing import Any
 
 from pydantic import BaseModel
-from pydantic_ai import Agent, NativeOutput, PromptedOutput, ToolOutput
+from pydantic_ai import Agent, NativeOutput, PromptedOutput, ToolOutput, capture_run_messages
+from pydantic_ai.messages import (
+    ModelMessagesTypeAdapter,
+    RetryPromptPart,
+    SystemPromptPart,
+    TextPart,
+    ThinkingPart,
+    UserPromptPart,
+)
 from pydantic_ai.models.openai import OpenAIChatModel
 from pydantic_ai.providers.openai import OpenAIProvider
 
@@ -26,11 +35,12 @@ from legalrag.explore.schemas import (
     ExplorationPlan,
     FactToggleOutput,
     PlannedView,
+    QueryRewriteOutput,
     View,
 )
+from legalrag.explore.trace import Trace
 from legalrag.prompts.loader import load_prompt
-from legalrag.query.formulator import _FormulatorOutput
-from legalrag.utils.llm_client import _resolve_api_key
+from legalrag.utils.llm_client import get_async_client
 
 logger = logging.getLogger(__name__)
 
@@ -91,19 +101,27 @@ def case_timeline(evidence: list[Evidence]) -> View:
 
 _OUTPUT_MODES = {"prompted": PromptedOutput, "native": NativeOutput, "tool": ToolOutput}
 
+# explore_policy.yaml → llm.thinking_off: request body extras that switch Qwen3 thinking off
+_THINKING_OFF: dict[str, dict | None] = {
+    "ollama": {"reasoning_effort": "none"},
+    "vllm": {"chat_template_kwargs": {"enable_thinking": False}},
+    "none": None,
+}
+
 
 def _agent(output_type: type[BaseModel], system_prompt: str) -> Agent:
     llm_cfg = load_prompt("explore_policy")["llm"]
+    client = get_async_client().with_options(
+        timeout=llm_cfg["timeout"], max_retries=llm_cfg["http_retries"]
+    )
     model = OpenAIChatModel(
         settings.explore.llm_model or settings.llm.model,
-        provider=OpenAIProvider(base_url=settings.llm.base_url, api_key=_resolve_api_key()),
+        provider=OpenAIProvider(openai_client=client),
     )
-    model_settings: dict[str, Any] = {
-        "temperature": llm_cfg["temperature"],
-        "timeout": llm_cfg["timeout"],
-    }
-    if llm_cfg.get("qwen3_no_think"):
-        model_settings["extra_body"] = {"chat_template_kwargs": {"enable_thinking": False}}
+    model_settings: dict[str, Any] = {"temperature": llm_cfg["temperature"]}
+    thinking_off = _THINKING_OFF[llm_cfg.get("thinking_off", "none")]
+    if thinking_off:
+        model_settings["extra_body"] = thinking_off
     return Agent(
         model,
         output_type=_OUTPUT_MODES[llm_cfg["output_mode"]](output_type),
@@ -113,15 +131,61 @@ def _agent(output_type: type[BaseModel], system_prompt: str) -> Agent:
     )
 
 
-async def _run(agent: Agent, user_prompt: str) -> Any:
-    if load_prompt("explore_policy")["llm"].get("qwen3_no_think"):
-        user_prompt += "\n/no_think"
-    return (await agent.run(user_prompt)).output
+async def _run(agent: Agent, user_prompt: str, trace: Trace | None = None, label: str = "llm") -> Any:
+    """Run *agent*; if *trace* is given, record the full call (also on failure)."""
+    t = time.perf_counter()
+    with capture_run_messages() as messages:
+        try:
+            result = await agent.run(user_prompt)
+        except BaseException as exc:  # incl. CancelledError from a view timeout
+            if trace:
+                trace.add_llm_call(_llm_record(label, agent, messages, t, error=exc))
+            raise
+    if trace:
+        trace.add_llm_call(_llm_record(label, agent, messages, t, output=result.output, usage=result.usage()))
+    return result.output
 
 
-async def formulate(question: str) -> _FormulatorOutput:
+def _llm_record(label: str, agent: Agent, messages: list, t0: float, *, output: Any = None,
+                usage: Any = None, error: BaseException | None = None) -> dict[str, Any]:
+    """Flatten an LLM exchange into a trace record (readable fields + raw messages)."""
+    system, user, responses, thinking, retries = [], [], [], [], []
+    for msg in messages:
+        for part in msg.parts:
+            if isinstance(part, SystemPromptPart):
+                system.append(part.content)
+            elif isinstance(part, UserPromptPart):
+                user.append(part.content if isinstance(part.content, str) else str(part.content))
+            elif isinstance(part, RetryPromptPart):
+                retries.append(part.model_response())
+            elif isinstance(part, ThinkingPart) and part.content.strip():
+                thinking.append(part.content)  # skip the empty <think/> some servers emit
+            elif isinstance(part, TextPart):
+                responses.append(part.content)
+    return {
+        "label": label,
+        "model": agent.model.model_name if hasattr(agent.model, "model_name") else str(agent.model),
+        "duration_s": round(time.perf_counter() - t0, 3),
+        "system_prompt": "\n\n".join(system),
+        "user_prompt": "\n\n".join(user),
+        "thinking": thinking,                 # empty when thinking is off (llm.thinking_off)
+        "responses": responses,               # raw model text, one per attempt
+        "validation_retries": retries,        # why an attempt was rejected, if any
+        "output": output.model_dump() if hasattr(output, "model_dump") else output,
+        "usage": {
+            "input_tokens": getattr(usage, "input_tokens", None),
+            "output_tokens": getattr(usage, "output_tokens", None),
+            "requests": getattr(usage, "requests", None),
+        } if usage else None,
+        "error": f"{error.__class__.__name__}: {error}".rstrip(": ") if error else None,
+        "messages": ModelMessagesTypeAdapter.dump_python(messages, mode="json"),
+    }
+
+
+async def formulate(question: str, trace: Trace | None = None) -> QueryRewriteOutput:
     """Query rewrite for retrieval, using legalrag/prompts/formulator.yaml."""
-    return await _run(_agent(_FormulatorOutput, load_prompt("formulator")["system"]), question)
+    agent = _agent(QueryRewriteOutput, load_prompt("formulator")["system"])
+    return await _run(agent, question, trace, "formulate")
 
 
 def format_evidence(evidence: list[Evidence], limit: int) -> str:
@@ -176,12 +240,14 @@ def ground(spec: Any, valid_ids: set[str]) -> dict[str, int]:
 # ── LLM views ─────────────────────────────────────────────────────────────────
 
 
-async def fact_toggle(ctx: dict[str, str], valid_ids: set[str]) -> View:
+async def fact_toggle(ctx: dict[str, str], valid_ids: set[str], trace: Trace | None = None) -> View:
     prompts = load_prompt("explore_views")
     cfg = prompts["fact_toggle"]
     agent = _agent(FactToggleOutput, prompts["preamble"].format(**ctx) + "\n" + cfg["system"])
-    out = await _run(agent, cfg["user"].format(**ctx))
+    out = await _run(agent, cfg["user"].format(**ctx), trace, "fact_toggle")
     spec = out.model_dump()
+    for i, fact in enumerate(spec["facts"], 1):
+        fact["id"] = f"f{i}"  # unique ids for the UI's toggles (see schemas.Fact)
     audit = ground(spec, valid_ids)
     return View(
         view_id="fact_toggle",
@@ -194,23 +260,28 @@ async def fact_toggle(ctx: dict[str, str], valid_ids: set[str]) -> View:
     )
 
 
-async def plan(ctx: dict[str, str]) -> ExplorationPlan:
+async def plan(ctx: dict[str, str], trace: Trace | None = None) -> ExplorationPlan:
     prompts = load_prompt("explore_views")
     catalog = "\n".join(
         f"- {kind}: {c['description']}" for kind, c in prompts["catalog"].items()
     )
+    max_views = load_prompt("explore_policy")["planner"]["max_extra_views"]
     system = prompts["preamble"].format(**ctx) + "\n" + prompts["planner"]["system"].format(
-        **ctx, catalog=catalog
+        **ctx, catalog=catalog, max_extra_views=max_views
     )
     out: ExplorationPlan = await _run(
-        _agent(ExplorationPlan, system), prompts["planner"]["user"].format(**ctx)
+        _agent(ExplorationPlan, system), prompts["planner"]["user"].format(**ctx), trace, "plan"
     )
-    out.views = out.views[:2]
+    out.views = out.views[:max_views]
     return out
 
 
 async def build_adhoc(
-    planned: PlannedView, index: int, ctx: dict[str, str], valid_ids: set[str]
+    planned: PlannedView,
+    index: int,
+    ctx: dict[str, str],
+    valid_ids: set[str],
+    trace: Trace | None = None,
 ) -> View:
     prompts = load_prompt("explore_views")
     entry = prompts["catalog"][planned.kind]
@@ -218,7 +289,7 @@ async def build_adhoc(
     user = prompts["builder_user"].format(
         **ctx, view_title=planned.title, view_purpose=planned.purpose, view_focus=planned.focus
     )
-    out = await _run(_agent(ADHOC_OUTPUTS[planned.kind], system), user)
+    out = await _run(_agent(ADHOC_OUTPUTS[planned.kind], system), user, trace, f"adhoc_{index}:{planned.kind}")
     renderer = entry["renderer"]
     body = out.model_dump()
     # Shape into the Demo renderer's spec format

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import json
 import re
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 from pydantic import BaseModel, Field
@@ -43,6 +43,19 @@ class ProfileUpdate(BaseModel):
 def profile_options() -> dict:
     """Onboarding options from explore_policy.yaml (served to the UI)."""
     return load_prompt("explore_policy")["profile"]
+
+
+def filter_province(code: str) -> str | None:
+    """Province code to filter retrieval on, or None for "all of Canada".
+
+    The non-province choices (explore all of Canada / outside Canada / prefer
+    not to say, marked ``all_of_canada`` in explore_policy.yaml) and legacy
+    empty values all mean: no jurisdiction filter.
+    """
+    for p in profile_options()["provinces"]:
+        if p["code"] == code:
+            return None if p.get("all_of_canada") else code
+    return None
 
 
 def validate_update(update: ProfileUpdate) -> None:
@@ -104,4 +117,4 @@ class ProfileStore:
 
 
 def _now() -> str:
-    return datetime.now(timezone.utc).isoformat(timespec="seconds")
+    return datetime.now(UTC).isoformat(timespec="seconds")

@@ -18,7 +18,7 @@
 #   LLM_API_KEY=EMPTY
 #   LLM_MODEL=qwen3            # = --served-model-name below
 #
-# Thinking is disabled per request by the app (explore_policy.yaml → llm.qwen3_no_think).
+# Set explore_policy.yaml → llm.thinking_off: vllm so the app switches Qwen3 thinking off per request.
 set -euo pipefail
 
 MODEL="${1:-Qwen/Qwen3-30B-A3B-GPTQ-Int4}"

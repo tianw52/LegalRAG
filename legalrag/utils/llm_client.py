@@ -6,15 +6,14 @@ that speaks the OpenAI Chat Completions API spec.  We are NOT locked into
 the OpenAI service – the library just handles auth headers, retries, and
 streaming for us.
 
-Default backend: Qwen3.5-397B-A17B via HuggingFace Inference Router (Novita).
-The HF Router proxies your request to a third-party GPU provider; you only
-need a HuggingFace token (free tier available).
+Default backend: local Ollama (see .env.example); lab vLLM and the HF Router
+work the same way.
 
     Backend              | LLM_BASE_URL                                       | LLM_API_KEY / env
     ─────────────────────┼────────────────────────────────────────────────────┼──────────────────
-    HF Router (default)  | https://router.huggingface.co/v1                  | HF_TOKEN
+    HF Router            | https://router.huggingface.co/v1                  | HF_TOKEN
     vLLM (local GPU)     | http://localhost:8000/v1                           | EMPTY (any string)
-    Ollama (local)       | http://localhost:11434/v1                          | ollama
+    Ollama (default)     | http://localhost:11434/v1                          | ollama
     DashScope (cloud)    | https://dashscope.aliyuncs.com/compatible-mode/v1  | sk-...
     OpenAI (cloud)       | https://api.openai.com/v1                          | sk-...
 
@@ -28,7 +27,7 @@ from __future__ import annotations
 import os
 from functools import lru_cache
 
-from openai import AsyncOpenAI, OpenAI
+from openai import AsyncOpenAI
 
 from legalrag.core.config import settings
 
@@ -41,12 +40,6 @@ def _resolve_api_key() -> str:
         if hf_token:
             return hf_token
     return key
-
-
-@lru_cache(maxsize=1)
-def get_sync_client() -> OpenAI:
-    """Return a cached synchronous OpenAI-compatible client."""
-    return OpenAI(api_key=_resolve_api_key(), base_url=settings.llm.base_url)
 
 
 @lru_cache(maxsize=1)

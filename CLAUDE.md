@@ -1,7 +1,9 @@
 # CLAUDE.md — LegalRAG Project Context
 
-Modular Retrieval-Augmented Generation system for 3000 CanLII Canadian legal documents,
-backed by OpenSearch. All components are swappable via abstract interfaces.
+Exploration-first legal assistant over Canadian case law (CanLegalRAGBench), backed by
+OpenSearch, plus a LegalBench-RAG retrieval evaluation. All components are swappable via
+abstract interfaces. The original CanLII answer pipeline is archived in
+`archive/canlii_pipeline/` (not maintained, not importable).
 
 # Basic Intruction
 After every coding session or whenever you think it's necessary (e.g. any major deisgn change, rearchitecture, etc.) log the changes in CODING_SESSION.md
@@ -23,24 +25,20 @@ After every coding session or whenever you think it's necessary (e.g. any major 
 ## Environment Setup
 
 ```bash
-# Activate the conda environment
+# First-time setup (pinned versions; see requirements.txt / environment.yml)
+conda env create -f environment.yml
 conda activate legalrag
+#   or: conda create -n legalrag python=3.11 -y && conda activate legalrag && pip install -r requirements.txt
 
-# First-time setup: create env and install package
-conda create -n legalrag python=3.11 -y
-conda activate legalrag
-pip install -e ".[dev]"
-
-# Copy and configure environment variables
+# Copy and configure environment variables (defaults: local Ollama + Docker OpenSearch)
 cp .env.example .env
-# Edit .env: set LLM_API_KEY=hf_... (HuggingFace token)
-# All other defaults work for the standalone OpenSearch setup
 ```
 
 ```bash
-# label machine
+# lab machine
 source /home/twa174/LegalRAG/.venv/bin/activate
 ```
+
 ---
 
 ## Common Commands
@@ -52,30 +50,25 @@ source /home/twa174/LegalRAG/.venv/bin/activate
 curl http://localhost:9200/_cluster/health   # verify healthy
 kill $(pgrep -f opensearch)                  # stop
 
-# ── OpenSearch: Docker (alternative) ─────────────────────────────────────────
-# docker-compose.yml in ~/LegalRAG/ runs OpenSearch 3.4.0 (single node, security disabled)
-docker compose up -d
+# ── OpenSearch: Docker (laptop) ───────────────────────────────────────────────
+# docker-compose.yml runs OpenSearch 3.4.0 (single node, security disabled)
+docker compose up -d opensearch
 curl http://localhost:9200/_cluster/health
 docker compose down
 
-# Ingest documents
-python scripts/ingest.py data/subset/               # small subset (~20 docs)
-python scripts/ingest.py data/extracted_court_documents/  # full 3000 docs
+# ── Exploration app ───────────────────────────────────────────────────────────
+# Build the index (minutes on the lab 4090, hours on a laptop; see docs/lab_ingestion.md)
+python scripts/ingest_canlegal.py --index-name canlegal-qwen3 \
+    --embedding-model Qwen/Qwen3-Embedding-0.6B --chunk-size 1024 --chunk-overlap 128
+curl http://localhost:9200/canlegal-qwen3/_count          # expect 62942
 
-# Query
-python scripts/query.py "What is the standard of review for s.7 Charter claims?"
-python scripts/query.py "..." --log-level DEBUG     # verbose with HTTP requests
-
-# Delete index and re-ingest (required after changing EMBEDDING_MODEL/EMBEDDING_DIM)
-curl -X DELETE http://localhost:9200/legalrag
-python scripts/ingest.py data/subset/
+OLLAMA_CONTEXT_LENGTH=16384 ollama serve                  # LLM (or lab vLLM: scripts/serve_qwen3_vllm.sh)
+uvicorn legalrag.api.app:app --port 8000                  # API, docs at /docs
+cd web && npm ci && npm run dev                           # UI at http://localhost:5173
+python scripts/explore_cli.py --query-id 792              # one exploration from the terminal
 
 # Run tests
 pytest tests/ -v
-pytest tests/ingestion/ -v                          # ingestion tests only
-
-# Check indexed document count
-curl http://localhost:9200/legalrag/_count
 ```
 
 ---
@@ -217,26 +210,24 @@ FastAPI (`legalrag/api/app.py`) → `legalrag/explore/`. Index `canlegal-qwen3`
 
 ## Architecture
 
-### Ingestion Pipeline
+Diagrams and a step-by-step example: `legalrag/README.md`.
+
+### Exploration ingestion (`scripts/ingest_canlegal.py`)
 
 ```
-TxtFileLoader
-  → CanLIIMetadataExtractor    (parses 5-line CanLII header)
-  → doc_id_from_citation()     (content-based ID: MD5 of citation)
-  → clean_document_text()      (strip header block + page markers)
-  → HierarchicalChunker        (parent ~1500 chars, child ~512 chars, 64 overlap)
-  → SentenceTransformerEmbedder (all-MiniLM-L6-v2, 384-dim, child chunks only)
-  → OpenSearchIndexer           (bulk upsert into single index "legalrag")
+CanLegalRAGBenchLoader     (HF documents.json; court + jurisdiction from canlegal_courts.yaml)
+  → RecursiveCharacterTextSplitter  (flat, 1024 chars, 128 overlap, LangChain-style)
+  → SentenceTransformerEmbedder     (Qwen3-Embedding-0.6B, 1024-dim)
+  → OpenSearchIndexer               (index "canlegal-qwen3")
 ```
 
-### Query Pipeline
+### Exploration query (`legalrag/explore/engine.py`)
 
 ```
-LLMQueryFormulator    (pydantic-ai Agent → StructuredQuery with filters)
-  → OpenSearchRetriever (hybrid: kNN + BM25 via RRF, top-80)
-  → ThresholdRouter     (rerank all 80, route on confidence)
-    → CrossEncoderReranker  (ms-marco-MiniLM-L-6-v2, top-20)
-  → LLMGenerator        (parent-expand top-5 chunks → Qwen3.5 answer)
+formulate (LLM, formulator.yaml) → OpenSearchRetriever (kNN, profile jurisdiction filter, top 60)
+  → Qwen3Reranker (keep 20 → evidence e1..e20)
+  → built-in views (case landscape, timeline) + LLM views (fact toggles ‖ planner → 0–3 extra views)
+  → grounding (evidence ids checked) → NDJSON stream to the web UI
 ```
 
 ---
@@ -248,27 +239,23 @@ LLMQueryFormulator    (pydantic-ai Agent → StructuredQuery with filters)
 | `legalrag/core/config.py` | All settings via Pydantic BaseSettings; reads from `.env` |
 | `legalrag/core/models.py` | Shared Pydantic schemas + `stable_id()` + `doc_id_from_citation()` |
 | `legalrag/core/interfaces.py` | Abstract base classes for every swappable component |
-| `legalrag/ingestion/loader.py` | `TxtFileLoader` + `clean_document_text()` |
-| `legalrag/ingestion/metadata_extractor.py` | `CanLIIMetadataExtractor` — parses CanLII headers |
-| `legalrag/ingestion/chunker.py` | `HierarchicalChunker` — parent + child chunks |
+| `legalrag/ingestion/canlegal_loader.py` | `CanLegalRAGBenchLoader` + jurisdiction tagging (`canlegal_courts.yaml`) |
+| `legalrag/ingestion/chunker.py` | `HierarchicalChunker` (evaluation) + `RecursiveCharacterTextSplitter` |
 | `legalrag/ingestion/embedder.py` | `SentenceTransformerEmbedder` / `HuggingFaceEmbedder` / `OpenAIEmbedder`; `build_embedder(model_name=None)` factory |
 | `legalrag/ingestion/indexer.py` | `OpenSearchIndexer` — bulk upsert |
-| `legalrag/ingestion/pipeline.py` | `IngestionPipeline` — orchestrates all ingestion steps |
-| `legalrag/prompts/formulator.yaml` | System prompt + field docs for query formulator |
-| `legalrag/prompts/generator.yaml` | System prompt + context templates for answer generator |
+| `legalrag/query/retriever.py` | `OpenSearchRetriever` — semantic / lexical / hybrid |
+| `legalrag/query/reranker.py` | `CrossEncoderReranker`, `Qwen3Reranker`, `build_reranker()` |
+| `legalrag/explore/` | Exploration engine, views, schemas, profiles, tracing |
+| `legalrag/api/app.py` | FastAPI app for the web UI |
+| `legalrag/prompts/*.yaml` | Prompts + policies (`explore_policy`, `explore_views`, `formulator`) |
 | `legalrag/prompts/loader.py` | Cached YAML loader (`lru_cache`) |
-| `legalrag/query/formulator.py` | `LLMQueryFormulator` (pydantic-ai Agent) |
-| `legalrag/query/retriever.py` | `OpenSearchRetriever` — hybrid kNN + BM25 |
-| `legalrag/query/reranker.py` | `CrossEncoderReranker` |
-| `legalrag/query/router.py` | `ThresholdRouter` — fast/deep-search path |
-| `legalrag/query/generator.py` | `LLMGenerator` — parent expansion + LLM call |
-| `legalrag/query/pipeline.py` | `QueryPipeline` — orchestrates all query steps; logs full run trace |
 | `legalrag/opensearch/client.py` | `OpenSearchClient` — kNN, BM25, hybrid, bulk, mapping |
-| `legalrag/utils/llm_client.py` | Factory for sync/async OpenAI-compatible clients |
+| `legalrag/utils/llm_client.py` | Cached async OpenAI-compatible client |
 | `legalrag/utils/logging.py` | structlog config; stdout + `logs/queries.log` (append) |
-| `docs/pipeline_breakdown.md` | Full technical walkthrough of ingestion + query pipeline |
+| `evaluation/LegalBenchRAG/` | LegalBench-RAG ingest + precision/recall evaluation |
+| `web/` | React + Vite exploration UI |
 | `docs/evaluation.md` | CLERC + LegalBench-RAG evaluation guides with runnable code |
-| `cursor.md` | Session log of all major development changes |
+| `archive/canlii_pipeline/` | Archived CanLII answer pipeline (see its README) |
 
 ---
 
@@ -304,33 +291,28 @@ DashScope, OpenAI.
 
 ## OpenSearch Index Schema
 
-Single index `legalrag`. Both parent and child chunks stored together, distinguished by `is_parent`.
+One mapping for every index (`legalrag/opensearch/client.py`). Parent and child chunks can be
+stored together, distinguished by `is_parent` (the exploration index is flat: children only).
 
 | Field | Type | Notes |
 |---|---|---|
 | `text` | `text` | `legal_analyzer`: standard + lowercase + stop words |
-| `embedding` | `knn_vector` (384-dim) | HNSW, cosine, lucene engine; `ef_construction=128`, `m=16`; `ef_search=512` (index setting) |
+| `embedding` | `knn_vector` (model dim; 1024 for Qwen3) | HNSW, cosine, lucene engine; `ef_construction=128`, `m=16`; `ef_search=512` (index setting) |
 | `court`, `citation`, `source_path` | `keyword` | Exact-match filterable |
 | `decision_date` | `date` | ISO `yyyy-MM-dd`; range-filterable |
 | `is_parent` | `boolean` | Filters child-only for kNN/BM25 searches |
 | `chunk_id`, `doc_id`, `parent_chunk_id` | `keyword` | Linkage fields |
 
-**Not stored** (extracted but dropped): `case_name`, `court_abbrev`, `year`, `pages`, `url`, `jurisdiction`
+Also stored (exploration index): `court_abbrev`, `jurisdiction`, `doc_type`, `year`, `case_name`, `url`.
 
 ---
 
-## Metadata Extracted per Document
+## Metadata per Document (exploration index)
 
-From the CanLII 5-line header:
-- `citation` — e.g. `2015 ONSC 7241`
-- `case_name` — e.g. `Parkinson v The Corporation of The City of Brampton`
-- `court_abbrev` — e.g. `ONSC`
-- `court` — e.g. `Ontario Superior Court of Justice` (from `COURT_ABBREV_MAP`)
-- `jurisdiction` — e.g. `ON` (from `COURT_JURISDICTION_MAP`)
-- `year` — e.g. `2015`
-- `decision_date` — defaults to `YYYY-01-01`, refined to specific date from body text
-- `pages` — e.g. `12`
-- `url` — CanLII source URL
+From CanLegalRAGBench `documents.json` + `legalrag/ingestion/canlegal_courts.yaml`:
+`citation`, `case_name`, `court_abbrev`, `court`, `jurisdiction` (province code, `federal`,
+or `unknown`), `year`, `doc_type`, `url`. Jurisdiction codes in the YAML must stay quoted
+(YAML 1.1 reads a bare `ON` as `true`).
 
 ---
 
@@ -369,15 +351,13 @@ From the CanLII 5-line header:
   sampled subsets, etc.). Only `data/extracted_court_documents/` and `data/subset/` are
   gitignored (large raw CanLII corpora).
 
-- **Query log**: Every run is appended to `logs/queries.log` (gitignored via `logs/*.log`). Each run logs:
-  reformulated query, all 80 retrieved chunks with scores, all reranked results, and the
-  final answer. Third-party HTTP logs (`httpx`, `opensearch`, `sentence_transformers`) are
-  suppressed to WARNING. Pass `--log-level DEBUG` to see them. To disable file logging,
-  pass `log_file=None` to `configure_logging()`.
+- **Logs**: the exploration API logs to stdout + `logs/explore_api.log`, and writes one JSON
+  trace per run to `logs/explore_traces/`. `configure_logging()` falls back to
+  `logs/queries.log` when `log_file=None`. Third-party HTTP logs (`httpx`, `opensearch`,
+  `sentence_transformers`) are suppressed to WARNING.
 
-- **Deep Search is a placeholder**: The router falls back to top-N reranked candidates when
-  routed to deep_search. The iterative multi-query expansion loop is TODO.
-  See `legalrag/query/router.py` and arxiv.org/abs/2512.24601.
+- **LLM thinking**: `explore_policy.yaml → llm.thinking_off` must match the server
+  (`ollama` | `vllm` | `none`); Ollama ignores the `/no_think` prompt suffix.
 
 - **Date range filtering is a placeholder**: `date_from`/`date_to` are extracted by the
   formulator but not yet applied as OpenSearch range filters in the retriever.
@@ -391,9 +371,9 @@ From the CanLII 5-line header:
 
 ```bash
 pytest tests/ -v
-pytest tests/ingestion/test_metadata_extractor.py -v   # metadata extraction
 pytest tests/ingestion/test_chunker.py -v              # chunking + ID stability
-pytest tests/ingestion/test_loader.py -v               # loading + text cleaning
+pytest tests/explore/ -v                               # profile options / jurisdiction codes
+cd web && npm run smoke                                # browser end-to-end (API + dev server running)
 ```
 
-Tests use real CanLII header samples. No OpenSearch required for unit tests.
+No OpenSearch required for unit tests.

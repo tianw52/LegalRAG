@@ -87,7 +87,7 @@ Compute Recall@K: did the retriever return the positive passage within the top K
 
 ```python
 from datasets import load_dataset
-from legalrag.query.formulator import PassthroughQueryFormulator
+from legalrag.core.models import StructuredQuery
 from legalrag.query.retriever import OpenSearchRetriever
 from legalrag.ingestion.embedder import build_embedder
 from legalrag.opensearch.client import OpenSearchClient
@@ -101,13 +101,12 @@ dataset = load_dataset(
 os_client = OpenSearchClient.from_settings()
 embedder = build_embedder()
 retriever = OpenSearchRetriever(os_client, embedder, mode="hybrid")
-formulator = PassthroughQueryFormulator()
 
 hits_at_k = {5: 0, 10: 0, 20: 0}
 total = 0
 
 for row in dataset:
-    sq = formulator.formulate(row["query"])
+    sq = StructuredQuery(raw_query=row["query"], reformulated_query=row["query"])
     results = retriever.retrieve(sq)
     positive_id = row["positive_passages"][0]["docid"]
 
@@ -132,7 +131,7 @@ pip install pytrec_eval-terrier
 
 ```python
 import pytrec_eval
-from legalrag.query.formulator import PassthroughQueryFormulator
+from legalrag.core.models import StructuredQuery
 from legalrag.query.retriever import OpenSearchRetriever
 from legalrag.ingestion.embedder import build_embedder
 from legalrag.opensearch.client import OpenSearchClient
@@ -155,11 +154,10 @@ with open("qrels/qrels-passage.test.direct.tsv") as f:
 os_client = OpenSearchClient.from_settings()
 embedder = build_embedder()
 retriever = OpenSearchRetriever(os_client, embedder, mode="hybrid")
-formulator = PassthroughQueryFormulator()
 
 run = {}
 for qid, text in queries.items():
-    sq = formulator.formulate(text)
+    sq = StructuredQuery(raw_query=text, reformulated_query=text)
     results = retriever.retrieve(sq)
     run[qid] = {r.chunk.chunk_id: r.semantic_score or 0.0 for r in results}
 
@@ -261,18 +259,18 @@ Each benchmark JSON has this shape:
 
 ### Adapting for LegalRAG
 
-Ingest the `data/corpus/` files via your existing `IngestionPipeline`, then map retrieved
+Ingest the `data/corpus/` files with `python -m evaluation.LegalBenchRAG.ingest` (see CLAUDE.md), then map retrieved
 chunks back to `(source_path, char_start, char_end)` spans for the benchmark evaluation.
 
 ```python
 import json
-from legalrag.query.formulator import PassthroughQueryFormulator
+from legalrag.core.models import StructuredQuery
 from legalrag.query.retriever import OpenSearchRetriever
 from legalrag.ingestion.embedder import build_embedder
 from legalrag.opensearch.client import OpenSearchClient
 
 # Ingest the corpus first:
-#   python scripts/ingest.py /path/to/legalbenchrag/data/corpus/
+#   python -m evaluation.LegalBenchRAG.ingest --data-dir data/LegalBenchRAG --index-name <name> --all ...
 
 # Load a benchmark file
 with open("/path/to/legalbenchrag/data/benchmarks/cuad.json") as f:
@@ -281,12 +279,11 @@ with open("/path/to/legalbenchrag/data/benchmarks/cuad.json") as f:
 os_client = OpenSearchClient.from_settings()
 embedder = build_embedder()
 retriever = OpenSearchRetriever(os_client, embedder, mode="hybrid")
-formulator = PassthroughQueryFormulator()
 
 precision_scores, recall_scores = [], []
 
 for case in benchmark["test_cases"]:
-    sq = formulator.formulate(case["query"])
+    sq = StructuredQuery(raw_query=case["query"], reformulated_query=case["query"])
     results = retriever.retrieve(sq)
 
     # Ground truth character spans (file path + char range)

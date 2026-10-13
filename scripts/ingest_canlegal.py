@@ -32,7 +32,6 @@ import sys
 
 from tqdm import tqdm
 
-from legalrag.core.config import OpenSearchSettings, settings
 from legalrag.ingestion.canlegal_loader import CanLegalRAGBenchLoader, download_dataset
 from legalrag.ingestion.chunker import RecursiveCharacterTextSplitter
 from legalrag.ingestion.embedder import build_embedder
@@ -64,19 +63,8 @@ def main(argv: list[str] | None = None) -> None:
     if args.limit:
         docs = docs[: args.limit]
 
-    cfg = settings.opensearch
-    os_cfg = OpenSearchSettings(
-        **{
-            "OPENSEARCH_HOST": cfg.host,
-            "OPENSEARCH_PORT": cfg.port,
-            "OPENSEARCH_USER": cfg.user,
-            "OPENSEARCH_PASSWORD": cfg.password,
-            "OPENSEARCH_USE_SSL": cfg.use_ssl,
-            "OPENSEARCH_INDEX_NAME": args.index_name,
-        }
-    )
     embedder = build_embedder(model_name=args.embedding_model, provider=args.embedding_provider)
-    os_client = OpenSearchClient(cfg=os_cfg, embedding_dim=embedder.dim)
+    os_client = OpenSearchClient.from_settings(embedding_dim=embedder.dim, index_name=args.index_name)
     os_client.ensure_index()
     indexer = OpenSearchIndexer(os_client)
     chunker = RecursiveCharacterTextSplitter(
@@ -86,7 +74,7 @@ def main(argv: list[str] | None = None) -> None:
     n_chunks = 0
     for doc in tqdm(docs, desc="Ingesting", unit="doc"):
         chunks = chunker.chunk(doc)
-        for chunk, emb in zip(chunks, embedder.embed([c.text for c in chunks])):
+        for chunk, emb in zip(chunks, embedder.embed([c.text for c in chunks]), strict=True):
             chunk.embedding = emb
         indexer.index(chunks)
         n_chunks += len(chunks)

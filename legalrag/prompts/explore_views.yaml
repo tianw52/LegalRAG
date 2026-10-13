@@ -49,10 +49,20 @@ planner:
     1. Name the topic in a few words and write an orientation of at most two
        neutral sentences describing what the sources are about (no advice, no
        conclusion about the user's case).
-    2. Choose 1–2 views from the catalog that would best help THIS user explore
-       THESE sources.  For each give a title, the purpose (what the user will
-       understand from it), and a focus (what it should contain).
-    3. Suggest 3–5 follow-up questions the user could explore next.
+    2. Judge whether any EXTRA view from the catalog would add real value.
+       The user already sees: the list of sources by jurisdiction, a timeline
+       of decision years, and the key facts with "what if" toggles.  Add an
+       extra view only if it shows something those do not, and only if the
+       evidence contains enough material to fill it.  Choose between 0 and
+       {max_extra_views} views; returning none is correct when nothing would
+       help.  For each chosen view give a title, the purpose (what the user
+       will understand from it), a focus (what it should contain), and
+       why_useful (why it adds value here).  Explain the overall decision in
+       extra_views_reason.
+    3. Suggest 3–5 follow-up questions the user could explore next.  Write
+       them as questions the USER would type into this tool (e.g. "What counts
+       as just cause for quitting a job?"), not questions addressed to the
+       user.  Plain text only: no evidence ids or citations in follow-ups.
 
     User goal: {goal_hint}
     User interests: {interests}
@@ -96,7 +106,9 @@ catalog:
       nodes (node_type "question") branch via `edge_label` (e.g. "Yes"/"No")
       to further questions or outcome nodes (node_type "outcome") whose
       `outcome` is allowed, prohibited, or conditional.  The root has
-      parent null.  5–12 nodes.
+      parent null.  Every non-root node MUST have an `edge_label` naming the
+      answer that leads to it, and sibling edge labels must differ (one "Yes",
+      one "No", …).  5–12 nodes.
 
   rule_hierarchy:
     renderer: statute_tree

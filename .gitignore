@@ -50,3 +50,8 @@ opensearch-snapshots/
 
 # Local dev process logs (uvicorn / ingest / ollama)
 logs/*.out
+# Exploration dev artifacts (scripts/explore_cli.py --out, web smoke test screenshots)
+logs/explore_*.ndjson
+logs/ui-smoke/
+# Exploration traces (legalrag/explore/trace.py)
+logs/explore_traces/

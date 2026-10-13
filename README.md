@@ -1,206 +1,278 @@
 # LegalRAG
 
-A modular Retrieval-Augmented Generation system for legal documents, backed by OpenSearch.
+Retrieval over Canadian legal documents, backed by OpenSearch. The repo contains:
+
+1. **LegalRAG Explore**, the main application. An exploration-first legal assistant over the
+   [CanLegalRAGBench](https://huggingface.co/datasets/UBC-VL/CanLegalRAGBench) corpus. It
+   doesn't write an answer. It retrieves sources and turns them into interactive,
+   source-cited views: case landscape, decision timeline, "what if" fact toggles, and
+   LLM-chosen diagrams such as legal tests, concept maps and comparisons. It's personalised
+   by a user profile (province → jurisdiction filter, familiarity, goal).
+2. **Evaluation** on LegalBench-RAG (chunk-level precision/recall), plus a static eval viewer.
+
+The original CanLII answer-generation pipeline is archived in
+[archive/canlii_pipeline/](archive/canlii_pipeline/README.md).
+
+```
+web/ (React + Vite)  ──POST /api/explore (NDJSON stream)──▶  legalrag/api/app.py (FastAPI)
+                                                                │
+                                         legalrag/explore/engine.py  ExplorationEngine
+  1. formulate      LLM rewrites the question for search                    (Qwen3 via OpenAI-compatible API)
+  2. retrieve       kNN in OpenSearch, top 60,                              (Qwen3-Embedding-0.6B)
+                    filtered to {user's province, federal, unknown}
+  3. rerank         keep the best 20 passages → evidence e1..e20            (Qwen3-Reranker-0.6B)
+  4. built-in views case landscape + case timeline, from metadata           (no LLM)
+  5. LLM views      fact toggles  ‖  planner → 0–3 extra views it judges useful
+  6. grounding      every item must cite e# (or q = the question); others are hidden
+                                                                │
+                              every step is traced → "Under the hood" panel + logs/explore_traces/
+```
+
+| Read next | |
+|---|---|
+| Architecture diagram + a full example request, step by step | [legalrag/README.md](legalrag/README.md) |
+| Frontend structure and conventions | [web/README.md](web/README.md) |
+| Building the index on the lab GPU, copying it to a laptop | [docs/lab_ingestion.md](docs/lab_ingestion.md) |
+| Open decisions, prompts and templates to review | [docs/explore_app.md](docs/explore_app.md) |
 
 ---
 
-## Architecture
+## Run the website on localhost (with Ollama)
 
-![architecture- vector RAG](assets/vector_rag_architecture.png)
+Tested on macOS (Apple M2, 32 GB) with the versions below. Linux works the same way.
 
-### Offline Ingestion Pipeline
+### 0. Prerequisites
 
-```
-Input (.txt files)
-      │
-      ▼
- TxtFileLoader          (legalrag/ingestion/loader.py)
-      │  RawDocument
-      ▼
- RegexMetadataExtractor (legalrag/ingestion/metadata_extractor.py)
-      │  RawDocument + metadata
-      ▼
- HierarchicalChunker    (legalrag/ingestion/chunker.py)
-      │  [parent chunks + child chunks]
-      ▼
- Embedder               (legalrag/ingestion/embedder.py)
-      │  child chunks with dense vectors
-      ▼
- OpenSearchIndexer      (legalrag/ingestion/indexer.py)
-      │
-      ▼
- OpenSearch Index       (kNN vector + BM25 full-text)
-```
-
-### Online Query Pipeline
-
-```
-Raw user query
-      │
-      ▼
- LLMQueryFormulator     (legalrag/query/formulator.py)
-      │  StructuredQuery (reformulated text + metadata filters)
-      ▼
- OpenSearchRetriever    (legalrag/query/retriever.py)
-      │  top-K RetrievedChunks (hybrid kNN + BM25)
-      ▼
- ThresholdRouter        (legalrag/query/router.py)
-      │
-      ├── [high confidence] → CrossEncoderReranker (legalrag/query/reranker.py)
-      │                              │ top-N chunks
-      │
-      └── [low confidence] → Deep Search [TODO – see below]
-                                     │ top-N chunks
-      ▼
- LLMGenerator           (legalrag/query/generator.py)
-      │  parent-expanded context → LLM prompt
-      ▼
- RAGResponse (answer + provenance)
-```
-
----
-
-## Design Decisions
-
-| Decision | Choice | Rationale |
+| Tool | Version tested | Install |
 |---|---|---|
-| Document format | Plain text (.txt) | Initial scope; interfaces support adding PDF/DOCX loaders |
-| Chunking strategy | Hierarchical (parent + child) | Small-to-big retrieval: child for precise vector match, parent for rich context |
-| Embedding model | LegalBERT (`nlpaueb/legal-bert-base-uncased`, 768-dim) | Domain-specific BERT pre-trained on legal text; swappable via `EMBEDDING_MODEL` env var |
-| LLM backend | Qwen3.5-9B via OpenAI-compatible API | `LLM_BASE_URL` + `LLM_MODEL` env vars; swap to any OpenAI-compatible endpoint |
-| Vector store | OpenSearch (local Docker) | kNN (HNSW / nmslib) + BM25 in one system; hybrid search via RRF |
-| Retrieval mode | Hybrid (kNN + BM25) via RRF | Combines semantic precision with lexical recall; tunable weight |
-| Metadata fields | court, citation, decision_date | Chosen for legal domain relevance; easy to extend |
-| Reranker | Cross-encoder (ms-marco-MiniLM) | Standard cross-encoder gives best quality/latency trade-off |
-| Router paths | Reranker (fast) / Deep Search (slow) | Confidence-score threshold; deep search triggers on complex queries |
-| Deep Search | RLM-inspired (placeholder) | See arxiv 2512.24601 – recursive LLM over document snippets |
+| Git | any | |
+| Conda (Miniconda) or Python 3.11 | Python 3.11.14 | https://docs.conda.io/en/latest/miniconda.html |
+| Docker Desktop (for OpenSearch) | 28.0 | https://www.docker.com/products/docker-desktop |
+| Node.js ≥ 18 + npm | Node 24.13, npm 11.6 | https://nodejs.org or `brew install node` |
+| Ollama | 0.40.3 | https://ollama.com/download or `brew install ollama` |
 
----
+Disk: about 12 GB (Ollama `qwen3:8b` 5.2 GB, Qwen3 embedding and reranker 2.2 GB, PyTorch,
+the 0.3 GB index). Memory: 16 GB minimum, 32 GB recommended (the 8B LLM, the two
+Qwen3 models and OpenSearch all run at once).
 
-## Deep Search – Design Reference
-
-The **Deep Search** path is designed around the *Recursive Language Models* paper
-(Zhang et al., 2025, [arxiv:2512.24601](https://arxiv.org/abs/2512.24601)).
-
-The core idea: treat the document corpus as an **external environment**.
-When the initial retrieval is not confident, instead of giving up, the LLM:
-1. Analyses the initial candidate set.
-2. Generates targeted follow-up queries.
-3. Retrieves again and merges results via RRF.
-4. Repeats until a confidence threshold or max-iteration budget is reached.
-
-**Current status:** The interface (`BaseRouter`, `ThresholdRouter._deep_search`) is in
-place. The iterative retrieval loop is `TODO` in `legalrag/query/router.py`.
-
----
-
-## Project Structure
-
-```
-LegalRAG/
-├── docker-compose.yml          # OpenSearch + Dashboards (local dev)
-├── pyproject.toml              # dependencies & tooling config
-├── .env.example                # environment variable template
-├── scripts/
-│   ├── ingest.py               # CLI: ingest documents
-│   └── query.py                # CLI: run a query
-├── legalrag/
-│   ├── core/
-│   │   ├── config.py           # Pydantic settings (env-driven)
-│   │   ├── models.py           # Shared domain models 
-│   │   └── interfaces.py       # Abstract base classes for all components
-│   ├── ingestion/
-│   │   ├── loader.py           # TxtFileLoader + clean_document_text()
-│   │   ├── metadata_extractor.py  # CanLIIMetadataExtractor (header + body fallback)
-│   │   ├── chunker.py          # HierarchicalChunker (deterministic chunk IDs)
-│   │   ├── embedder.py         # SentenceTransformerEmbedder / OpenAIEmbedder
-│   │   ├── indexer.py          # OpenSearchIndexer
-│   │   └── pipeline.py         # IngestionPipeline orchestrator
-│   ├── prompts/                # ← prompt configs (edit here, not in Python)
-│   │   ├── loader.py           # YAML loader
-│   │   ├── formulator.yaml     # system prompt + field docs + model params
-│   │   └── generator.yaml      # system prompt + context templates + model params
-│   ├── query/
-│   │   ├── formulator.py       # LLMQueryFormulator (pydantic-ai Agent)
-│   │   ├── retriever.py        # OpenSearchRetriever (hybrid kNN + BM25)
-│   │   ├── reranker.py         # CrossEncoderReranker
-│   │   ├── router.py           # ThresholdRouter (fast/slow path)
-│   │   ├── generator.py        # LLMGenerator (parent-expansion + streaming)
-│   │   └── pipeline.py         # QueryPipeline orchestrator
-│   ├── opensearch/
-│   │   └── client.py           # OpenSearchClient (kNN, BM25, hybrid, bulk)
-│   └── utils/
-│       ├── llm_client.py       # OpenAI-compatible client factory (sync + async)
-│       └── logging.py          # structlog configuration
-└── tests/
-    ├── ingestion/
-    ├── query/
-    └── opensearch/
-```
-
----
-
-## Quickstart
-
-### 1. Create and activate the conda environment
+### 1. Get the code and the Python environment
 
 ```bash
-conda create -n legalrag python=3.11 -y
+git clone <this repo> LegalRAG && cd LegalRAG
+
+conda env create -f environment.yml        # Python 3.11 + pinned requirements.txt
 conda activate legalrag
-pip install -e ".[dev]"
+# Without conda: python3.11 -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt
 ```
 
+**Check:** `python -c "import legalrag, fastapi, torch; print('ok')"` prints `ok`.
 
-### 2. Configure environment variables
+### 2. Configure
 
 ```bash
 cp .env.example .env
 ```
 
-The default LLM is **Qwen3.5-9B** via the HuggingFace Inference Router. Get a free token at https://huggingface.co/settings/tokens, then:
+The defaults already point at local Ollama (`qwen3:8b`) and the Docker OpenSearch, so you
+don't need to change anything. In [legalrag/prompts/explore_policy.yaml](legalrag/prompts/explore_policy.yaml),
+`llm.thinking_off` must be `ollama` (the default). It switches Qwen3's slow "thinking" off.
+
+### 3. Start OpenSearch 3.4.0
 
 ```bash
-export HF_TOKEN=hf_...      # picked up automatically, or set LLM_API_KEY in .env
+docker compose up -d opensearch
 ```
 
-To run fully locally with a smaller model instead:
-```bash
-# Ollama (easiest)
-ollama pull qwen2.5:7b
-# then in .env:
-# LLM_BASE_URL=http://localhost:11434/v1
-# LLM_API_KEY=ollama
-# LLM_MODEL=qwen2.5:7b
-```
+**Check:** `curl -s localhost:9200/_cluster/health` shows `"status":"green"` or `"yellow"`
+(the first start takes about 30 s).
 
-### 3. Start OpenSearch (Docker)
+### 4. Load the search index (`canlegal-qwen3`)
 
-```bash
-docker compose up -d
-# Wait ~30 s then verify:
-curl http://localhost:9200/_cluster/health
-```
+Pick **one** option.
 
-OpenSearch Dashboards will be available at http://localhost:5601.
-
-### 4. Ingest documents
+**A. Restore a snapshot (recommended, about 1 minute).** Ask a teammate for the
+`opensearch-snapshots/` folder (about 330 MB; built on the lab GPU, see
+[docs/lab_ingestion.md](docs/lab_ingestion.md)). Put it at the repo root, then:
 
 ```bash
-python scripts/ingest.py data/extracted_court_documents/
+curl -X PUT localhost:9200/_snapshot/canlegal -H 'Content-Type: application/json' \
+     -d '{"type":"fs","settings":{"location":"/usr/share/opensearch/snapshots"}}'
+curl -X POST "localhost:9200/_snapshot/canlegal/canlegal-qwen3-v1/_restore?wait_for_completion=true" \
+     -H 'Content-Type: application/json' -d '{"indices":"canlegal-qwen3"}'
 ```
 
-### 5. Query
+**B. Build it yourself.** This downloads the corpus from Hugging Face and embeds about 63K
+chunks. It takes minutes on a CUDA GPU and **5–9 hours on an Apple M2**.
 
 ```bash
-python scripts/query.py "What is the standard of review for s.7 Charter claims?"
+python scripts/ingest_canlegal.py --index-name canlegal-qwen3 \
+    --embedding-provider sentence_transformers --embedding-model Qwen/Qwen3-Embedding-0.6B \
+    --chunk-size 1024 --chunk-overlap 128
 ```
 
-### 6. Run tests
+**Check:** `curl -s localhost:9200/canlegal-qwen3/_count` reports `"count":62942`.
+
+### 5. Start Ollama with Qwen3
+
+In a new terminal (leave it running):
 
 ```bash
-pytest tests/ -v
+OLLAMA_CONTEXT_LENGTH=16384 ollama serve    # the prompts need more than the 4K default context
 ```
 
+Then, once:
 
+```bash
+ollama pull qwen3:8b
+```
 
+If the Ollama desktop app is already running, quit it first, so the server picks up
+`OLLAMA_CONTEXT_LENGTH`.
 
+**Check:** `curl -s localhost:11434/api/tags` lists `qwen3:8b`.
+
+### 6. Start the API
+
+In a new terminal, from the repo root (leave it running):
+
+```bash
+conda activate legalrag
+uvicorn legalrag.api.app:app --port 8000
+```
+
+The first start downloads Qwen3-Embedding-0.6B and Qwen3-Reranker-0.6B from Hugging Face
+(about 2.2 GB). After that it starts in a few seconds.
+
+**Check:** `curl -s localhost:8000/api/health` returns
+`{"status":"ok","index":"canlegal-qwen3","chunks":62942}`. Interactive API docs:
+http://localhost:8000/docs.
+
+### 7. Start the website
+
+In a new terminal (leave it running):
+
+```bash
+cd web
+npm ci            # exact versions from package-lock.json
+npm run dev
+```
+
+Open **http://localhost:5173**. Vite forwards `/api` to the API on port 8000.
+
+### 8. Use it
+
+1. **Log in** with any name. This is a dev-only login: no password, and profiles are JSON
+   files in `data/app/profiles/`.
+2. **Build your profile:** province (sets the jurisdiction filter), familiarity with the
+   law, why you're here, topics.
+3. **Ask a question**, or click one of the benchmark questions.
+4. **Explore the tabs:** Overview, What-if, Cases, Timeline, Maps, Sources. Click any
+   source tag to read the passage in context.
+5. Click **under the hood** to see every step: the rewrite, retrieval candidates and
+   scores, LLM prompts and responses, and timings.
+
+Expect this on a laptop with `qwen3:8b` (measured on an M2, 32 GB):
+- Sources and the built-in views (Cases, Timeline) appear after about 40 s.
+- The planner (Overview) takes about 1 minute, and the fact toggles (What-if) about 5.
+- Extra views (Maps) often **time out**. Ollama answers one request at a time, so they
+  wait behind the fact toggles and hit the 3-minute limit (`planner.extra_view_timeout_s`).
+
+To get the extra views locally, raise that limit or start Ollama with
+`OLLAMA_NUM_PARALLEL=2` (more memory). For full-speed runs, use the lab vLLM (see
+`scripts/serve_qwen3_vllm.sh` and `.env.example`).
+
+### Stopping
+
+Press Ctrl-C in the API, website and Ollama terminals, then run `docker compose stop opensearch`
+(the index is kept in a Docker volume).
+
+### Troubleshooting
+
+| Symptom | Fix |
+|---|---|
+| UI: "Cannot reach the API" | The API isn't running on :8000 (step 6). |
+| `402 … no remaining credits` | `.env` still points at the Hugging Face router. Use the Ollama values from `.env.example` and restart the API. |
+| `404 model "…" not found` | `LLM_MODEL` in `.env` must be `qwen3:8b`, and `ollama pull qwen3:8b` must have run. |
+| Every LLM step is very slow, with long "thinking" in the trace | `llm.thinking_off` in `explore_policy.yaml` must be `ollama`. |
+| `Query vector has invalid dimension` | The index wasn't built with Qwen3-Embedding-0.6B. Check `EXPLORE_EMBEDDING_MODEL` and the index (step 4). |
+| Extra views show "timed out after 180s" | This is expected with Ollama on a laptop. Raise `planner.extra_view_timeout_s`, set `OLLAMA_NUM_PARALLEL=2`, or use the lab vLLM. |
+| `/api/health` reports 0 chunks or an error | The index is missing (step 4), or OpenSearch isn't running (step 3). |
+| Port already in use | Another API or Vite instance is still running. Stop it, or use `--port`. |
+
+---
+
+## Seeing what happens under the hood
+
+Every exploration is traced. Each trace records:
+- step timings;
+- the query rewrite;
+- all retrieval candidates, with retrieval and rerank scores and which passages were kept;
+- every LLM call: system and user prompts, raw response, thinking (if enabled), token usage, validation retries, errors.
+
+Ways to view it:
+- **UI:** the **under the hood** button on a run (it updates live while the run is in progress).
+- **Server log:** the uvicorn terminal and `logs/explore_api.log`, one INFO line per step and LLM call, prefixed `[trace_id]`.
+- **Files:** `logs/explore_traces/<date>/<time>_<trace_id>.json`.
+- **API:** `GET /api/traces`, `GET /api/traces/{trace_id}`.
+- **Terminal:** `python scripts/explore_cli.py --query-id 792` prints the event stream and a step and LLM timing summary.
+
+---
+
+## Evaluation (LegalBench-RAG)
+
+Chunk-level Precision@K / Recall@K over the LegalBench-RAG benchmarks. Commands and baseline
+results: [CLAUDE.md](CLAUDE.md#legalbench-rag-evaluation-commands) and
+[docs/evaluation.md](docs/evaluation.md). Code: `evaluation/LegalBenchRAG/` (Gemini query
+rewrite needs `pip install -e ".[eval]"`). Static results viewer: `eval-viewer/` (built by
+`scripts/build_static.py`, deployed with `vercel.json`).
+
+---
+
+## Key design decisions
+
+| Decision | Choice | Notes |
+|---|---|---|
+| Vector store | OpenSearch 3.4.0 | kNN (HNSW, Lucene) + BM25; native hybrid query with RRF pipeline |
+| Explore corpus | CanLegalRAGBench (1,117 docs) | Jurisdiction tagged at ingestion (`canlegal_courts.yaml`) |
+| Explore chunking | Flat recursive splitter, 1024 chars / 128 overlap | Same as UBC's reference config; LangChain-style overlap |
+| Explore embedder | Qwen3-Embedding-0.6B (1024-dim) | `EXPLORE_EMBEDDING_MODEL`; must match the index |
+| Explore retrieval | Dense kNN, top 60 | `retrieval.mode` in `explore_policy.yaml` (`hybrid` / `lexical` available) |
+| Explore reranker | Qwen3-Reranker-0.6B | `EXPLORE_RERANKER_MODEL`; instruction in `explore_policy.yaml` |
+| LLM | Qwen3 via any OpenAI-compatible server | Local Ollama `qwen3:8b` or lab vLLM; `LLM_*` / `EXPLORE_LLM_MODEL` |
+| Structured LLM output | pydantic-ai, native JSON-schema mode | `legalrag/explore/schemas.py`; `llm.output_mode` |
+| Prompts and policies | YAML, not Python | `legalrag/prompts/*.yaml` |
+| Output style | Views, not an answer | Every item must cite retrieved evidence |
+
+## Project structure
+
+```
+LegalRAG/
+├── legalrag/                 Python backend package → see legalrag/README.md
+│   ├── api/                  FastAPI app (exploration API)
+│   ├── explore/              exploration engine, views, schemas, profiles, tracing
+│   ├── core/                 settings, shared models, interfaces
+│   ├── ingestion/            CanLegalRAGBench loader, chunkers, embedders, indexer
+│   ├── query/                retriever, rerankers
+│   ├── opensearch/           OpenSearch client
+│   ├── prompts/              YAML prompts + policies
+│   └── utils/                LLM client factory, logging
+├── web/                      React + Vite exploration UI → see web/README.md
+├── scripts/                  CLIs: ingest, explore, chunking audit, vLLM launcher, eval viewer build
+├── evaluation/               LegalBench-RAG evaluation
+├── tests/                    pytest suite (no OpenSearch needed)
+├── docs/                     explore_app, lab_ingestion, evaluation
+├── archive/                  archived CanLII answer pipeline (not maintained)
+├── Demo/                     static visualization demo (Reyhaneh); renderers reused in web/
+├── eval-viewer/              static evaluation results site
+├── notebooks/                analysis notebooks
+├── requirements.txt          pinned Python dependencies (+ environment.yml for conda)
+└── docker-compose.yml        OpenSearch 3.4.0 (+ Dashboards), snapshot repo mount
+```
+
+## Tests
+
+```bash
+pytest tests/ -v                     # unit tests
+python scripts/check_chunking.py --chunker recursive --chunk-size 1024 --chunk-overlap 128
+cd web && npm run smoke              # browser end-to-end (API + dev server running)
+```

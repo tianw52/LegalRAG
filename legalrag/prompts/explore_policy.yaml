@@ -6,22 +6,26 @@
 
 # ── Profile onboarding options ───────────────────────────────────────────────
 profile:
-  # Location → jurisdiction code (codes must match legalrag/ingestion/canlegal_courts.yaml)
+  # Location → jurisdiction code (codes must match legalrag/ingestion/canlegal_courts.yaml).
+  # Keep codes QUOTED: YAML reads a bare ON (Ontario) as the boolean true.
   provinces:
-    - {code: BC, label: British Columbia}
-    - {code: AB, label: Alberta}
-    - {code: SK, label: Saskatchewan}
-    - {code: MB, label: Manitoba}
-    - {code: ON, label: Ontario}
-    - {code: QC, label: Quebec}
-    - {code: NB, label: New Brunswick}
-    - {code: NS, label: Nova Scotia}
-    - {code: PE, label: Prince Edward Island}
-    - {code: NL, label: Newfoundland and Labrador}
-    - {code: YT, label: Yukon}
-    - {code: NT, label: Northwest Territories}
-    - {code: NU, label: Nunavut}
-    - {code: "", label: "Outside Canada / prefer not to say"}
+    - {code: "BC", label: "British Columbia"}
+    - {code: "AB", label: "Alberta"}
+    - {code: "SK", label: "Saskatchewan"}
+    - {code: "MB", label: "Manitoba"}
+    - {code: "ON", label: "Ontario"}
+    - {code: "QC", label: "Quebec"}
+    - {code: "NB", label: "New Brunswick"}
+    - {code: "NS", label: "Nova Scotia"}
+    - {code: "PE", label: "Prince Edward Island"}
+    - {code: "NL", label: "Newfoundland and Labrador"}
+    - {code: "YT", label: "Yukon"}
+    - {code: "NT", label: "Northwest Territories"}
+    - {code: "NU", label: "Nunavut"}
+    # Non-province choices: no jurisdiction filter (all provinces + federal).
+    - {code: "all", label: "Explore all of Canada", all_of_canada: true}
+    - {code: "outside", label: "Outside Canada", all_of_canada: true}
+    - {code: "undisclosed", label: "Prefer not to say", all_of_canada: true}
 
   # DECIDE: familiarity levels and how each changes the generated views.
   # `audience` is injected verbatim into every view-generation prompt.
@@ -83,10 +87,32 @@ profile:
 
 # ── Retrieval ────────────────────────────────────────────────────────────────
 retrieval:
+  # semantic = dense kNN on the embeddings (default) | lexical = BM25 |
+  # hybrid = kNN + BM25 fused with RRF (OpenSearch search pipeline)
+  mode: semantic
   use_formulator: true        # LLM query rewrite before retrieval (adds one LLM call)
-  top_k: 60                   # hybrid candidates fetched
-  evidence_k: 20              # kept after cross-encoder rerank → shown as evidence
+  top_k: 60                   # candidates fetched, then reranked
+  evidence_k: 20              # kept after reranking → shown as evidence
   llm_evidence_k: 15          # of those, how many are given to view-generation prompts
+
+# ── Reranker ─────────────────────────────────────────────────────────────────
+# Model: EXPLORE_RERANKER_MODEL (default Qwen/Qwen3-Reranker-0.6B; 4B/8B on the lab GPU).
+reranker:
+  # DECIDE: task instruction for instruction-aware rerankers (Qwen3-Reranker).
+  instruction: >-
+    Given a legal question or situation described by a person in Canada,
+    retrieve passages from Canadian court decisions or legislation that help
+    explain the applicable law
+  batch_size: 8
+
+# ── Planner ──────────────────────────────────────────────────────────────────
+planner:
+  # The planner LLM decides whether extra (ad-hoc) views are useful at all and
+  # may choose none.  Hard upper limit enforced in code as well as the prompt.
+  max_extra_views: 3
+  # Wall-clock limit per extra view (queueing + LLM call + retries); a view
+  # that exceeds it is cancelled and reported as timed out.
+  extra_view_timeout_s: 180
 
 # DECIDE: how the profile location filters jurisdictions
 jurisdiction_policy:
@@ -103,15 +129,25 @@ grounding:
 
 # ── LLM ──────────────────────────────────────────────────────────────────────
 llm:
-  # pydantic-ai structured-output mode: "tool" | "native" | "prompted".
-  # "prompted" is the most portable across OpenAI-compatible providers.
-  output_mode: prompted
+  # pydantic-ai structured-output mode: "native" | "prompted" | "tool".
+  # native = server-side JSON-schema constrained decoding (response_format);
+  # works on Ollama and vLLM and always yields schema-valid JSON.  "prompted"
+  # (schema in the prompt) failed with qwen3:8b + thinking off: the model
+  # echoed the schema wrapper ({"properties": …}) and retries repeated it.
+  output_mode: native
   temperature: 0
   retries: 2
-  # Qwen3 hybrid-thinking models: disable <think> output (slow, breaks JSON).
-  # Appends "/no_think" to every user prompt (honoured by vLLM + Ollama) and
-  # sends chat_template_kwargs.enable_thinking=false (vLLM; ignored elsewhere).
-  # Set false for non-Qwen3 models or Qwen3 *-Instruct-2507 variants.
-  qwen3_no_think: true
-  # vLLM/Ollama models can be slow on first token; seconds per LLM call
-  timeout: 180
+  # How to switch off Qwen3 "thinking" (slow; hidden reasoning before the answer).
+  # It depends on the server behind LLM_BASE_URL (tested 2026-10-12):
+  #   ollama → sends reasoning_effort: "none"   (Ollama ignores /no_think and think:false;
+  #                                               this cut a test call from 17 s to 0.7 s)
+  #   vllm   → sends chat_template_kwargs.enable_thinking: false   (lab vLLM)
+  #   none   → leave thinking on: slower, but the reasoning is shown in traces
+  thinking_off: ollama
+  # Seconds per LLM call.  Lab vLLM answers a view in ~5-15 s, but local Ollama
+  # qwen3:8b runs ~12 tok/s and queues the parallel view requests, so a view can
+  # wait several minutes behind the others.
+  timeout: 600
+  # HTTP-level retries on timeouts/5xx (separate from `retries`, which re-asks
+  # the model after invalid JSON).  Keep low: a retried local call re-queues.
+  http_retries: 1

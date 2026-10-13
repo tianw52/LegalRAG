@@ -5,9 +5,9 @@ LLM client note
 We use the ``openai`` Python library as a generic HTTP client for any server
 that implements the OpenAI Chat Completions API spec.  This includes:
 
-  - HuggingFace Inference Router  (default – routes to Novita, Together, etc.)
+  - Ollama         serving Qwen, Llama, etc.            (local CPU/GPU; default)
   - vLLM           serving Qwen, Llama, Mistral, etc.  (local GPU)
-  - Ollama         serving Qwen, Llama, etc.            (local CPU/GPU)
+  - HuggingFace Inference Router  (routes to Novita, Together, etc.; paid credits)
   - Alibaba DashScope (cloud Qwen)
   - OpenAI         (GPT-4o, etc.)
 """
@@ -20,12 +20,12 @@ class LLMSettings(BaseSettings):
     """Settings for the LLM backend (any OpenAI-compatible server)."""
 
     # The base URL of whichever inference server you are using.
-    # HF Router (default)  : https://router.huggingface.co/v1
-    # vLLM (local)         : http://localhost:8000/v1
-    # Ollama (local)       : http://localhost:11434/v1
+    # Ollama (default)     : http://localhost:11434/v1
+    # vLLM (lab, tunnel)   : http://localhost:8001/v1
+    # HF Router            : https://router.huggingface.co/v1
     # DashScope (cloud)    : https://dashscope.aliyuncs.com/compatible-mode/v1
     # OpenAI (cloud)       : https://api.openai.com/v1
-    base_url: str = Field("https://router.huggingface.co/v1", alias="LLM_BASE_URL")
+    base_url: str = Field("http://localhost:11434/v1", alias="LLM_BASE_URL")
 
     # API key sent in the Authorization header.
     # HF Router / DashScope / OpenAI need real keys.  vLLM accepts any string.
@@ -33,12 +33,12 @@ class LLMSettings(BaseSettings):
     api_key: str = Field("EMPTY", alias="LLM_API_KEY")
 
     # Model identifier as the inference server expects it.
+    # Ollama style     : "qwen3:8b"
+    # vLLM style       : "qwen3" (--served-model-name in scripts/serve_qwen3_vllm.sh)
     # HF Router style  : "Qwen/Qwen3.5-397B-A17B:novita"
-    # vLLM style       : "Qwen/Qwen2.5-7B-Instruct"
-    # Ollama style     : "qwen2.5:7b"
     # DashScope style  : "qwen-plus"
     # OpenAI style     : "gpt-4o"
-    model: str = Field("Qwen/Qwen3.5-9B", alias="LLM_MODEL")
+    model: str = Field("qwen3:8b", alias="LLM_MODEL")
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore", populate_by_name=True)
 
@@ -64,7 +64,6 @@ class OpenSearchSettings(BaseSettings):
 
 class RetrievalSettings(BaseSettings):
     top_k: int = Field(100, alias="RETRIEVAL_TOP_K")
-    rerank_top_k: int = Field(100, alias="RERANK_TOP_K")
     chunk_size: int = Field(512, alias="CHUNK_SIZE")
     chunk_overlap: int = Field(64, alias="CHUNK_OVERLAP")
     reranker_model: str = Field(
@@ -86,6 +85,8 @@ class ExploreSettings(BaseSettings):
     embedding_model: str = Field(
         "Qwen/Qwen3-Embedding-0.6B", alias="EXPLORE_EMBEDDING_MODEL"
     )
+    # Reranker for the exploration app (build_reranker picks the implementation)
+    reranker_model: str = Field("Qwen/Qwen3-Reranker-0.6B", alias="EXPLORE_RERANKER_MODEL")
     # LLM used for view generation; empty → fall back to LLM_MODEL
     llm_model: str = Field("", alias="EXPLORE_LLM_MODEL")
     profiles_dir: str = Field("data/app/profiles", alias="EXPLORE_PROFILES_DIR")

@@ -15,6 +15,8 @@ PUT  /api/profile/{user_id}       onboarding answers
 GET  /api/examples                sample CanLegalRAGBench questions (?province=BC)
 POST /api/explore                 NDJSON stream of exploration events (see explore/engine.py)
 GET  /api/document/{doc_id}       full text + metadata for the document reader
+GET  /api/traces                  recent exploration traces (newest first)
+GET  /api/traces/{trace_id}       full trace: step timings, retrieval, rerank, LLM calls
 """
 
 from __future__ import annotations
@@ -40,12 +42,14 @@ from legalrag.utils.logging import configure_logging
 logger = logging.getLogger(__name__)
 
 _QUERIES_PATH = Path("data/CanLegalRAGBench/queries.json")
+# Server log (stdout + this file).  Per-exploration detail goes to logs/explore_traces/.
+API_LOG = Path("logs/explore_api.log")
 _state: dict = {}
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
-    configure_logging(level="INFO", log_file=None)
+    configure_logging(level="INFO", log_file=API_LOG)
     _state["engine"] = ExplorationEngine()
     _state["profiles"] = ProfileStore(settings.explore.profiles_dir)
     yield
@@ -152,6 +156,19 @@ async def explore(req: ExploreRequest) -> StreamingResponse:
             yield json.dumps({"event": "error", "message": str(exc)}) + "\n"
 
     return StreamingResponse(stream(), media_type="application/x-ndjson")
+
+
+@app.get("/api/traces")
+def traces(limit: int = 20) -> list[dict]:
+    return _engine().traces.recent(limit)
+
+
+@app.get("/api/traces/{trace_id}")
+def trace(trace_id: str) -> dict:
+    data = _engine().traces.get(trace_id)
+    if data is None:
+        raise HTTPException(404, "trace not found")
+    return data
 
 
 @app.get("/api/document/{doc_id}")

@@ -131,12 +131,3 @@ class RetrievedChunk(BaseModel):
     lexical_score: float | None = None
     rerank_score: float | None = None
 
-
-class RAGResponse(BaseModel):
-    """Final answer object returned to the caller."""
-
-    query: str
-    answer: str
-    retrieved_chunks: list[RetrievedChunk] = Field(default_factory=list)
-    router_path: str = ""               # "reranker" | "deep_search"
-    metadata: dict[str, Any] = Field(default_factory=dict)

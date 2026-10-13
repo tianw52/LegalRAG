@@ -123,7 +123,7 @@ curl -XDELETE http://localhost:9200/your-index-name
 
 # Re-ingest after deleting (see CLAUDE.md for full ingest commands)
 python -m evaluation.LegalBenchRAG.ingest --data-dir data/LegalBenchRAG
-python scripts/ingest.py data/subset/
+python scripts/ingest_canlegal.py --index-name canlegal-qwen3   # exploration index (docs/lab_ingestion.md)
 
 # Refresh index (force flush so newly indexed docs appear in search immediately)
 curl -XPOST http://localhost:9200/your-index-name/_refresh

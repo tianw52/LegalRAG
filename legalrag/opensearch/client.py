@@ -38,9 +38,15 @@ class OpenSearchClient:
         self._client = self._build_client()
 
     @classmethod
-    def from_settings(cls, embedding_dim: int | None = None) -> "OpenSearchClient":
+    def from_settings(
+        cls, embedding_dim: int | None = None, index_name: str | None = None
+    ) -> OpenSearchClient:
+        """Client from ``.env`` connection settings, optionally for another index."""
         dim = embedding_dim or settings.embedding.dim
-        return cls(cfg=settings.opensearch, embedding_dim=dim)
+        cfg = settings.opensearch
+        if index_name:
+            cfg = cfg.model_copy(update={"index_name": index_name})
+        return cls(cfg=cfg, embedding_dim=dim)
 
     # ── Connection ────────────────────────────────────────────────────────────
 
@@ -211,10 +217,6 @@ class OpenSearchClient:
             },
         }
 
-    def delete_index(self) -> None:
-        self._client.indices.delete(index=self.index_name, ignore_unavailable=True)
-        logger.warning("Deleted index '%s'.", self.index_name)
-
     # ── Write operations ──────────────────────────────────────────────────────
 
     @retry(stop=stop_after_attempt(3), wait=wait_exponential(min=1, max=10))
@@ -345,13 +347,6 @@ class OpenSearchClient:
             lexical_hits = self.bm25_search(query_text, k=k, filters=filters)
             return _reciprocal_rank_fusion(semantic_hits, lexical_hits, k=k)
 
-    def get_by_chunk_id(self, chunk_id: str) -> dict[str, Any] | None:
-        """Fetch a single document by chunk_id."""
-        resp = self._client.get(index=self.index_name, id=chunk_id, ignore=[404])
-        if resp.get("found"):
-            return resp["_source"]
-        return None
-
     def get_child_chunks_by_citation(self, citation: str) -> list[dict]:
         """Return all child chunks (is_parent=false) for a corpus-relative file path.
 
@@ -392,10 +387,6 @@ class OpenSearchClient:
             for doc in resp["docs"]
             if doc.get("found")
         }
-
-    def get_parent(self, parent_chunk_id: str) -> dict[str, Any] | None:
-        """Fetch the parent chunk for context expansion."""
-        return self.get_by_chunk_id(parent_chunk_id)
 
     def index_exists(self) -> bool:
         return bool(self._client.indices.exists(index=self.index_name))
