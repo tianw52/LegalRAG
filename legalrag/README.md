@@ -11,7 +11,7 @@ Stack:
 - **sentence-transformers / transformers:** embedders and rerankers.
 
 Install with `pip install -r requirements.txt`, which pins versions and installs this
-package in editable mode. Setup and run steps are in the [root README](../README.md#run-the-website-on-localhost-with-ollama).
+package in editable mode. Setup and run steps are in the [root README](../README.md#run-the-website-on-localhost).
 
 ## Architecture
 
@@ -210,7 +210,7 @@ audience, goal hint, interests and province, and the top 15 passages
 Each planned view is built by `views.build_adhoc` with its catalog prompt and output
 schema (`schemas.ADHOC_OUTPUTS`). The view must finish within
 `planner.extra_view_timeout_s` (180 s), or the UI shows "timed out". Successful views
-appear in the Maps tab, drawn by the Demo renderers.
+appear in the Relations tab (called Maps at the time), drawn by the Demo renderers.
 
 **In this run all three timed out.** Ollama answers one request at a time by default, so
 the three views queued behind the fact-toggle call (282 s) and used up their 180 s
@@ -258,9 +258,11 @@ legalrag/
 │   │                       grounding; LLM agent factory (_agent/_run) + per-call trace capture
 │   ├── schemas.py          Evidence / View envelopes + LLM output schemas (match Demo renderers)
 │   ├── profile.py          UserProfile + ProfileStore (JSON files, dev only); filter_province
+│   ├── chat.py             Ask panel: streamed answer grounded in the run's evidence, [eN] cleanup
+│   ├── demos.py            Home page example questions per location + precomputed demos (data/demos/)
 │   └── trace.py            Trace (per-run record + INFO log lines) + TraceStore
 ├── core/
-│   ├── config.py           Settings from .env (LLM_*, EMBEDDING_*, OPENSEARCH_*, EXPLORE_*, …)
+│   ├── config.py           Settings from .env (LLM_* incl. LLM_THINKING_OFF, EMBEDDING_*, OPENSEARCH_*, EXPLORE_*, …)
 │   ├── models.py           shared domain models: RawDocument, Chunk, StructuredQuery, RetrievedChunk
 │   └── interfaces.py       abstract base classes for loaders, chunkers, embedders, retrievers, …
 ├── ingestion/
@@ -278,7 +280,8 @@ legalrag/
 ├── prompts/                YAML prompts + policies (edit here, not in Python)
 │   ├── explore_policy.yaml profile options, retrieval sizes, jurisdiction policy, reranker
 │   │                       instruction, planner limits, LLM settings
-│   ├── explore_views.yaml  all exploration prompts + the ad-hoc view catalog
+│   ├── explore_views.yaml  all exploration prompts (views, planner, Ask panel) + the ad-hoc view catalog
+│   ├── explore_examples.yaml benchmark questions per location (2 local + 2 federal) + demo profile
 │   ├── formulator.yaml     query rewrite prompt
 │   └── loader.py           cached YAML loader
 └── utils/
@@ -297,11 +300,13 @@ The LegalBench-RAG evaluation uses `core/`, `ingestion/chunker.py`, `embedder.py
 | GET | `/api/options` | onboarding options (from `explore_policy.yaml`) |
 | POST | `/api/login` | `{display_name}` → profile (dev-only name login) |
 | GET / PUT | `/api/profile/{user_id}` | read / save onboarding answers (validated) |
-| GET | `/api/examples?province=BC&n=4` | sample CanLegalRAGBench questions |
+| GET | `/api/examples?province=BC` | the 4 benchmark questions for a location (`prompts/explore_examples.yaml`), with `demo: true` when precomputed |
+| GET | `/api/demos/{query_id}` | precomputed exploration (events + metadata) of an example question (`explore/demos.py`, `scripts/build_demos.py`) |
 | POST | `/api/explore` | `{question, user_id?, scope: profile\|all}` → NDJSON event stream |
+| POST | `/api/chat` | Ask panel: `{question, message, context, history, evidence}` → NDJSON `delta`… `done {answer, evidence_ids}` (`explore/chat.py`) |
 | GET | `/api/document/{doc_id}` | full text (rebuilt from chunks) + metadata |
 | GET | `/api/traces?limit=20` | recent traces |
-| GET | `/api/traces/{trace_id}` | full trace (works while the run is still in progress) |
+| GET | `/api/traces/{trace_id}` | full trace (works while the run is still in progress, and for demos) |
 
 **Event stream** (one JSON object per line), in order:
 
@@ -327,7 +332,7 @@ The LegalBench-RAG evaluation uses `core/`, `ingestion/chunker.py`, `embedder.py
   the `EXPLORE_*` fields.
 - **YAML → `prompts/`.** Behaviour: prompts, profile options, retrieval sizes, jurisdiction
   policy, reranker instruction, planner limits, LLM settings (`output_mode`, `temperature`,
-  `timeout`, `retries`, `thinking_off`). Prompts are cached per process; restart the API
+  `timeout`, `retries`). Prompts are cached per process; restart the API
   after editing.
 
 ## Logs and traces
@@ -337,7 +342,7 @@ The LegalBench-RAG evaluation uses `core/`, `ingestion/chunker.py`, `embedder.py
 | Server log: one INFO line per step and LLM call (timings, rewrite, top candidates, kept passages, tokens, retries, errors), prefixed `[trace_id]`; prompts and raw responses at DEBUG | stdout + `logs/explore_api.log` |
 | Full per-exploration trace (steps, timings, candidates + scores, LLM prompts, raw responses, thinking, tokens, retries, errors) | `logs/explore_traces/<YYYY-MM-DD>/<HHMMSS>_<trace_id>.json`, `GET /api/traces/{id}`, UI "under the hood" |
 
-LLM *thinking* is recorded only when it's on. `llm.thinking_off` in `explore_policy.yaml`
+LLM *thinking* is recorded only when it's on. `LLM_THINKING_OFF` in `.env`
 must match the server: `ollama` (sends `reasoning_effort: none`) or `vllm` (sends
 `enable_thinking: false`). `none` lets Qwen3 think, which is slower. Ollama ignores the
 `/no_think` prompt suffix.

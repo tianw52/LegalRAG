@@ -30,19 +30,19 @@ export const api = {
       method: "PUT",
       body: JSON.stringify(update),
     }),
-  examples: (province) =>
-    request(`/api/examples?province=${encodeURIComponent(province || "")}&n=4`),
+  examples: (province) => request(`/api/examples?province=${encodeURIComponent(province || "")}`),
+  demo: (queryId) => request(`/api/demos/${queryId}`),
   document: (docId) => request(`/api/document/${encodeURIComponent(docId)}`),
   traces: (limit = 20) => request(`/api/traces?limit=${limit}`),
   trace: (traceId) => request(`/api/traces/${encodeURIComponent(traceId)}`),
 };
 
-// POST /api/explore returns NDJSON: one event object per line.
-export async function exploreStream({ question, userId, scope }, onEvent, signal) {
-  const res = await fetch(BASE + "/api/explore", {
+// POST a JSON body; the response is NDJSON (one event object per line).
+async function ndjson(path, body, onEvent, signal) {
+  const res = await fetch(BASE + path, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ question, user_id: userId, scope }),
+    body: JSON.stringify(body),
     signal,
   });
   if (!res.ok || !res.body) throw new Error(`${res.status}: ${res.statusText}`);
@@ -62,4 +62,14 @@ export async function exploreStream({ question, userId, scope }, onEvent, signal
     }
   }
   if (buffer.trim()) onEvent(JSON.parse(buffer));
+}
+
+// Exploration events (legalrag/explore/engine.py).
+export function exploreStream({ question, userId, scope }, onEvent, signal) {
+  return ndjson("/api/explore", { question, user_id: userId, scope }, onEvent, signal);
+}
+
+// Ask panel answer: {event: "delta", text} … {event: "done", answer, evidence_ids} (legalrag/explore/chat.py).
+export function chatStream(body, onEvent, signal) {
+  return ndjson("/api/chat", body, onEvent, signal);
 }

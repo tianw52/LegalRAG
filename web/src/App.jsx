@@ -18,7 +18,7 @@ export default function App() {
   const [page, setPage] = useState("home"); // home | explore
   const [booting, setBooting] = useState(true);
   const [error, setError] = useState("");
-  const { runs, active, setActiveId, explore } = useExplorations(profile?.user_id);
+  const { runs, active, setActiveId, explore, openDemo, updateRun } = useExplorations(profile?.user_id);
 
   useEffect(() => {
     (async () => {
@@ -64,13 +64,25 @@ export default function App() {
   const provinceOption = options.provinces.find((p) => p.code === profile.province);
   const allCanada = !provinceOption || !!provinceOption.all_of_canada;
   const provinceLabel = allCanada ? "All of Canada" : provinceOption.label;
+  const userProvince = allCanada ? null : profile.province;
   const goHome = () => setPage("home");
   const startExplore = (question, scope) => {
     setPage("explore");
     window.scrollTo({ top: 0 });
-    explore(question, scope);
+    explore(question, scope, userProvince);
   };
-  const header = (center, extra = null) => (
+  // Benchmark examples open their precomputed demo instantly; live run otherwise
+  const startExample = async (ex) => {
+    if (!ex.demo) return startExplore(ex.text);
+    try {
+      await openDemo(ex.query_id);
+      setPage("explore");
+      window.scrollTo({ top: 0 });
+    } catch {
+      startExplore(ex.text);
+    }
+  };
+  const header = (center, extra = null, showProvince = true) => (
     <AppHeader
       onHome={goHome}
       center={center}
@@ -79,7 +91,7 @@ export default function App() {
           {extra}
           <ProfileControls
             profile={profile}
-            provinceLabel={provinceLabel}
+            provinceLabel={showProvince ? provinceLabel : null}
             onEditProfile={() => setEditingProfile(true)}
             onLogout={() => {
               writeStored(USER_KEY, null);
@@ -98,11 +110,12 @@ export default function App() {
         key={active.id}
         run={active}
         profile={profile}
-        provinceLabel={provinceLabel}
-        allCanada={allCanada}
+        options={options}
+        userProvince={userProvince}
         onExplore={startExplore}
-        renderHeader={(tabs) =>
-          header(tabs, <button type="button" className="pill" onClick={goHome}>New question</button>)
+        updateRun={(fn) => updateRun(active.id, fn)}
+        renderHeader={(tabs, actions) =>
+          header(tabs, <>{actions}<button type="button" className="pill new-q" onClick={goHome}>New question</button></>, false)
         }
       />
     );
@@ -125,6 +138,7 @@ export default function App() {
       allCanada={allCanada}
       runs={runs}
       onExplore={startExplore}
+      onExample={startExample}
       onOpenRun={(id) => {
         setActiveId(id);
         setPage("explore");

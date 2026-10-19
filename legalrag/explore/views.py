@@ -101,7 +101,7 @@ def case_timeline(evidence: list[Evidence]) -> View:
 
 _OUTPUT_MODES = {"prompted": PromptedOutput, "native": NativeOutput, "tool": ToolOutput}
 
-# explore_policy.yaml → llm.thinking_off: request body extras that switch Qwen3 thinking off
+# LLM_THINKING_OFF (core/config.py): request body extras that switch Qwen3 thinking off
 _THINKING_OFF: dict[str, dict | None] = {
     "ollama": {"reasoning_effort": "none"},
     "vllm": {"chat_template_kwargs": {"enable_thinking": False}},
@@ -118,8 +118,11 @@ def _agent(output_type: type[BaseModel], system_prompt: str) -> Agent:
         settings.explore.llm_model or settings.llm.model,
         provider=OpenAIProvider(openai_client=client),
     )
-    model_settings: dict[str, Any] = {"temperature": llm_cfg["temperature"]}
-    thinking_off = _THINKING_OFF[llm_cfg.get("thinking_off", "none")]
+    model_settings: dict[str, Any] = {
+        "temperature": llm_cfg["temperature"],
+        "max_tokens": llm_cfg["max_output_tokens"],
+    }
+    thinking_off = _THINKING_OFF[settings.llm.thinking_off]
     if thinking_off:
         model_settings["extra_body"] = thinking_off
     return Agent(
@@ -168,7 +171,7 @@ def _llm_record(label: str, agent: Agent, messages: list, t0: float, *, output: 
         "duration_s": round(time.perf_counter() - t0, 3),
         "system_prompt": "\n\n".join(system),
         "user_prompt": "\n\n".join(user),
-        "thinking": thinking,                 # empty when thinking is off (llm.thinking_off)
+        "thinking": thinking,                 # empty when thinking is off (LLM_THINKING_OFF)
         "responses": responses,               # raw model text, one per attempt
         "validation_retries": retries,        # why an attempt was rejected, if any
         "output": output.model_dump() if hasattr(output, "model_dump") else output,

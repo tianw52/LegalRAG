@@ -15,7 +15,7 @@ export default function AppHeader({ onHome, center, right }) {
   );
 }
 
-// Province pill + account button with a small menu (edit profile / log out).
+// Province pill (omitted when provinceLabel is null) + account button with a small menu (edit profile / log out).
 export function ProfileControls({ profile, provinceLabel, onEditProfile, onLogout }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
@@ -29,10 +29,12 @@ export function ProfileControls({ profile, provinceLabel, onEditProfile, onLogou
 
   return (
     <>
-      <button type="button" className="pill" onClick={onEditProfile} title="Change your location and profile">
-        <i className="dot" style={{ background: "var(--local)" }} />
-        {provinceLabel}
-      </button>
+      {provinceLabel && (
+        <button type="button" className="pill" onClick={onEditProfile} title="Change your location and profile">
+          <i className="dot" style={{ background: "var(--local)" }} />
+          {provinceLabel}
+        </button>
+      )}
       <div className="account" ref={ref}>
         <button
           type="button"

@@ -26,18 +26,6 @@ export function yearSpan(docs) {
   return { min, max, recentFrom, recent: years.filter((y) => y >= recentFrom).length, total: years.length };
 }
 
-// Counts per year bucket, for small sparklines.
-export function yearHistogram(docs, buckets = 9) {
-  const span = yearSpan(docs);
-  if (!span) return [];
-  const width = Math.max(1, span.max - span.min + 1) / buckets;
-  const counts = Array(buckets).fill(0);
-  docs.forEach((d) => {
-    if (d.year) counts[Math.min(buckets - 1, Math.floor((d.year - span.min) / width))] += 1;
-  });
-  return counts;
-}
-
 export function runCounts(run) {
   const facts = run?.views?.fact_toggle?.spec?.facts || [];
   const maps = (run?.viewOrder || []).filter((id) => run.views[id]?.source === "agent");

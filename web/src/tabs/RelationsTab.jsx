@@ -1,28 +1,37 @@
 import { useMemo, useState } from "react";
 import DemoViz from "../components/DemoViz.jsx";
-import { Pending, Segmented, SourceLinks } from "../components/primitives.jsx";
+import { Pending, Segmented, SourceLinks, TabHead } from "../components/primitives.jsx";
 import { evidenceIndex } from "../lib/exploration.js";
 
-// Agent-chosen views (0–3, decided by the planner), one at a time.
-export default function MapsTab({ run, openEvidence }) {
+// Agent-chosen relation maps (0–3, decided by the planner), one at a time.
+export default function RelationsTab({ run, openEvidence, onLook }) {
   const planned = run.plan?.views || [];
   const built = run.viewOrder.map((id) => run.views[id]).filter((v) => v.source === "agent");
   const [current, setCurrent] = useState(null);
   const [selection, setSelection] = useState(null);
   const evidenceById = useMemo(() => evidenceIndex(run), [run.evidence]); // eslint-disable-line react-hooks/exhaustive-deps
+  const topic = run.plan?.topic || "Relations";
 
   if (!run.plan) {
-    return <section className="band"><Pending label={run.done ? "No plan was produced." : "Deciding which maps would help…"} /></section>;
+    return (
+      <>
+        <TabHead title={topic} />
+        <section className="band"><Pending label={run.done ? "No plan was produced." : "Deciding which maps would help…"} /></section>
+      </>
+    );
   }
   if (!planned.length) {
     return (
-      <section className="band">
-        <h2 className="lbl band-label">Maps</h2>
-        <div className="band-body">
-          <p className="lead">No extra maps for this question.</p>
-          <p className="muted">{run.plan.extra_views_reason}</p>
-        </div>
-      </section>
+      <>
+        <TabHead title={topic} />
+        <section className="band">
+          <h2 className="lbl band-label">Relations</h2>
+          <div className="band-body">
+            <p className="lead">No extra maps for this question.</p>
+            <p className="muted">{run.plan.extra_views_reason}</p>
+          </div>
+        </section>
+      </>
     );
   }
 
@@ -35,23 +44,33 @@ export default function MapsTab({ run, openEvidence }) {
 
   return (
     <>
-      <section className="tab-bar">
-        <Segmented
-          label="Map"
-          options={options}
-          value={activeId}
-          onChange={(v) => {
-            setCurrent(v);
-            setSelection(null);
-          }}
-        />
+      <TabHead title={topic}>
+        {options.length > 1 && (
+          <Segmented
+            label="Map"
+            options={options}
+            value={activeId}
+            onChange={(v) => {
+              setCurrent(v);
+              setSelection(null);
+            }}
+          />
+        )}
         <span className="lbl">Chosen for this question</span>
-      </section>
+      </TabHead>
       <div className="split">
         <section className="split-main wide">
+          {options.length === 1 && <h2 className="disp h-m">{planned[0].title}</h2>}
           <p className="muted">{planned[index]?.purpose}</p>
           {view ? (
-            <DemoViz spec={view.spec} evidenceById={evidenceById} onSelect={setSelection} />
+            <DemoViz
+              spec={view.spec}
+              evidenceById={evidenceById}
+              onSelect={(s) => {
+                setSelection(s);
+                if (s) onLook(s.label);
+              }}
+            />
           ) : error ? (
             <p className="error small">This map couldn't be built: {error}</p>
           ) : (

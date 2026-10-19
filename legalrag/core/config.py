@@ -12,6 +12,8 @@ that implements the OpenAI Chat Completions API spec.  This includes:
   - OpenAI         (GPT-4o, etc.)
 """
 
+from typing import Literal
+
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -39,6 +41,13 @@ class LLMSettings(BaseSettings):
     # DashScope style  : "qwen-plus"
     # OpenAI style     : "gpt-4o"
     model: str = Field("qwen3:8b", alias="LLM_MODEL")
+
+    # How to switch off Qwen3 "thinking" (slow hidden reasoning); depends on the server:
+    #   ollama → sends reasoning_effort: "none"  (Ollama ignores /no_think and think:false)
+    #   vllm   → sends chat_template_kwargs.enable_thinking: false
+    #   none   → leave thinking on (slower; the reasoning is shown in traces)
+    # Kept next to LLM_BASE_URL so switching servers is one .env block.
+    thinking_off: Literal["ollama", "vllm", "none"] = Field("ollama", alias="LLM_THINKING_OFF")
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore", populate_by_name=True)
 

@@ -162,3 +162,103 @@ There is no plain-text answer step. Full guide and open decisions: `docs/explore
   takes its index/models from `EXPLORE_*` defaults, sizes from `explore_policy.yaml`, and
   embedding dims from the embedder. Dropped `EMBEDDING_*`, `OPENSEARCH_*`, `RERANKER_MODEL`,
   `RETRIEVAL_TOP_K`, `RERANK_TOP_K`, `CHUNK_*`. Verified: settings resolve and OpenSearch pings.
+
+## 2026-10-18 — Demo examples, progress + Ask panel, Overview redesign, vLLM default
+
+### 1. Onboarding familiarity bars
+- Selecting a level painted all three bars accent (`.opt.on .level i { … !important }`), so the
+  levels became indistinguishable. Bars now use classes: empty = grey, filled = ink, filled +
+  selected = accent (`theme.css`, `Onboarding.jsx`).
+
+### 2. Deterministic benchmark questions, precomputed as demos
+- **Selection** (`legalrag/prompts/explore_examples.yaml`): 2 local + 2 federal per province;
+  all of Canada / outside / prefer not to say → 1 ON + 1 BC + 2 federal. Chosen by screening
+  all 532 queries with the app's own retrieval (kNN, profile filter, top 20): province +
+  federal + statutes mixed, one per topic batch, short and readable. Federal: 684 (CRA
+  contractor vs employee), 56 (COVID advance repayment).
+- **Gaps:** MB, QC, NU have **no** benchmark questions → default set. PE has almost no PE
+  documents in the corpus (its questions retrieve federal sources). Statutes are rare in
+  retrieval overall (most top-20s have 0–2).
+- `legalrag/explore/demos.py`: example lists, demo profile/scope, bundle loading, demo traces.
+  `scripts/build_demos.py` runs the real engine per question → `data/demos/<id>.json`
+  (events + metadata + trace without raw messages; ~150 KB). Runs with a failed view are not
+  saved unless `--keep-partial`.
+- API: `GET /api/examples` (deterministic, `demo` flag), `GET /api/demos/{id}`,
+  `/api/traces/{id}` falls back to demo traces. UI replays a bundle instantly (`demoRun()`);
+  the Overview says it's a prepared example and offers "Run it live for my profile".
+- Built locally with Ollama so far (slow, lower quality): rebuild on vLLM with
+  `python scripts/build_demos.py --force`.
+
+### 3. Layout per the "LegalRAG Explorer Redesign" canvas (chosen: Progress A, Chat A)
+- **Tabs:** Overview · What-if · Sources (Cases merged in: jurisdiction groups + type filter ·
+  documents · reader) · Timeline · Relations (was Maps). Each non-Overview tab has a title
+  band (topic + tab figures). Tabs stay locked until their stage is ready.
+- **Progress** (`lib/progress.js`, `components/ProgressPanel.jsx`): % + one bar per stage
+  (understand, find sources, What-if, summary, relations; estimated fill while running,
+  completes on the real event), "Ready now" links, and a thin bar under the header on every tab.
+  Events are stamped with arrival time in the reducer (`run.marks`).
+- **Ask panel** (`components/ChatPanel.jsx`, `legalrag/explore/chat.py`, `POST /api/chat`):
+  side panel beside every tab (header "Ask" + an Overview button), threads per exploration,
+  "Looking at" context that follows the tab/selection (pin to keep it), per-tab suggestions,
+  streamed answers grounded only in the run's passages; `[eN]` citations are validated
+  server-side and open the passage. Stateless: the client sends the evidence, so demos work.
+- **Overview redesign** (`tabs/OverviewTab.jsx`): you asked (full question, scope, under the
+  hood) → progress / done line → brief: topic, what the sources say, the 3 most relevant
+  sources with snippets | "Help narrow it down" (answer the unstated facts; answers are
+  shared with the What-if toggles via `run.answers`) → "Keep exploring" preview cards → follow-ups.
+  The planner's internal `extra_views_reason` is no longer shown on the Overview (Relations only).
+- Colours are relative to the province the run focused on (a demo's own province).
+- Removed: `CasesTab.jsx`, `MapsTab.jsx` (→ `RelationsTab.jsx`), `EXTRA_TILES`,
+  `provinceCode`, `yearHistogram`, `GROUP_SHORT`, tile counts in `ProvinceTiles`.
+- `web/scripts/smoke.mjs` updated (new tabs, progress, demo + Ask panel; `ASK=0`).
+
+### 4. vLLM as the default LLM
+- `.env` / `.env.example` default to the lab vLLM (tunnel on :8001). `LLM_THINKING_OFF` moved
+  from `explore_policy.yaml → llm.thinking_off` into `LLMSettings` (`.env`), so each server
+  block carries its own value and switching servers is one edit.
+- Not verified against vLLM this session: the lab (secb1010-d11) wasn't reachable from the
+  laptop (needs SFU network/VPN). Everything was tested with Ollama via env overrides.
+
+### Tests
+- `tests/explore/test_demos.py`: example lists per location, quoted YAML keys (caught `ON:`
+  → `true`), citation cleanup. Full suite: 33 pass; `test_metadata_propagated` still fails (pre-existing).
+
+### vLLM on the Mac (vllm-metal), same day
+- The lab was unreachable, so the vLLM default now also works locally: `brew install
+  vllm-project/vllm-metal/vllm-metal` (v0.31.0) + `scripts/serve_qwen3_vllm_metal.sh`
+  (`mlx-community/Qwen3-8B-4bit`, port 8001, served name `qwen3`, `--gpu-memory-utilization 0.6`;
+  0.45 left a 2.2 GB KV pool, too small for one 16k request). The `.env` vLLM block is unchanged.
+- Verified: `response_format` JSON schema + `chat_template_kwargs.enable_thinking: false` work.
+- Demo 705 built in 386 s (fact toggles 293 s ‖ planner 158 s, then legal test 195 s) against
+  640 s for a comparable run (684) on Ollama. The machine swaps heavily with everything
+  running (22 GB swap used).
+
+### Lab vLLM (4090) set up and all 22 demos built on it, same day
+- **Lab install** (VPN + `ssh-copy-id` for key login): vLLM 0.32.0 in a venv on the lab's
+  local NVMe, not the NFS home: `/local-scratch/twa174/vllm-env`, model cache
+  `HF_HOME=/local-scratch/twa174/hf`, launcher `/local-scratch/twa174/serve.sh` (same args as
+  `scripts/serve_qwen3_vllm.sh`), log `/local-scratch/twa174/vllm.log`.
+  Qwen3-30B-A3B-GPTQ-Int4: 15.7 GB weights, KV cache 46k tokens (~9 concurrent view calls).
+  First load ~8 min (download); restarts ~1.5 min. `/local-scratch` may be wiped by IT.
+- **Gotchas hit:** (1) without activating the venv, warm-up fails with `No such file or
+  directory: 'ninja'` — the venv's `bin` must be on `PATH`; (2) `pkill -f "vllm serve"` inside
+  an `ssh '…vllm serve…'` command kills its own shell, so the relaunch silently never ran;
+  (3) the tunnel dropped once mid-build (VPN) → use `-o ServerAliveInterval=15`.
+- **Runtime per exploration** (22 demos, lab vLLM via tunnel, embedder + reranker on the M2):
+
+  | step | median | min–max |
+  |---|---|---|
+  | whole run | 58 s | 36–109 s |
+  | rerank (Qwen3-Reranker-0.6B, M2) | 45 s | 23–90 s |
+  | fact toggles (LLM) | 8 s | 6–10 s |
+  | planner / summary (LLM) | 3 s | 2–5 s |
+  | each relation map (LLM) | 8 s | 0–11 s |
+
+  Same pipeline on the M2: Ollama qwen3:8b ~640 s, vllm-metal Qwen3-8B ~386 s.
+  **The reranker on the laptop is now ~75% of a run** — next speed-up is running it on the
+  lab GPU or lowering `retrieval.top_k` (60 candidates). Maps per demo: 0×5, 1×15, 2×1, 3×1.
+  Demos total 3.3 MB in `data/demos/`.
+- **Bug fixed: runaway generations.** On demos 323 and 928 the model looped at temperature 0
+  (repeated JSON / whitespace, 30–55k chars) until the 16k context filled; the validation
+  retry then overflowed it (HTTP 400). New `llm.max_output_tokens: 2500` in
+  `explore_policy.yaml` caps every view call and chat answer (real outputs ~1k tokens).

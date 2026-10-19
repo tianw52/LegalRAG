@@ -1,14 +1,15 @@
 import { useState } from "react";
-import { SourceLinks } from "../components/primitives.jsx";
-import { GROUP_COLOR, GROUP_LABEL, GROUP_ORDER, jurisdictionGroup } from "../lib/jurisdiction.js";
+import { SourceLinks, TabHead } from "../components/primitives.jsx";
+import { GROUP_COLOR, GROUP_ORDER, groupLabel, jurisdictionGroup } from "../lib/jurisdiction.js";
 import { runDocuments, yearSpan } from "../lib/stats.js";
 
 // Decisions on a year axis, one lane per jurisdiction group; dot size = passages.
-export default function TimelineTab({ run, province, openEvidence }) {
+export default function TimelineTab({ run, province, provinceLabel, openEvidence, onLook }) {
   const docs = runDocuments(run).filter((d) => d.year);
   const span = yearSpan(docs);
   const [sel, setSel] = useState(null);
-  if (!span) return <section className="band"><p className="muted">No dated sources yet.</p></section>;
+  const topic = run.plan?.topic || "Timeline";
+  if (!span) return <><TabHead title={topic} /><section className="band"><p className="muted">No dated sources yet.</p></section></>;
 
   const x = (y) => 3 + ((y - span.min) / Math.max(1, span.max - span.min)) * 94; // % within the lane
   const lanes = GROUP_ORDER.map((g) => ({ g, docs: docs.filter((d) => jurisdictionGroup(d.jurisdiction, province) === g) }))
@@ -20,18 +21,20 @@ export default function TimelineTab({ run, province, openEvidence }) {
 
   return (
     <>
-      <section className="stat-strip">
-        <div><span className="lbl">Oldest</span><span className="disp h-m">{span.min}</span></div>
-        <div><span className="lbl">Newest</span><span className="disp h-m">{span.max}</span></div>
-        <div><span className="lbl">Since {span.recentFrom}</span><span className="disp h-m">{span.recent}/{span.total}</span></div>
-      </section>
+      <TabHead title={topic}>
+        <dl className="head-stats">
+          <div><dt className="lbl">Oldest</dt><dd className="disp h-m">{span.min}</dd></div>
+          <div><dt className="lbl">Newest</dt><dd className="disp h-m">{span.max}</dd></div>
+          <div><dt className="lbl">Since {span.recentFrom}</dt><dd className="disp h-m">{span.recent}/{span.total}</dd></div>
+        </dl>
+      </TabHead>
       <section className="lanes-wrap">
         <div className="lanes">
           {lanes.map((l) => (
             <div key={l.g} className="lane">
               <div className="lane-label">
                 <i className="dot big" style={{ background: GROUP_COLOR[l.g] }} />
-                {GROUP_LABEL[l.g]}
+                {groupLabel(l.g, provinceLabel)}
                 <span className="mono small muted">{l.docs.length}</span>
               </div>
               <div className="lane-track">
@@ -46,7 +49,10 @@ export default function TimelineTab({ run, province, openEvidence }) {
                       title={`${d.year} · ${d.case_name || d.citation}`}
                       aria-label={`${d.year} · ${d.case_name || d.citation}`}
                       aria-pressed={on}
-                      onClick={() => setSel(on ? null : d.doc_id)}
+                      onClick={() => {
+                        setSel(on ? null : d.doc_id);
+                        if (!on) onLook(`${d.year} · ${d.case_name || d.citation}`);
+                      }}
                       style={{
                         left: `${x(d.year)}%`,
                         width: size,

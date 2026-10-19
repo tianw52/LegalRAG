@@ -7,7 +7,7 @@ React 18 + Vite 5 (plain JavaScript). Talks to the FastAPI backend in
 npm ci           # exact versions from package-lock.json (Node ≥ 18)
 npm run dev      # http://localhost:5173 (API must be running on :8000)
 npm run build    # static bundle in dist/ (host anywhere; set VITE_API_BASE if the API is on another origin)
-npm run smoke    # headless Chrome end-to-end test → ../logs/ui-smoke/*.png (FULL=1 for LLM views)
+npm run smoke    # headless Chrome end-to-end test → ../logs/ui-smoke/*.png (FULL=1 for LLM views, ASK=0 skips chat)
 ```
 
 ## Structure
@@ -19,32 +19,36 @@ condensed display caps, mono labels). Tokens and all styles: `src/theme.css`.
 src/
   main.jsx               entry; global styles (theme.css + vendor renderer CSS)
   App.jsx                session routing: Login → Onboarding → Home ↔ Exploration
-  api.js                 REST calls + exploreStream() (NDJSON reader for POST /api/explore)
+  api.js                 REST calls + exploreStream() / chatStream() (NDJSON readers)
   theme.css              design tokens (:root) + every style
   pages/
     Login.jsx            dev-only name login
     Onboarding.jsx       one question per step: province tile map, familiarity, goal, topics
-    Home.jsx             ask, benchmark questions, this session's explorations
-    Exploration.jsx      title band (question, scope, build status, "under the hood") + tabs
+    Home.jsx             ask, benchmark questions (precomputed demos), this session's explorations
+    Exploration.jsx      header tabs (locked until ready), progress line, Ask panel beside the tabs
   tabs/                  one per exploration tab; all read the same run state
-    OverviewTab.jsx      orientation, key numbers, views list, follow-up questions
-    WhatIfTab.jsx        fact toggles ("If not →")
-    CasesTab.jsx         jurisdiction tile map filter + expandable document list
+    OverviewTab.jsx      you asked · progress · topic + summary + top sources · narrow it down · tab cards · follow-ups
+    WhatIfTab.jsx        fact toggles ("If not →"), shared with the Overview's answers
+    SourcesTab.jsx       jurisdiction/type filters · documents · full-text reader with highlights
     TimelineTab.jsx      lanes per jurisdiction group on a year axis
-    MapsTab.jsx          planner-chosen views (0–3) via the Demo renderers
-    SourcesTab.jsx       passage list + full-text reader with highlights
+    RelationsTab.jsx     planner-chosen maps (0–3) via the Demo renderers
   components/            reusable UI
     AppHeader.jsx        top bar; ProfileControls (province pill + account menu)
-    ProvinceTiles.jsx    tile map of Canada (onboarding picker, cases filter)
-    primitives.jsx       Dot, JurisdictionLegend, SplitBar, Switch, Segmented, SourceLinks, Pending
+    ProgressPanel.jsx    build progress per stage + "ready now" links (Overview while building)
+    ChatPanel.jsx        Ask panel: threads, "looking at" context + pin, cited answers
+    ProvinceTiles.jsx    tile map of Canada (onboarding picker)
+    primitives.jsx       Dot, JurisdictionLegend, SplitBar, Switch, Segmented, SourceLinks, Pending, TabHead, Skeleton
     HighlightedText.jsx  document text with passages marked by char offsets; minimap marks
     DemoViz.jsx          wrapper around the Demo renderers (window.VizRenderers)
     TracePanel.jsx       "Under the hood" drawer (GET /api/traces/{id})
   lib/                   framework-free logic
-    useExplorations.js   hook: runs, active run, explore() streaming
-    exploration.js       run state + applyEvent() reducer for the event stream
+    useExplorations.js   hook: runs, active run, explore() streaming, openDemo(), updateRun()
+    exploration.js       run state + applyEvent() reducer (with arrival times) + demoRun() replay
+    progress.js          stages, % and tab readiness derived from a run's milestones
+    facts.js             fact statuses + answers ↔ What-if toggles
+    tabs.js              tab ids and labels
     stats.js             derived numbers (documents, group counts, year span, tab counts)
-    jurisdiction.js      groups + colours, province tile layout, name → code
+    jurisdiction.js      groups + colours + labels, province tile layout
     selection.js         selection model for diagram items
     storage.js           localStorage wrappers that never throw
   vendor/                copied from ../Demo (Reyhaneh) — keep in sync, don't edit here
@@ -64,5 +68,10 @@ scripts/
 - **Adding an ad-hoc view kind:** no frontend change if it uses an existing Demo renderer.
   Add it to `catalog:` in `legalrag/prompts/explore_views.yaml` and to `ADHOC_OUTPUTS` in
   `legalrag/explore/schemas.py`.
+- **Per-run UI state lives on the run** (`run.answers`, `run.chat`), changed through
+  `updateRun(fn)`, so it survives tab switches and reopening an exploration.
+- **The Ask panel follows what you look at.** Tabs report their selection with
+  `onLook(label)`; `Exploration.jsx` turns it into the "Looking at" context sent with
+  each question.
 - **Profile options and prompts are not in the frontend.** They come from
   `legalrag/prompts/explore_policy.yaml` through the API.

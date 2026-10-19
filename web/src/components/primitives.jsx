@@ -85,3 +85,22 @@ export function Pending({ label = "Generating…" }) {
     </div>
   );
 }
+
+// Page title band of a tab: the exploration's topic + tab-specific figures.
+export function TabHead({ title, children }) {
+  return (
+    <section className="tab-head">
+      <h1 className="disp h-xl">{title}</h1>
+      {children && <div className="tab-head-side">{children}</div>}
+    </section>
+  );
+}
+
+// Placeholder lines while text is being generated.
+export function Skeleton({ widths = [92, 78, 60] }) {
+  return (
+    <div className="skel-lines" aria-hidden="true">
+      {widths.map((w, i) => <div key={i} className="skel" style={{ width: `${w}%` }} />)}
+    </div>
+  );
+}

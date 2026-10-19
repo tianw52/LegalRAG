@@ -137,13 +137,12 @@ llm:
   output_mode: native
   temperature: 0
   retries: 2
-  # How to switch off Qwen3 "thinking" (slow; hidden reasoning before the answer).
-  # It depends on the server behind LLM_BASE_URL (tested 2026-10-12):
-  #   ollama → sends reasoning_effort: "none"   (Ollama ignores /no_think and think:false;
-  #                                               this cut a test call from 17 s to 0.7 s)
-  #   vllm   → sends chat_template_kwargs.enable_thinking: false   (lab vLLM)
-  #   none   → leave thinking on: slower, but the reasoning is shown in traces
-  thinking_off: ollama
+  # Output cap per LLM call (tokens).  Real view outputs are ~1k tokens; at
+  # temperature 0 the model occasionally loops (repeated JSON or whitespace) until
+  # the 16k context is full, and the retry then overflows it (seen on demos 323, 928).
+  max_output_tokens: 2500
+  # Qwen3 "thinking" on/off is LLM_THINKING_OFF in .env (legalrag/core/config.py),
+  # next to LLM_BASE_URL, because the right value depends on the server.
   # Seconds per LLM call.  Lab vLLM answers a view in ~5-15 s, but local Ollama
   # qwen3:8b runs ~12 tok/s and queues the parallel view requests, so a view can
   # wait several minutes behind the others.

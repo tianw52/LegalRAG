@@ -62,7 +62,9 @@ python scripts/ingest_canlegal.py --index-name canlegal-qwen3 \
     --embedding-model Qwen/Qwen3-Embedding-0.6B --chunk-size 1024 --chunk-overlap 128
 curl http://localhost:9200/canlegal-qwen3/_count          # expect 62942
 
-OLLAMA_CONTEXT_LENGTH=16384 ollama serve                  # LLM (or lab vLLM: scripts/serve_qwen3_vllm.sh)
+ssh -N -L 8001:127.0.0.1:8001 secb1010-d11.csil.sfu.ca    # LLM: lab vLLM (scripts/serve_qwen3_vllm.sh) — .env default
+#   or offline: OLLAMA_CONTEXT_LENGTH=16384 ollama serve + the Ollama block in .env
+python scripts/build_demos.py                             # precompute the Home page examples (data/demos/)
 uvicorn legalrag.api.app:app --port 8000                  # API, docs at /docs
 cd web && npm ci && npm run dev                           # UI at http://localhost:5173
 python scripts/explore_cli.py --query-id 792              # one exploration from the terminal
@@ -356,8 +358,16 @@ or `unknown`), `year`, `doc_type`, `url`. Jurisdiction codes in the YAML must st
   `logs/queries.log` when `log_file=None`. Third-party HTTP logs (`httpx`, `opensearch`,
   `sentence_transformers`) are suppressed to WARNING.
 
-- **LLM thinking**: `explore_policy.yaml → llm.thinking_off` must match the server
-  (`ollama` | `vllm` | `none`); Ollama ignores the `/no_think` prompt suffix.
+- **LLM server**: `.env` defaults to vLLM on :8001 — the lab 4090 through a tunnel (venv + model
+  cache on the lab's `/local-scratch/twa174/`, see `scripts/serve_qwen3_vllm.sh`) or vllm-metal on
+  the Mac (`scripts/serve_qwen3_vllm_metal.sh`). Each `.env` LLM block
+  sets `LLM_THINKING_OFF` (`vllm` | `ollama` | `none`), which must match the server.
+  Ollama ignores the `/no_think` prompt suffix.
+
+- **Benchmark examples are precomputed**: the Home page's questions come from
+  `legalrag/prompts/explore_examples.yaml` (2 local + 2 federal per province) and replay
+  `data/demos/<query_id>.json`. Rebuild after prompt/model changes:
+  `python scripts/build_demos.py --force` (needs the LLM). Quote province keys in that YAML.
 
 - **Date range filtering is a placeholder**: `date_from`/`date_to` are extracted by the
   formulator but not yet applied as OpenSearch range filters in the retriever.

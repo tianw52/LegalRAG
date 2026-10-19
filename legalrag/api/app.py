@@ -12,20 +12,20 @@ GET  /api/options                 profile onboarding options (explore_policy.yam
 POST /api/login                   {display_name} → profile (DEV-ONLY: name-only login)
 GET  /api/profile/{user_id}
 PUT  /api/profile/{user_id}       onboarding answers
-GET  /api/examples                sample CanLegalRAGBench questions (?province=BC)
+GET  /api/examples                benchmark questions for a location (?province=BC; explore_examples.yaml)
+GET  /api/demos/{query_id}        precomputed exploration of an example question (scripts/build_demos.py)
 POST /api/explore                 NDJSON stream of exploration events (see explore/engine.py)
+POST /api/chat                    NDJSON stream: Ask-panel answer grounded in an exploration's evidence
 GET  /api/document/{doc_id}       full text + metadata for the document reader
 GET  /api/traces                  recent exploration traces (newest first)
-GET  /api/traces/{trace_id}       full trace: step timings, retrieval, rerank, LLM calls
+GET  /api/traces/{trace_id}       full trace: step timings, retrieval, rerank, LLM calls (live, logs or demos)
 """
 
 from __future__ import annotations
 
 import json
 import logging
-import random
 from contextlib import asynccontextmanager
-from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
@@ -35,13 +35,13 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from legalrag.core.config import settings
+from legalrag.explore import chat, demos
 from legalrag.explore.engine import ExplorationEngine
 from legalrag.explore.profile import ProfileStore, ProfileUpdate, UserProfile, profile_options
 from legalrag.utils.logging import configure_logging
 
 logger = logging.getLogger(__name__)
 
-_QUERIES_PATH = Path("data/CanLegalRAGBench/queries.json")
 # Server log (stdout + this file).  Per-exploration detail goes to logs/explore_traces/.
 API_LOG = Path("logs/explore_api.log")
 _state: dict = {}
@@ -125,22 +125,17 @@ def put_profile(user_id: str, update: ProfileUpdate) -> dict:
         raise HTTPException(422, str(exc)) from exc
 
 
-@lru_cache(maxsize=1)
-def _dataset_queries() -> list[dict]:
-    if not _QUERIES_PATH.exists():
-        return []
-    with _QUERIES_PATH.open(encoding="utf-8") as fh:
-        return [json.loads(line) for line in fh if line.strip()]
-
-
 @app.get("/api/examples")
-def examples(province: str = "", n: int = 4) -> list[dict]:
-    labels = {p["code"]: p["label"] for p in profile_options()["provinces"]}
-    pool = _dataset_queries()
-    if province in labels and province:
-        pool = [q for q in pool if q.get("province") == labels[province]] or pool
-    picked = random.sample(pool, min(n, len(pool)))
-    return [{"query_id": q["query_id"], "text": q["query_text"], "province": q.get("province")} for q in picked]
+def examples(province: str = "") -> list[dict]:
+    return demos.examples(province)
+
+
+@app.get("/api/demos/{query_id}")
+def demo(query_id: int) -> dict:
+    data = demos.load_demo(query_id)
+    if data is None:
+        raise HTTPException(404, "no precomputed demo for this question")
+    return data
 
 
 @app.post("/api/explore")
@@ -158,6 +153,21 @@ async def explore(req: ExploreRequest) -> StreamingResponse:
     return StreamingResponse(stream(), media_type="application/x-ndjson")
 
 
+@app.post("/api/chat")
+async def chat_answer(req: chat.ChatRequest) -> StreamingResponse:
+    profile = _profiles().get(req.user_id) if req.user_id else None
+
+    async def stream():
+        try:
+            async for event in chat.answer(req, profile):
+                yield json.dumps(event) + "\n"
+        except Exception as exc:
+            logger.exception("Chat failed")
+            yield json.dumps({"event": "error", "message": f"{exc.__class__.__name__}: {exc}"}) + "\n"
+
+    return StreamingResponse(stream(), media_type="application/x-ndjson")
+
+
 @app.get("/api/traces")
 def traces(limit: int = 20) -> list[dict]:
     return _engine().traces.recent(limit)
@@ -165,7 +175,7 @@ def traces(limit: int = 20) -> list[dict]:
 
 @app.get("/api/traces/{trace_id}")
 def trace(trace_id: str) -> dict:
-    data = _engine().traces.get(trace_id)
+    data = _engine().traces.get(trace_id) or demos.demo_trace(trace_id)
     if data is None:
         raise HTTPException(404, "trace not found")
     return data

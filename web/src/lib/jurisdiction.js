@@ -15,7 +15,6 @@ export const GROUP_LABEL = {
   other: "Other provinces",
   unknown: "Unknown",
 };
-export const GROUP_SHORT = { local: "local", federal: "federal", other: "other", unknown: "unknown" };
 
 export function jurisdictionGroup(code, province) {
   if (code && code === province) return "local";
@@ -41,15 +40,7 @@ export const PROVINCE_TILES = [
   { code: "NS", label: "NS", name: "Nova Scotia", col: 8, row: 3 },
 ];
 
-// Extra tiles for source filtering (not places): federal law and unknown.
-export const EXTRA_TILES = [
-  { code: "federal", label: "FED", name: "Federal", col: 8, row: 1 },
-  { code: "unknown", label: "?", name: "Unknown jurisdiction", col: 1, row: 3 },
-];
-
-const NAME_TO_CODE = Object.fromEntries(PROVINCE_TILES.map((t) => [t.name, t.code]));
-
-// "British Columbia" → "BC" (dataset queries carry province names).
-export function provinceCode(name) {
-  return NAME_TO_CODE[name] || "";
+// Group label with the exploration's province named ("Saskatchewan", not "Your province").
+export function groupLabel(group, provinceLabel) {
+  return group === "local" && provinceLabel ? provinceLabel : GROUP_LABEL[group];
 }

@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { api } from "../api.js";
 import { Dot, JurisdictionLegend } from "../components/primitives.jsx";
-import { GROUP_COLOR, jurisdictionGroup, provinceCode } from "../lib/jurisdiction.js";
+import { GROUP_COLOR, jurisdictionGroup } from "../lib/jurisdiction.js";
 import { runCounts, runDocuments, yearSpan } from "../lib/stats.js";
 
 // Home: ask a question, try a benchmark question, revisit this session's explorations.
-export default function Home({ header, profile, provinceLabel, allCanada, runs, onExplore, onOpenRun }) {
+export default function Home({ header, profile, provinceLabel, allCanada, runs, onExplore, onExample, onOpenRun }) {
   const [question, setQuestion] = useState("");
   const [examples, setExamples] = useState([]);
 
@@ -68,13 +68,13 @@ export default function Home({ header, profile, provinceLabel, allCanada, runs, 
             <h2 className="lbl band-label">Try a benchmark question</h2>
             <ol className="rows">
               {examples.map((ex, i) => {
-                const code = provinceCode(ex.province);
+                const federal = ex.kind === "federal";
                 return (
                   <li key={ex.query_id}>
-                    <button type="button" className="rowlink" onClick={() => onExplore(ex.text)}>
+                    <button type="button" className="rowlink" onClick={() => onExample(ex)}>
                       <span className="num">{String(i + 1).padStart(2, "0")}</span>
-                      <span className="code" style={{ color: code === profile.province ? "var(--accent-ink)" : "var(--muted)" }}>
-                        {code || "—"}
+                      <span className="code" style={{ color: federal ? GROUP_COLOR.federal : "var(--accent-ink)" }}>
+                        {federal ? "FED" : ex.province}
                       </span>
                       <span className="row-text clamp-2">{ex.text}</span>
                       <span className="go" aria-hidden="true">→</span>

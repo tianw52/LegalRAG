@@ -19,12 +19,12 @@ Backend details (modules, API, configuration, tracing, extending): [legalrag/REA
 ## Run locally
 
 Step-by-step setup with Ollama (prerequisites, index snapshot or ingest, checks,
-troubleshooting): **[README.md → Run the website on localhost](../README.md#run-the-website-on-localhost-with-ollama)**.
+troubleshooting): **[README.md → Run the website on localhost](../README.md#run-the-website-on-localhost)**.
 An annotated example request: [legalrag/README.md](../legalrag/README.md#how-a-request-runs-end-to-end).
 
 To use the lab GPU for the LLM instead of Ollama, run `scripts/serve_qwen3_vllm.sh` on the
-lab machine, tunnel it (`ssh -N -L 8001:127.0.0.1:8001 secb1010-d11.csil.sfu.ca`), use the
-vLLM block in `.env.example`, and set `llm.thinking_off: vllm` in `explore_policy.yaml`.
+lab machine and tunnel it (`ssh -N -L 8001:127.0.0.1:8001 secb1010-d11.csil.sfu.ca`); the
+vLLM block is the `.env.example` default and sets `LLM_THINKING_OFF=vllm`.
 
 ### Build the index on the lab GPU instead
 
@@ -85,11 +85,12 @@ View it in the UI ("Under the hood" button, live while running), in
 
 Items marked ✅ were decided in the 2026-10-12 session; the others are open.
 
-1. **LLM.** ✅ Qwen3, on lab vLLM with an Ollama fallback. Open:
-   - Which model on the 4090: `Qwen3-30B-A3B-GPTQ-Int4` (default) or `Qwen3-14B-AWQ`.
+1. **LLM.** ✅ Qwen3, on lab vLLM (default in `.env`), with vllm-metal or Ollama on the laptop as fallbacks.
+   ✅ `Qwen3-30B-A3B-GPTQ-Int4` on the 4090 runs a whole exploration in ~1 min (2026-10-18); the
+   laptop reranker is now the slowest step (~45 s). Open:
    - Whether to set `EXPLORE_LLM_MODEL` separately from `LLM_MODEL`.
 
-   The HF router key has no credits left (HTTP 402); `.env.example` now defaults to Ollama.
+   The HF router key has no credits left (HTTP 402); `.env.example` defaults to vLLM on :8001.
 2. **Prompts** (`legalrag/prompts/explore_views.yaml`): all are first drafts. Review:
    - `preamble`: the grounding rules and the no-advice rule.
    - `fact_toggle`: 4–8 facts, statuses stated / assumed / unknown.
@@ -133,4 +134,4 @@ Items marked ✅ were decided in the 2026-10-12 session; the others are open.
     - Latency: about 28 s per 60 candidates on the M2, against about 1 s for ms-marco. Use 4B/8B on the lab GPU, or lower `retrieval.top_k` on the laptop.
     - The rerank query is the LLM rewrite, not the raw question. Decide whether to keep that.
 18. **Extra views.** ✅ The planner may choose 0 to `planner.max_extra_views` (3) and must justify each choice (`why_useful`, `extra_views_reason`).
-19. **LLM thinking.** Off for speed via `llm.thinking_off`, which must match the server (`ollama` or `vllm`). The `/no_think` suffix is ignored by Ollama: a test call took 17 s with thinking against 0.7 s with `reasoning_effort: none`. Use `none` to see the reasoning in traces, at the cost of latency.
+19. **LLM thinking.** Off for speed via `LLM_THINKING_OFF` (in `.env`, per server block), which must match the server (`ollama` or `vllm`). The `/no_think` suffix is ignored by Ollama: a test call took 17 s with thinking against 0.7 s with `reasoning_effort: none`. Use `none` to see the reasoning in traces, at the cost of latency.

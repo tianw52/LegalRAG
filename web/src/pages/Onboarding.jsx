@@ -124,7 +124,7 @@ export default function Onboarding({ options, profile, onDone, onCancel }) {
                   >
                     <span className="level" aria-hidden="true">
                       {[0, 1, 2].map((b) => (
-                        <i key={b} style={{ height: 16 + b * 10, background: b <= i ? "currentColor" : "var(--line-strong)" }} />
+                        <i key={b} className={b <= i ? "fill" : ""} style={{ height: 16 + b * 10 }} />
                       ))}
                     </span>
                     <span className="disp h-s">{f.label}</span>

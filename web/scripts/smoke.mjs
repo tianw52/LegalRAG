@@ -1,10 +1,13 @@
 // End-to-end UI smoke test: drives the installed Chrome through
-// login → onboarding → home → one exploration, saving a screenshot per step
-// and reporting page errors.
+// login → onboarding → home → one live exploration → one precomputed
+// example (demo) with the Ask panel, saving a screenshot per step and
+// reporting page errors.
 //
-// Quick mode (default) stops once retrieval-backed tabs render (Overview,
-// Cases, Timeline, Sources reader).  FULL=1 also waits for the LLM views
-// (What-if, Maps) and opens "under the hood" — slow with a local LLM.
+// Quick mode (default) stops the live run once retrieval-backed tabs render
+// (Overview progress, Sources reader, Timeline).  FULL=1 also waits for the
+// LLM views (What-if, Relations) and opens "under the hood" — slow with a
+// local LLM.  The demo step needs data/demos/ (scripts/build_demos.py); its
+// Ask-panel question needs the LLM (ASK=0 skips it).
 //
 // Prereqs: API on :8000, `npm run dev` on :5173.
 // Usage:   npm run smoke
@@ -18,6 +21,7 @@ const CHROME =
   process.env.CHROME_PATH || "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const OUT = path.resolve(process.env.OUT || "../logs/ui-smoke");
 const FULL = process.env.FULL === "1";
+const ASK = process.env.ASK !== "0";
 const PROVINCE = process.env.PROVINCE || "British Columbia"; // tile name, or a non-province choice label
 const WAIT_MS = Number(process.env.WAIT_MIN || 20) * 60_000;
 const QUESTION =
@@ -117,31 +121,63 @@ try {
 
   console.log("3. home");
   await page.waitForSelector(".hero textarea");
-  await new Promise((r) => setTimeout(r, 800)); // benchmark examples load
+  await page.waitForSelector(".band .rows .rowlink"); // benchmark examples
   await shot(page, "05-home");
 
-  console.log("4. explore (retrieval-backed tabs)");
+  console.log("4. explore live (retrieval-backed tabs)");
   await page.type(".hero textarea", QUESTION);
   await page.click(".hero .go-btn");
-  await page.waitForSelector(".stats", { timeout: 300_000 });
-  await shot(page, "06-overview");
-  await tab(page, "Cases", "07-cases");
-  await page.click(".doc-row");
-  await shot(page, "08-cases-open");
-  await tab(page, "Timeline", "09-timeline");
-  await tab(page, "Sources", "10-sources");
+  await page.waitForSelector(".pp", { timeout: 60_000 });
+  await shot(page, "06-overview-building");
+  await page.waitForSelector(".top-sources", { timeout: 300_000 });
+  await tab(page, "Sources", "07-sources");
   await page.waitForSelector(".reader-text mark", { timeout: 60_000 });
-  await shot(page, "11-sources-reader");
+  await page.click(".doc-list li:nth-child(2) .doc-row");
+  await page.waitForSelector(".reader-text mark", { timeout: 60_000 });
+  await shot(page, "08-sources-reader");
+  await tab(page, "Timeline", "09-timeline");
 
   if (FULL) {
     console.log(`5. LLM views (waiting up to ${WAIT_MS / 60000} min)…`);
-    await page.waitForFunction(() => !document.querySelector(".title-band .pending"), { timeout: WAIT_MS });
-    await tab(page, "Overview", "12-overview-done");
-    await tab(page, "What-if", "13-whatif");
-    await tab(page, "Maps", "14-maps");
-    await clickText(page, ".title-band .link", "under the hood");
+    await page.waitForSelector(".done-line", { timeout: WAIT_MS }).catch(async () => {
+      await tab(page, "Overview", "10-overview-waiting");
+      throw new Error("run did not finish");
+    });
+    await tab(page, "Overview", "10-overview-done");
+    await tab(page, "What-if", "11-whatif");
+    await tab(page, "Relations", "12-relations");
+    await tab(page, "Overview", "10-overview-done");
+    await clickText(page, ".asked-meta .link", "Under the hood");
     await page.waitForSelector(".drawer-body.trace .llm-call", { timeout: 30_000 });
-    await shot(page, "15-trace");
+    await shot(page, "13-trace");
+    await page.keyboard.press("Escape");
+  }
+
+  console.log("6. precomputed example (demo)");
+  await page.click(".topbar .new-q"); // New question
+  await page.waitForSelector(".band .rows .rowlink");
+  await page.click(".band .rows .rowlink");
+  await page.waitForSelector(".brief", { timeout: 60_000 });
+  const demo = await page.$(".done-line");
+  console.log(demo ? "  demo replayed (no progress panel)" : "  no demo bundle — ran live");
+  await shot(page, "14-demo-overview");
+  if (demo) {
+    const answer = await page.$(".narrow .ans");
+    if (answer) {
+      await clickText(page, ".narrow .ans", "Not true");
+      await shot(page, "15-demo-narrow-answered");
+    }
+    await tab(page, "What-if", "16-demo-whatif");
+    await tab(page, "Relations", "17-demo-relations");
+    await tab(page, "Sources", "18-demo-sources");
+    await page.click(".ask-btn");
+    await page.waitForSelector(".chat");
+    await shot(page, "19-demo-ask-panel");
+    if (ASK) {
+      await clickText(page, ".chat .sugg", "Summarise");
+      await page.waitForFunction(() => document.querySelector(".msg-ai") && !document.querySelector(".msg-ai .pending"), { timeout: WAIT_MS });
+      await shot(page, "20-demo-ask-answer");
+    }
   }
 } catch (e) {
   problems.push(`smoke step failed: ${e.message}`);

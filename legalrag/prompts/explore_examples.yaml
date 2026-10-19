@@ -1,0 +1,41 @@
+# Home page "Try a benchmark question" — fixed per user location.
+# ────────────────────────────────────────────────────────────────────────────
+# Served by GET /api/examples?province=XX.  Ids are CanLegalRAGBench query_ids
+# (data/CanLegalRAGBench/queries.json).  Each list = local questions first,
+# then the federal ones.  Every question here is precomputed as a demo by
+# scripts/build_demos.py (data/demos/<query_id>.json) and opens instantly.
+#
+# Chosen 2026-10-18 by screening every benchmark question with the app's own
+# retrieval (dense kNN, profile jurisdiction filter, top 20): prefer questions
+# whose sources mix the province, federal law and statutes, one per topic
+# batch, short and readable.
+
+# Questions about federal law (shown to everyone).  Built with no
+# jurisdiction filter (scope "all").
+federal:
+  - 684   # CRA: cleaner paid as a contractor — what if they're an employee?   (tax; FC/TCC + ITA)
+  - 56    # COVID emergency advance — why must I pay it back?                  (benefits; statutes + 4 provinces)
+
+# Two local questions per province, built with that province's filter
+# (province + federal + unknown), as the app does for a user there.
+# MB, QC and NU have no benchmark questions → they get `default` below.
+provinces:            # keys QUOTED: YAML reads a bare ON as the boolean true
+  "BC": [273, 1257]   # repeated trespass into a home · serving court papers abroad
+  "ON": [705, 300]    # case dismissed for missed deadlines · victim confidentiality in DV cases
+  "AB": [697, 44]     # workplace discrimination complaint time limits · fire marshal closes an art studio
+  "SK": [377, 207]    # criminal record & rehabilitation at sentencing · refund for defective goods
+  "NT": [146, 409]    # civil action dismissed for delay · joint possession of drugs
+  "NL": [1302, 1310]  # limitation period for an injury claim · ran a red light, T-bone collision
+  "PE": [329, 169]    # 17-year-old's single punch caused serious injury · protecting trade secrets in a lawsuit
+  "NS": [165, 315]    # motion refused as late, then deadline extended · breath test in a parked car
+  "NB": [155, 323]    # dismissal for delay · sentencing for assault, threats and a weapon
+  "YT": [891, 928]    # estate claims after a death · court form about the kids' safety
+
+# All of Canada / outside Canada / prefer not to say / no questions for the
+# province: one Ontario, one BC, then the two federal questions.
+default: [705, 273]
+
+# Profile the demos are built with (province is set per question above).
+demo_profile:
+  familiarity: some
+  goal: specific_problem

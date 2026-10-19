@@ -37,7 +37,7 @@ web/ (React + Vite)  ──POST /api/explore (NDJSON stream)──▶  legalrag/
 
 ---
 
-## Run the website on localhost (with Ollama)
+## Run the website on localhost
 
 Tested on macOS (Apple M2, 32 GB) with the versions below. Linux works the same way.
 
@@ -73,9 +73,11 @@ conda activate legalrag
 cp .env.example .env
 ```
 
-The defaults already point at local Ollama (`qwen3:8b`) and the Docker OpenSearch, so you
-don't need to change anything. In [legalrag/prompts/explore_policy.yaml](legalrag/prompts/explore_policy.yaml),
-`llm.thinking_off` must be `ollama` (the default). It switches Qwen3's slow "thinking" off.
+The defaults point at the **lab vLLM** (through an SSH tunnel, step 5) and the Docker
+OpenSearch. vLLM serves the app's parallel LLM calls (views, chat) at the same time; Ollama
+answers them one by one. To run fully offline instead, comment out the vLLM block in `.env`
+and uncomment the Ollama one. Each block sets `LLM_THINKING_OFF`, which must match the
+server (it switches Qwen3's slow "thinking" off).
 
 ### 3. Start OpenSearch 3.4.0
 
@@ -112,7 +114,34 @@ python scripts/ingest_canlegal.py --index-name canlegal-qwen3 \
 
 **Check:** `curl -s localhost:9200/canlegal-qwen3/_count` reports `"count":62942`.
 
-### 5. Start Ollama with Qwen3
+### 5. Start the LLM
+
+**vLLM on this Mac (Apple Silicon).** Install once with Homebrew, then serve Qwen3-8B on port 8001 (leave it running; stop Ollama first):
+
+```bash
+brew tap vllm-project/vllm-metal https://github.com/vllm-project/vllm-metal
+brew install vllm-project/vllm-metal/vllm-metal
+bash scripts/serve_qwen3_vllm_metal.sh
+```
+
+On an M2 this ran a full exploration in ~6.5 min against ~11 min on Ollama, because the view calls run concurrently. It needs ~15 GB while serving.
+
+**Lab vLLM (fastest, needs the SFU network / VPN).** One-time install and run steps are at the top of
+[scripts/serve_qwen3_vllm.sh](scripts/serve_qwen3_vllm.sh) (venv + model cache on `/local-scratch`). On the lab:
+
+```bash
+source /local-scratch/$USER/vllm-env/bin/activate && HF_HOME=/local-scratch/$USER/hf bash scripts/serve_qwen3_vllm.sh
+```
+
+On the laptop, on the SFU network or VPN (leave it running):
+
+```bash
+ssh -N -o ServerAliveInterval=15 -L 8001:127.0.0.1:8001 secb1010-d11.csil.sfu.ca
+```
+
+**Check:** `curl -s localhost:8001/v1/models` lists `qwen3`.
+
+**Ollama (offline fallback)** — use the Ollama block in `.env`, then:
 
 In a new terminal (leave it running):
 
@@ -165,16 +194,29 @@ Open **http://localhost:5173**. Vite forwards `/api` to the API on port 8000.
    files in `data/app/profiles/`.
 2. **Build your profile:** province (sets the jurisdiction filter), familiarity with the
    law, why you're here, topics.
-3. **Ask a question**, or click one of the benchmark questions.
-4. **Explore the tabs:** Overview, What-if, Cases, Timeline, Maps, Sources. Click any
+3. **Ask a question**, or click one of the four benchmark questions (two from your
+   province, two on federal law). Those open instantly: they are precomputed demos
+   (`data/demos/`, built by `scripts/build_demos.py`).
+4. **Explore the tabs:** Overview, What-if, Sources, Timeline, Relations. While a live run
+   builds, the Overview shows its progress and tabs unlock as they become ready. Click any
    source tag to read the passage in context.
-5. Click **under the hood** to see every step: the rewrite, retrieval candidates and
+5. **Ask** (top right) opens a chat beside every tab. It answers from this exploration's
+   passages only and cites them.
+6. Click **under the hood** to see every step: the rewrite, retrieval candidates and
    scores, LLM prompts and responses, and timings.
 
-Expect this on a laptop with `qwen3:8b` (measured on an M2, 32 GB):
-- Sources and the built-in views (Cases, Timeline) appear after about 40 s.
-- The planner (Overview) takes about 1 minute, and the fact toggles (What-if) about 5.
-- Extra views (Maps) often **time out**. Ollama answers one request at a time, so they
+How long one exploration takes (measured 2026-10-18, embedder + reranker on an M2):
+
+| LLM | whole run | LLM steps |
+|---|---|---|
+| Lab vLLM, Qwen3-30B-A3B (4090) | ~1 min (median 58 s) | facts ~8 s, summary ~3 s, each map ~8 s; the M2 reranker (~45 s) dominates |
+| vllm-metal, Qwen3-8B (M2) | ~6.5 min | calls run concurrently |
+| Ollama, qwen3:8b (M2) | ~11 min | calls queue one after another |
+
+With Ollama `qwen3:8b` on a laptop:
+- Sources and the built-in views (Sources, Timeline) appear after about 40 s.
+- The fact toggles (What-if) take about 2–5 minutes and the planner (Overview) about 4.
+- Extra views (Relations) often **time out**. Ollama answers one request at a time, so they
   wait behind the fact toggles and hit the 3-minute limit (`planner.extra_view_timeout_s`).
 
 To get the extra views locally, raise that limit or start Ollama with
@@ -191,9 +233,10 @@ Press Ctrl-C in the API, website and Ollama terminals, then run `docker compose 
 | Symptom | Fix |
 |---|---|
 | UI: "Cannot reach the API" | The API isn't running on :8000 (step 6). |
-| `402 … no remaining credits` | `.env` still points at the Hugging Face router. Use the Ollama values from `.env.example` and restart the API. |
-| `404 model "…" not found` | `LLM_MODEL` in `.env` must be `qwen3:8b`, and `ollama pull qwen3:8b` must have run. |
-| Every LLM step is very slow, with long "thinking" in the trace | `llm.thinking_off` in `explore_policy.yaml` must be `ollama`. |
+| `402 … no remaining credits` | `.env` still points at the Hugging Face router. Use the vLLM or Ollama block from `.env.example` and restart the API. |
+| `404 model "…" not found` | `LLM_MODEL` must match the server: `qwen3` for vLLM, `qwen3:8b` for Ollama (after `ollama pull qwen3:8b`). |
+| Every LLM step is very slow, with long "thinking" in the trace | `LLM_THINKING_OFF` in `.env` must match the server (`vllm` or `ollama`). |
+| `Connection error` on every LLM step | The vLLM tunnel isn't up (step 5): `curl localhost:8001/v1/models`. Or switch `.env` to the Ollama block. |
 | `Query vector has invalid dimension` | The index wasn't built with Qwen3-Embedding-0.6B. Check `EXPLORE_EMBEDDING_MODEL` and the index (step 4). |
 | Extra views show "timed out after 180s" | This is expected with Ollama on a laptop. Raise `planner.extra_view_timeout_s`, set `OLLAMA_NUM_PARALLEL=2`, or use the lab vLLM. |
 | `/api/health` reports 0 chunks or an error | The index is missing (step 4), or OpenSearch isn't running (step 3). |
