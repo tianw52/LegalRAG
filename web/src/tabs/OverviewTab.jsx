@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Dot, Skeleton, SplitBar } from "../components/primitives.jsx";
 import ProgressPanel from "../components/ProgressPanel.jsx";
 import { FACT_STATUS, factIsOff, runFacts } from "../lib/facts.js";
-import { evidenceIndex } from "../lib/exploration.js";
+import { evidenceIndex, shortModel } from "../lib/exploration.js";
 import { GROUP_COLOR, GROUP_ORDER, groupLabel, jurisdictionGroup } from "../lib/jurisdiction.js";
 import { groupCounts, runDocuments, runPassages, yearSpan } from "../lib/stats.js";
 
@@ -127,13 +127,14 @@ function DoneLine({ run, progress, onExplore }) {
       {run.demo ? (
         <>
           <span>
-            Example, prepared in advance · {views} views from {run.evidence.length - 1} passages · built in {Math.round(run.demo.totalS)} s with {run.demo.model}
+            Example, prepared in advance · {views} views from {run.evidence.length - 1} passages · built in {Math.round(run.demo.totalS)} s with {shortModel(run.demo.model)}
           </span>
           <button type="button" className="link" onClick={() => onExplore(run.question)}>Run it live for my profile</button>
         </>
       ) : (
         <span>
           {run.stage === "error" ? "Stopped" : "All views ready"} · {views} views from {Math.max(0, run.evidence.length - 1)} passages · built in {progress.elapsed} s
+          {run.llmModel && ` with ${shortModel(run.llmModel)}`}
         </span>
       )}
     </div>

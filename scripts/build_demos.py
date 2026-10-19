@@ -54,7 +54,7 @@ async def build_one(engine: ExplorationEngine, query_id: int, kind: str) -> tupl
         "scope": scope,
         "province": profile.province,
         "built_at": datetime.now(UTC).isoformat(timespec="seconds"),
-        "model": settings.explore.llm_model or settings.llm.model,
+        "model": trace.get("llm_model") or settings.explore.llm_model or settings.llm.model,
         "total_s": round(time.perf_counter() - t0, 1),
         "events": events,
         "trace": trace,

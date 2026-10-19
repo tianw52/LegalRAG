@@ -39,7 +39,7 @@ export default function TracePanel({ traceId, live, onClose }) {
       <aside className="drawer wide" onClick={(e) => e.stopPropagation()}>
         <header className="drawer-head">
           <div>
-            <div className="lbl">Under the hood · trace {traceId}</div>
+            <div className="lbl">Under the hood · trace {traceId}{trace?.llm_model ? ` · ${trace.llm_model}` : ""}</div>
             <h2>{trace ? `${trace.status} · ${trace.total_s ?? "…"} s` : "Loading…"}</h2>
             {trace?.file && <p className="muted small">Saved to {trace.file}</p>}
           </div>

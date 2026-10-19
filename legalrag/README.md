@@ -312,7 +312,7 @@ The LegalBench-RAG evaluation uses `core/`, `ingestion/chunker.py`, `embedder.py
 
 | Event | Contents |
 |---|---|
-| `trace` | `trace_id` |
+| `trace` | `trace_id`, `llm_model` (the checkpoint the LLM server really runs, from `/v1/models` `root`) |
 | `status` | stage + message |
 | `query` | rewrite, keywords, jurisdictions, relaxed, number retrieved |
 | `evidence` | `q` + `e1..eN` |

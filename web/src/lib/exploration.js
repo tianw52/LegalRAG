@@ -3,6 +3,7 @@
 
 export const EMPTY_RUN = {
   traceId: null,   // GET /api/traces/{traceId} — "Under the hood"
+  llmModel: null,  // checkpoint the LLM server actually ran (e.g. Qwen/Qwen3-30B-A3B-GPTQ-Int4)
   stage: "",       // formulating | retrieving | building | done | error
   message: "",     // human-readable status
   query: null,     // {reformulated, keywords, jurisdictions, relaxed, scope}
@@ -28,7 +29,7 @@ export function applyEvent(run, ev, at = Date.now()) {
   const mark = (name, extra) => ({ ...run, ...extra, marks: { ...run.marks, [name]: run.marks[name] ?? at } });
   switch (ev.event) {
     case "trace":
-      return { ...run, traceId: ev.trace_id };
+      return { ...run, traceId: ev.trace_id, llmModel: ev.llm_model || null };
     case "status":
       return mark(ev.stage, { stage: ev.stage, message: ev.message });
     case "query":
@@ -69,6 +70,11 @@ export function demoRun(bundle) {
   const run = newRun(bundle.question, bundle.scope, bundle.kind === "local" ? bundle.province : null);
   const replayed = bundle.events.reduce((r, ev) => applyEvent(r, ev, r.startedAt), run);
   return { ...replayed, demo: { builtAt: bundle.built_at, model: bundle.model, totalS: bundle.total_s, queryId: bundle.query_id } };
+}
+
+// "Qwen/Qwen3-30B-A3B-GPTQ-Int4" → "Qwen3-30B-A3B-GPTQ-Int4" (Ollama ids have no org).
+export function shortModel(name) {
+  return name ? name.split("/").pop() : "";
 }
 
 export function evidenceIndex(run) {

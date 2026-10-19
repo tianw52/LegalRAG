@@ -33,6 +33,7 @@ from legalrag.opensearch.client import OpenSearchClient
 from legalrag.prompts.loader import load_prompt
 from legalrag.query.reranker import build_reranker
 from legalrag.query.retriever import OpenSearchRetriever
+from legalrag.utils.llm_client import served_model
 
 logger = logging.getLogger(__name__)
 
@@ -217,10 +218,11 @@ class ExplorationEngine:
         self, question: str, profile: UserProfile | None, scope: Scope = "profile"
     ) -> AsyncIterator[dict[str, Any]]:
         trace = Trace(question, profile.model_dump() if profile else None, scope)
+        trace.data["llm_model"] = await served_model(settings.explore.llm_model or settings.llm.model)
         self.traces.add(trace)
         status = "cancelled"  # if the client disconnects before we finish
         try:
-            yield {"event": "trace", "trace_id": trace.trace_id}
+            yield {"event": "trace", "trace_id": trace.trace_id, "llm_model": trace.data["llm_model"]}
             async for event in self._explore(question, profile, scope, trace):
                 yield event
             status = "done"

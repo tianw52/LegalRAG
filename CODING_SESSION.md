@@ -262,3 +262,13 @@ There is no plain-text answer step. Full guide and open decisions: `docs/explore
   (repeated JSON / whitespace, 30–55k chars) until the 16k context filled; the validation
   retry then overflowed it (HTTP 400). New `llm.max_output_tokens: 2500` in
   `explore_policy.yaml` caps every view call and chat answer (real outputs ~1k tokens).
+
+## 2026-10-19 — Record which model really ran
+
+- Lab and laptop vLLM both serve the name `qwen3`, so traces and demos only said "qwen3".
+  `utils/llm_client.served_model()` asks the server (`/v1/models`: vLLM's `root`, else the id,
+  3 s timeout, falls back to the configured name) once per exploration. Stored as
+  `trace.llm_model`, sent in the `trace` event, saved as a demo's `model`, and shown in the UI
+  ("built in 58 s with Qwen3-30B-A3B-GPTQ-Int4"; "Under the hood" header).
+- The 22 demo bundles were backfilled to `Qwen/Qwen3-30B-A3B-GPTQ-Int4` (all built on the lab
+  2026-10-19 00:34–01:14 UTC). Test: `tests/explore/test_served_model.py`.
