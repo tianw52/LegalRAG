@@ -1,0 +1,21 @@
+base_config: ../../configs/base.yaml
+experiment_id: local_gemma_recursive_8192_1k
+description: "EmbeddingGemma-300m, recursive 8192/256, 1000 docs, no reranker (paper row, open model)"
+dataset:
+  max_docs: 1000
+chunker:
+  type: chunkers.recursive.RecursiveChunker
+  max_chunk_chars: 8192
+  overlap_chars: 256
+embedder:
+  type: embedders.gemma.GemmaEmbedder
+  model_name: google/embeddinggemma-300m
+  device: cuda:0
+  task_type: RETRIEVAL_DOCUMENT
+  batch_size: 32
+evaluation:
+  k_values: [3, 5, 10, 20, 50]
+indexing:
+  document_batch_size: 10
+  embedding_batch_size: 32
+  save_intermediate_every: 100

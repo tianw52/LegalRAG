@@ -1,0 +1,26 @@
+base_config: ../../configs/base.yaml
+
+experiment_id: local_qwen06b_recursive_1024_1k
+description: "Qwen3-Embedding-0.6B, recursive 1024-char chunks, 1000-doc corpus (paper setting for max_docs)"
+
+dataset:
+  max_docs: 1000
+
+chunker:
+  type: chunkers.recursive.RecursiveChunker
+  max_chunk_chars: 1024
+  overlap_chars: 128
+
+embedder:
+  type: embedders.qwen.QwenEmbedder
+  model_name: Qwen/Qwen3-Embedding-0.6B
+  device: cuda:0
+  batch_size: 16
+
+evaluation:
+  k_values: [3, 5, 10, 20, 50]
+
+indexing:
+  document_batch_size: 10
+  embedding_batch_size: 16
+  save_intermediate_every: 100
