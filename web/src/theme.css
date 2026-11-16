@@ -222,6 +222,33 @@ span.src { text-decoration: none; cursor: default; }
 li.off .fact-text { text-decoration: line-through; text-decoration-color: var(--accent-ink); }
 .fact-detail { display: flex; gap: 16px; padding: 0 12px 20px 92px; font-size: 16px; line-height: 1.45; }
 .fact-detail .disp { font-size: 20px; white-space: nowrap; }
+
+/* What-if Table (ported from Demo/ ComparisonRenderer): facts × badge cells */
+.wt { border-top: 1px solid var(--ink); }
+.wt-row { display: grid; grid-template-columns: minmax(0, 2fr) 140px 140px minmax(0, 2fr); gap: 12px; align-items: center; padding: 12px 8px; border-bottom: 1px solid var(--line); transition: background .15s; }
+.wt-head { padding: 10px 8px; }
+.wt-row.off { background: #F7E4DD; }
+.wt-c { text-align: center; justify-self: stretch; }
+.wt-fact { font-size: 17px; line-height: 1.35; display: grid; gap: 4px; }
+.wt-row.off .wt-fact { text-decoration: line-through; text-decoration-color: var(--accent-ink); }
+.wt-row.off .wt-fact .srcs { text-decoration: none; }
+.wt-effect { font-size: 14px; line-height: 1.45; }
+.wt-cell { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 10px 6px; border-radius: 12px; border: 2px solid var(--line); width: 100%; font: inherit; color: inherit; }
+.wt-btn { cursor: pointer; transition: transform .12s, box-shadow .12s; }
+.wt-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,.08); }
+.wt-sym { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 999px; font-size: 16px; font-weight: 800; }
+.wt-val { font-size: 11px; font-weight: 700; }
+.wt-bg-yes { background: #ecfdf5; border-color: #6ee7b7; color: #065f46; }
+.wt-bg-no { background: #fef2f2; border-color: #fca5a5; color: #991b1b; }
+.wt-bg-maybe { background: #fffbeb; border-color: #fcd34d; color: #92400e; }
+.wt-bg-asked { background: #eff6ff; border-color: #93c5fd; color: #1e40af; }
+.wt-yes { background: #6ee7b7; } .wt-no { background: #fca5a5; } .wt-maybe { background: #fcd34d; } .wt-asked { background: #93c5fd; }
+.wt-note { margin-top: 10px; }
+@media (max-width: 720px) {
+  .wt-head { display: none; }
+  .wt-row { grid-template-columns: 1fr 1fr; }
+  .wt-fact, .wt-effect { grid-column: 1 / -1; }
+}
 @media (max-width: 720px) { .fact-detail { padding-left: 12px; } }
 
 /* split layout (relations) */

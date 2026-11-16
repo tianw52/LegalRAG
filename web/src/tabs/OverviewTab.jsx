@@ -174,7 +174,7 @@ function TopSources({ run, docs, province, openEvidence, setTab }) {
   );
 }
 
-// Facts the user didn't state: answer them here (synced with the What-if tab).
+// Facts the user didn't state: answer them here (synced with the Fact Breakdown tab).
 function NarrowDown({ run, setAnswer, setTab }) {
   const facts = runFacts(run);
   const open = facts.filter((f) => f.status !== "stated");
@@ -227,7 +227,7 @@ function NarrowDown({ run, setAnswer, setTab }) {
       )}
       {facts.length > 0 && (
         <button type="button" className="link small" onClick={() => setTab("whatif")}>
-          See all {facts.length} facts in What-if →
+          See all {facts.length} facts in Fact Breakdown →
         </button>
       )}
     </aside>
@@ -243,7 +243,7 @@ function KeepExploring({ run, progress, setTab, docs, groups, span, province }) 
   const cards = [
     {
       id: "whatif",
-      title: "What-if",
+      title: "Fact Breakdown",
       note: facts.length ? `${facts.length} facts · ${unknown} not mentioned` : null,
       art: <FactsArt facts={facts} answers={run.answers} />,
     },

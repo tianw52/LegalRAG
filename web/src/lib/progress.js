@@ -7,7 +7,7 @@
 export const STAGES = [
   { id: "understand", label: "Understanding your question", short: "Understand question", w: 10, expect: 8 },
   { id: "sources", label: "Finding and ranking sources", short: "Find sources", w: 30, expect: 30, opens: ["sources", "timeline"] },
-  { id: "facts", label: "Writing the What-if facts", short: "What-if", w: 25, expect: 45, opens: ["whatif"] },
+  { id: "facts", label: "Writing the fact breakdown", short: "Facts", w: 25, expect: 45, opens: ["whatif", "whatiftable"] },
   { id: "summary", label: "Writing the summary and follow-ups", short: "Summary", w: 15, expect: 45, opens: ["overview"] },
   { id: "relations", label: "Drawing the relation maps", short: "Relations", w: 20, expect: 60, opens: ["relations"] },
 ];
@@ -51,6 +51,7 @@ export function runProgress(run, now = Date.now()) {
       sources: settled("sources"),
       timeline: settled("sources"),
       whatif: settled("facts"),
+      whatiftable: settled("facts"),
       relations: settled("summary"), // the tab lists the planned maps and builds them in place
     },
   };

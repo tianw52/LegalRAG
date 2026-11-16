@@ -125,7 +125,8 @@ class Qwen3Reranker(BaseReranker):
         enc["input_ids"] = [prefix + ids + suffix for ids in enc["input_ids"]]
         batch = tokenizer.pad(enc, padding=True, return_tensors="pt").to(device)
         with torch.no_grad():
-            last = model(**batch).logits[:, -1, :]
+            # logits_to_keep=1: only the last position's vocab logits (saves ~1.8 GB peak GPU)
+            last = model(**batch, logits_to_keep=1).logits[:, -1, :]
         pair = torch.stack([last[:, no_id], last[:, yes_id]], dim=1).float()
         return torch.nn.functional.log_softmax(pair, dim=1)[:, 1].exp().tolist()
 

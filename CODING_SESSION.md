@@ -272,3 +272,9 @@ There is no plain-text answer step. Full guide and open decisions: `docs/explore
   ("built in 58 s with Qwen3-30B-A3B-GPTQ-Int4"; "Under the hood" header).
 - The 22 demo bundles were backfilled to `Qwen/Qwen3-30B-A3B-GPTQ-Int4` (all built on the lab
   2026-10-19 00:34–01:14 UTC). Test: `tests/explore/test_served_model.py`.
+
+## 2026-11-16 — Fact Breakdown rename + What-if Table tab (format A/B)
+
+- **"What-if" tab renamed to "Fact Breakdown"** (label only; tab id stays `whatif`). Overview link, preview card and progress stage label updated to match.
+- **New "What-if Table" tab** (`web/src/tabs/WhatIfTableTab.jsx`, id `whatiftable`). It ports the Demo's comparison scorecard (`Demo/js/viz-renderers.js` `ComparisonRenderer`): facts in rows, then a "In your question" badge (✓ You said / ~ We assumed / ? Not mentioned), a clickable "Holds?" badge (✓ True / ✗ What if not) and an Effect column (`if_changed` when flipped, otherwise `why_it_matters`). Styles are `.wt-*` in `theme.css`; it stacks into cards under 720px.
+- Both tabs read `fact_toggle` and write `run.answers`, so flips stay in sync between the two formats for a side-by-side comparison. Both unlock when the facts stage settles (`progress.js`, `ProgressPanel.jsx`). `scripts/smoke.mjs` now takes screenshots of both tabs.

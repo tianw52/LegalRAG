@@ -144,7 +144,8 @@ try {
       throw new Error("run did not finish");
     });
     await tab(page, "Overview", "10-overview-done");
-    await tab(page, "What-if", "11-whatif");
+    await tab(page, "Fact Breakdown", "11-whatif");
+    await tab(page, "What-if Table", "11b-whatif-table");
     await tab(page, "Relations", "12-relations");
     await tab(page, "Overview", "10-overview-done");
     await clickText(page, ".asked-meta .link", "Under the hood");
@@ -167,7 +168,8 @@ try {
       await clickText(page, ".narrow .ans", "Not true");
       await shot(page, "15-demo-narrow-answered");
     }
-    await tab(page, "What-if", "16-demo-whatif");
+    await tab(page, "Fact Breakdown", "16-demo-whatif");
+    await tab(page, "What-if Table", "16b-demo-whatif-table");
     await tab(page, "Relations", "17-demo-relations");
     await tab(page, "Sources", "18-demo-sources");
     await page.click(".ask-btn");

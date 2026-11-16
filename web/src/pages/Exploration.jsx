@@ -10,11 +10,13 @@ import RelationsTab from "../tabs/RelationsTab.jsx";
 import SourcesTab from "../tabs/SourcesTab.jsx";
 import TimelineTab from "../tabs/TimelineTab.jsx";
 import WhatIfTab from "../tabs/WhatIfTab.jsx";
+import WhatIfTableTab from "../tabs/WhatIfTableTab.jsx";
 
 // Ask-panel suggestions per tab; `sel` = what is selected there (if anything)
 const SUGGESTIONS = {
   overview: () => ["Explain the summary simply", "What is still unclear?"],
   whatif: (sel) => (sel ? ["What if this is not true?", "Which sources discuss this?"] : ["Which facts matter most?", "What facts are missing?"]),
+  whatiftable: (sel) => SUGGESTIONS.whatif(sel),
   sources: (sel) => ["Summarise this document", sel ? `Explain passage ${sel.split(" · ").pop()}` : "Which source is most relevant?"],
   timeline: (sel) => ["How has the law changed over time?", sel ? `Summarise the ${sel.split(" · ")[0]} decision` : "Which decision is most recent?"],
   relations: () => ["Explain this in plain words", "Walk me through it step by step"],
@@ -120,6 +122,7 @@ export default function Exploration({ run, profile, options, userProvince, rende
           <main>
             {tab === "overview" && <OverviewTab {...shared} onAsk={() => setChatOpen(true)} />}
             {tab === "whatif" && <WhatIfTab {...shared} />}
+            {tab === "whatiftable" && <WhatIfTableTab {...shared} />}
             {tab === "sources" && <SourcesTab {...shared} focusId={focus?.evidence_id} setFocusId={setFocusId} />}
             {tab === "timeline" && <TimelineTab {...shared} />}
             {tab === "relations" && <RelationsTab {...shared} />}

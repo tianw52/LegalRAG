@@ -7,7 +7,7 @@ import { FACT_STATUS, factIsOff, runFacts } from "../lib/facts.js";
 export default function WhatIfTab({ run, openEvidence, setAnswer, onLook }) {
   const view = run.views.fact_toggle;
   const facts = runFacts(run);
-  const topic = run.plan?.topic || "What-if";
+  const topic = run.plan?.topic || "Fact Breakdown";
 
   if (!view) {
     const failed = run.viewErrors?.fact_toggle;

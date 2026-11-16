@@ -1,7 +1,7 @@
 import { TAB_LABEL } from "../lib/tabs.js";
 
 const ICON = { done: "✓", running: "●", queued: "○", failed: "✕" };
-const READY_ORDER = ["sources", "timeline", "whatif", "relations"];
+const READY_ORDER = ["sources", "timeline", "whatif", "whatiftable", "relations"];
 
 // Build progress on the Overview while a run is in flight (lib/progress.js):
 // overall %, one bar per stage (width = its share of the work), and links to
