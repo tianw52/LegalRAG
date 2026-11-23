@@ -1,7 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { api } from "../api.js";
+import ComparativeEvidenceView from "../components/ComparativeEvidenceView.jsx";
 import HighlightedText, { passageMarks } from "../components/HighlightedText.jsx";
+import RelevanceStatistics from "../components/RelevanceStatistics.jsx";
 import { Pending, Segmented, TabHead } from "../components/primitives.jsx";
+import { caseRelevance } from "../lib/caseRelevance.js";
 import { GROUP_COLOR, GROUP_ORDER, groupLabel, jurisdictionGroup } from "../lib/jurisdiction.js";
 import { groupCounts, runDocuments, runPassages } from "../lib/stats.js";
 
@@ -11,10 +14,18 @@ const TYPES = [
   { value: "statute", label: "Statutes" },
 ];
 
+const SOURCE_VIEWS = [
+  { value: "reader", label: "Reader" },
+  { value: "statistics", label: "Statistics" },
+  { value: "compare", label: "Compare" },
+];
+
+const RELEVANCE_VIEWS = { statistics: RelevanceStatistics, compare: ComparativeEvidenceView };
+
 // Where the sources come from (filter) · documents, most relevant first ·
 // full-text reader of the focused passage, every retrieved passage in that
 // document highlighted by its offsets.
-export default function SourcesTab({ run, province, provinceLabel, focusId, setFocusId }) {
+export default function SourcesTab({ run, province, provinceLabel, focusId, setFocusId, sourceView, setSourceView, openEvidence }) {
   const docs = runDocuments(run);
   const passages = runPassages(run);
   const [group, setGroup] = useState(null);
@@ -22,25 +33,26 @@ export default function SourcesTab({ run, province, provinceLabel, focusId, setF
   const [texts, setTexts] = useState({}); // doc_id → document (cache for this run)
   const [error, setError] = useState("");
   const markRef = useRef(null);
+  const RelevanceView = RELEVANCE_VIEWS[sourceView];
+  const showingRelevance = Boolean(RelevanceView);
+  const relevance = useMemo(() => showingRelevance ? caseRelevance(run) : null, [showingRelevance, run]);
 
   const focus = passages.find((p) => p.evidence_id === focusId) || passages[0];
   const doc = focus ? texts[focus.doc_id] : null;
 
   useEffect(() => {
-    if (!focus || texts[focus.doc_id]) return;
+    if (showingRelevance || !focus || texts[focus.doc_id]) return;
     setError("");
     api.document(focus.doc_id)
       .then((d) => setTexts((cur) => ({ ...cur, [focus.doc_id]: d })))
       .catch((e) => setError(e.message));
-  }, [focus?.doc_id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [showingRelevance, focus?.doc_id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     markRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
-  }, [doc, focus?.evidence_id]);
+  }, [showingRelevance, doc, focus?.evidence_id]);
 
   const topic = run.plan?.topic || "Sources";
-  if (!passages.length) return <><TabHead title={topic} /><section className="band"><Pending label="Retrieving sources…" /></section></>;
-
   const groupOf = (d) => jurisdictionGroup(d.jurisdiction, province);
   const counts = groupCounts(docs, province);
   const shown = docs.filter((d) => (!group || groupOf(d) === group) && (type === "all" || (d.doc_type || "case") === type));
@@ -51,7 +63,18 @@ export default function SourcesTab({ run, province, provinceLabel, focusId, setF
       <TabHead title={topic}>
         <span className="lbl">{docs.length} documents · {passages.length} passages</span>
       </TabHead>
-      <div className="sources">
+      <div className="sources-view-control">
+        <Segmented label="Sources view" options={SOURCE_VIEWS} value={sourceView} onChange={setSourceView} />
+      </div>
+      {RelevanceView ? <RelevanceView key={run.id ?? relevance.question} {...relevance} province={province} passages={passages} onOpenEvidence={(id) => {
+        setGroup(null);
+        setType("all");
+        openEvidence(id);
+      }} /> : !passages.length ? (
+        <section className="band">
+          {run.done || run.marks?.evidence != null ? <p>No sources retrieved.</p> : <Pending label="Retrieving sources…" />}
+        </section>
+      ) : <div className="sources">
         <aside className="src-filters">
           <div className="row baseline">
             <h2 className="lbl grow">Where they come from</h2>
@@ -146,7 +169,7 @@ export default function SourcesTab({ run, province, provinceLabel, focusId, setF
             </div>
           )}
         </article>
-      </div>
+      </div>}
     </>
   );
 }

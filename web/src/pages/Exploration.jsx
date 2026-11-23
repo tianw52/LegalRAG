@@ -27,6 +27,7 @@ const SUGGESTIONS = {
 // The Ask panel (chat) sits beside every tab and follows what you look at.
 export default function Exploration({ run, profile, options, userProvince, renderHeader, onExplore, updateRun }) {
   const [tab, setTab] = useState("overview");
+  const [sourceView, setSourceView] = useState("reader");
   const [focusId, setFocusId] = useState(null); // evidence id shown in the Sources reader
   const [selections, setSelections] = useState({}); // tab → label of the selected item
   const [showTrace, setShowTrace] = useState(false);
@@ -55,6 +56,7 @@ export default function Exploration({ run, profile, options, userProvince, rende
   function openEvidence(id) {
     if (!evidenceById[id]) return;
     setFocusId(id);
+    setSourceView("reader");
     openTab("sources");
   }
   const onLook = (label) => setSelections((s) => (s[tab] === label ? s : { ...s, [tab]: label }));
@@ -123,7 +125,8 @@ export default function Exploration({ run, profile, options, userProvince, rende
             {tab === "overview" && <OverviewTab {...shared} onAsk={() => setChatOpen(true)} />}
             {tab === "whatif" && <WhatIfTab {...shared} />}
             {tab === "whatiftable" && <WhatIfTableTab {...shared} />}
-            {tab === "sources" && <SourcesTab {...shared} focusId={focus?.evidence_id} setFocusId={setFocusId} />}
+            {tab === "sources" && <SourcesTab {...shared} focusId={focus?.evidence_id} setFocusId={setFocusId}
+              sourceView={sourceView} setSourceView={setSourceView} />}
             {tab === "timeline" && <TimelineTab {...shared} />}
             {tab === "relations" && <RelationsTab {...shared} />}
           </main>

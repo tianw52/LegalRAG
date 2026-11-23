@@ -1,0 +1,42 @@
+.evidence-compare {
+  padding: 28px var(--gutter);
+  min-width: 0;
+}
+
+.evidence-compare-columns {
+  display: flex;
+  align-items: stretch;
+  max-width: 100%;
+  overflow-x: auto;
+  margin-top: 20px;
+  border: 1px solid var(--line);
+}
+
+.evidence-compare-case {
+  flex: 1 0 min(100%, 320px);
+  min-width: 0;
+  max-width: max(50%, 320px);
+  padding: 16px;
+  overflow-wrap: anywhere;
+}
+
+.evidence-compare-case + .evidence-compare-case {
+  border-left: 1px solid var(--line);
+}
+
+.evidence-compare-case h3,
+.evidence-compare-case > p {
+  margin: 0 0 8px;
+}
+
+.evidence-compare-passage {
+  padding-top: 12px;
+  margin-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.evidence-compare-passage blockquote {
+  margin: 8px 0 0;
+  font-family: var(--serif);
+  white-space: pre-wrap;
+}

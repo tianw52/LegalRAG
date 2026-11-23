@@ -1,0 +1,75 @@
+.sources-view-control {
+  padding: 0 var(--gutter);
+  border-bottom: 1px solid var(--line);
+}
+
+.relevance-statistics > section {
+  padding: 28px var(--gutter);
+  border-bottom: 1px solid var(--line);
+}
+
+.relevance-jurisdiction-chart {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 24px 40px;
+  margin-top: 20px;
+}
+
+.relevance-donut {
+  display: grid;
+  place-items: center;
+  width: min(180px, 100%);
+  aspect-ratio: 1;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.relevance-donut > div {
+  display: grid;
+  align-content: center;
+  text-align: center;
+  line-height: 1.2;
+  width: 71%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--paper);
+}
+
+.relevance-donut strong {
+  font-size: 32px;
+}
+
+.relevance-jurisdiction-legend {
+  flex: 1 1 250px;
+  max-width: 440px;
+}
+
+.relevance-jurisdiction-legend li {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px 16px;
+  flex-wrap: wrap;
+  padding: 6px 0;
+}
+
+.relevance-category-bars {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 0;
+  max-width: 720px;
+}
+
+.relevance-category-bars li + li {
+  margin-top: 12px;
+}
+
+.relevance-bar-track {
+  height: 10px;
+  margin-top: 4px;
+  background: var(--tile-empty);
+}
+
+.relevance-bar-track > div {
+  height: 100%;
+}
