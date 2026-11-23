@@ -1,0 +1,269 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="1170" viewBox="0 0 1440 1170" role="img" aria-label="LegalRAG Explore system architecture">
+<title>LegalRAG Explore · system architecture</title>
+<style>
+.bg{fill:#FBFAF7}
+.panel{fill:#FFFFFF;stroke:#D5D2CA;stroke-width:1.2}
+.sub{fill:#FAF8FE;stroke:#CFC3EE;stroke-width:1}
+.llm{fill:#F4F0FC;stroke:#7A5AC8;stroke-width:1.4}
+.emb{fill:#EDF4FB;stroke:#2F74B5;stroke-width:1.4}
+.store{fill:#FBF4E6;stroke:#B7832F;stroke-width:1.4}
+.none{fill:#F3F3F1;stroke:#9097A0;stroke-width:1.2}
+.t{fill:#1F2328;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif}
+.m{fill:#59606A;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif}
+.sec{fill:#7C828C;letter-spacing:.08em;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif}
+.numt{fill:#FFFFFF;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif}
+.num-llm{fill:#7A5AC8}.num-emb{fill:#2F74B5}.num-none{fill:#7D848E}.num-store{fill:#B7832F}
+.pill-llm{fill:#EBE3FA;stroke:#7A5AC8}.pill-emb{fill:#DCEAF8;stroke:#2F74B5}
+.pill-store{fill:#F7E8C8;stroke:#B7832F}.pill-none{fill:#ECECEA;stroke:#9097A0}
+.pt-llm{fill:#4B2E9A}.pt-emb{fill:#1D4F80}.pt-store{fill:#7A5214}.pt-none{fill:#4A5059}
+.pt-llm,.pt-emb,.pt-store,.pt-none{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif}
+.big-llm{fill:#6A47C0}.big-emb{fill:#2467A6}.big-none{fill:#4A5059}
+.big-llm,.big-emb,.big-none{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif}
+.arrow{stroke:#6E757F;stroke-width:1.6}
+.arrow2{stroke:#9AA0A8;stroke-width:1.4}
+.ahf{fill:#6E757F}
+@media (prefers-color-scheme: dark){
+.bg{fill:#0F1216}
+.panel{fill:#171B21;stroke:#323843}
+.sub{fill:#1D1930;stroke:#4A3D78}
+.llm{fill:#1E1830;stroke:#9C82E0}
+.emb{fill:#122235;stroke:#5B9BD8}
+.store{fill:#272014;stroke:#C99A4A}
+.none{fill:#1C1F25;stroke:#6B717C}
+.t{fill:#E6E8EB}.m{fill:#A2A9B4}.sec{fill:#8B929D}
+.num-llm{fill:#8C6FDA}.num-emb{fill:#3F83C4}.num-none{fill:#6B717C}.num-store{fill:#B7832F}
+.pill-llm{fill:#2A2145;stroke:#9C82E0}.pill-emb{fill:#16304A;stroke:#5B9BD8}
+.pill-store{fill:#3A2C14;stroke:#C99A4A}.pill-none{fill:#262A31;stroke:#6B717C}
+.pt-llm{fill:#D3C5F7}.pt-emb{fill:#B3D3F2}.pt-store{fill:#EBCB8E}.pt-none{fill:#C3C8CF}
+.big-llm{fill:#B9A2F2}.big-emb{fill:#8CBCEB}.big-none{fill:#C3C8CF}
+.arrow{stroke:#8D949E}.arrow2{stroke:#6B717C}.ahf{fill:#8D949E}
+}
+</style>
+<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="ahf"/></marker></defs>
+<rect width="1440" height="1170" class="bg"/>
+<text x="24" y="40" font-size="22" class="t" font-weight="700">LegalRAG Explore · system architecture</text>
+<text x="24" y="62" font-size="12.5" class="m">Defaults from legalrag/prompts/explore_policy.yaml, legalrag/core/config.py, .env.example and scripts/. Numbers are per question unless marked.</text>
+<rect x="1344.0" y="28" width="72.0" height="22" rx="11" class="pill-none"/>
+<text x="1353.0" y="43.5" font-size="11.5" class="pt-none" font-weight="700">No model</text>
+<rect x="1273.96875" y="28" width="62.03125" height="22" rx="11" class="pill-store"/>
+<text x="1282.96875" y="43.5" font-size="11.5" class="pt-store" font-weight="700">Storage</text>
+<rect x="1124.15625" y="28" width="141.8125" height="22" rx="11" class="pill-emb"/>
+<text x="1133.15625" y="43.5" font-size="11.5" class="pt-emb" font-weight="700">Embedding / reranker</text>
+<rect x="1022.65625" y="28" width="93.5" height="22" rx="11" class="pill-llm"/>
+<text x="1031.65625" y="43.5" font-size="11.5" class="pt-llm" font-weight="700">LLM (Qwen3)</text>
+<text x="24" y="98" font-size="12" class="sec" font-weight="700">OFFLINE · build the index once · scripts/ingest_canlegal.py</text>
+<rect x="24" y="110" width="236" height="128" rx="10" class="store"/>
+<text x="38" y="134" font-size="14" class="t" font-weight="700">Corpus</text>
+<text x="38" y="161" font-size="12" class="m">HF dataset UBC-VL/</text>
+<text x="38" y="180" font-size="12" class="m">CanLegalRAGBench</text>
+<text x="38" y="199" font-size="12" class="t" font-weight="700">1,117 documents</text>
+<text x="38" y="218" font-size="12" class="m">cases + statutes</text>
+<rect x="296" y="110" width="236" height="128" rx="10" class="none"/>
+<text x="310" y="134" font-size="14" class="t" font-weight="700">Load + tag</text>
+<text x="310" y="161" font-size="12" class="m">canlegal_loader.py</text>
+<text x="310" y="180" font-size="12" class="m">court → jurisdiction</text>
+<text x="310" y="199" font-size="12" class="m">(canlegal_courts.yaml)</text>
+<text x="310" y="218" font-size="12" class="m">+ citation, court, year, type</text>
+<rect x="568" y="110" width="236" height="128" rx="10" class="none"/>
+<text x="582" y="134" font-size="14" class="t" font-weight="700">Chunk</text>
+<text x="582" y="161" font-size="12" class="m">RecursiveCharacterTextSplitter</text>
+<text x="582" y="180" font-size="12" class="t" font-weight="700">1,024 chars · 128 overlap</text>
+<text x="582" y="199" font-size="12" class="m">exact char offsets kept</text>
+<text x="582" y="218" font-size="12" class="m">~56 chunks per document</text>
+<rect x="840" y="110" width="236" height="128" rx="10" class="emb"/>
+<text x="854" y="134" font-size="14" class="t" font-weight="700">Embed</text>
+<text x="854" y="161" font-size="12" class="t" font-weight="700">Qwen3-Embedding-0.6B</text>
+<text x="854" y="180" font-size="12" class="m">1,024-dim, L2-normalised</text>
+<text x="854" y="199" font-size="12" class="m">sentence-transformers</text>
+<text x="854" y="218" font-size="12" class="m">minutes on the lab 4090</text>
+<polyline points="262,174.0 292,174.0" class="arrow" fill="none" marker-end="url(#ah)"/>
+<polyline points="534,174.0 564,174.0" class="arrow" fill="none" marker-end="url(#ah)"/>
+<polyline points="806,174.0 836,174.0" class="arrow" fill="none" marker-end="url(#ah)"/>
+<polyline points="1078,174.0 1100,174.0" class="arrow" fill="none" marker-end="url(#ah)"/>
+<rect x="1104" y="102" width="312" height="168" rx="10" class="store"/>
+<text x="1118" y="126" font-size="14" class="t" font-weight="700">OpenSearch 3.4 · canlegal-qwen3</text>
+<text x="1118" y="153" font-size="12" class="t" font-weight="700">62,942 chunks</text>
+<text x="1118" y="172" font-size="12" class="m">58,491 case + 4,451 statute chunks</text>
+<text x="1118" y="191" font-size="12" class="m">HNSW (Lucene), cosine, m=16,</text>
+<text x="1118" y="210" font-size="12" class="m">ef_construction=128, ef_search=512</text>
+<text x="1118" y="229" font-size="12" class="m">+ BM25 field, RRF hybrid pipeline</text>
+<text x="24" y="300" font-size="12" class="sec" font-weight="700">ONLINE · one exploration per question · legalrag/explore/engine.py</text>
+<rect x="24" y="312" width="248" height="228" rx="10" class="panel"/>
+<text x="38" y="336" font-size="14" class="t" font-weight="700">Browser · web/</text>
+<text x="38" y="363" font-size="12" class="m">React + Vite, localhost:5173</text>
+<text x="38" y="382" font-size="12" class="t" font-weight="700">Login → Onboarding → Home</text>
+<text x="38" y="401" font-size="12" class="m">Profile: province, familiarity,</text>
+<text x="38" y="420" font-size="12" class="m">goal, interests</text>
+<text x="38" y="439" font-size="12" class="m"><tspan font-weight="700" class="t">Tabs:</tspan> Overview, Fact Breakdown,</text>
+<text x="38" y="458" font-size="12" class="m">What-if Table, Sources, Timeline,</text>
+<text x="38" y="477" font-size="12" class="m">Relations</text>
+<text x="38" y="496" font-size="12" class="m">Ask panel · &quot;under the hood&quot; trace</text>
+<rect x="24" y="580" width="248" height="220" rx="10" class="panel"/>
+<text x="38" y="604" font-size="14" class="t" font-weight="700">FastAPI · legalrag/api/app.py</text>
+<text x="38" y="631" font-size="12" class="m">uvicorn, localhost:8000</text>
+<text x="38" y="650" font-size="12" class="m"><tspan font-weight="700" class="t">POST /api/explore</tspan> → steps 1–6,</text>
+<text x="38" y="669" font-size="12" class="m">events streamed back as NDJSON</text>
+<text x="38" y="688" font-size="12" class="m"><tspan font-weight="700" class="t">POST /api/chat</tspan> → step 7 (NDJSON)</text>
+<text x="38" y="707" font-size="12" class="m">GET /api/document/{doc_id}</text>
+<text x="38" y="726" font-size="12" class="m">GET /api/traces/{trace_id}</text>
+<text x="38" y="745" font-size="12" class="m">/api/login · /api/profile</text>
+<polyline points="148.0,542 148.0,576" class="arrow" fill="none" marker-end="url(#ah)"/>
+<text x="156.0" y="564" font-size="11" class="m">Vite proxy /api</text>
+<rect x="24" y="840" width="248" height="318" rx="10" class="panel"/>
+<text x="38" y="864" font-size="14" class="t" font-weight="700">Files on disk</text>
+<text x="38" y="891" font-size="11.5" class="t" font-weight="700">data/app/profiles/*.json</text>
+<text x="38" y="910" font-size="11.5" class="m">dev-only name login, no password</text>
+<text x="38" y="929" font-size="11.5" class="t" font-weight="700">logs/explore_traces/&lt;date&gt;/*.json</text>
+<text x="38" y="948" font-size="11.5" class="m">every step + timing, all 60</text>
+<text x="38" y="967" font-size="11.5" class="m">candidates with both scores,</text>
+<text x="38" y="986" font-size="11.5" class="m">every LLM prompt / raw reply /</text>
+<text x="38" y="1005" font-size="11.5" class="m">tokens / retries</text>
+<text x="38" y="1024" font-size="11.5" class="t" font-weight="700">data/demos/*.json</text>
+<text x="38" y="1043" font-size="11.5" class="m">22 precomputed example runs</text>
+<text x="38" y="1062" font-size="11.5" class="m">(Qwen3-30B-A3B-GPTQ-Int4)</text>
+<text x="38" y="1081" font-size="11.5" class="t" font-weight="700">logs/explore_api.log</text>
+<text x="38" y="1100" font-size="11.5" class="m">one INFO line per step / LLM call</text>
+<polyline points="148.0,802 148.0,836" class="arrow" fill="none" marker-end="url(#ah)"/>
+<text x="156.0" y="824" font-size="11" class="m">trace.finish()</text>
+<rect x="312" y="312" width="752" height="82" rx="10" class="panel"/>
+<circle cx="336" cy="335" r="13" class="num-llm"/>
+<text x="336" y="339.5" font-size="13" class="numt" font-weight="700" text-anchor="middle">1</text>
+<text x="360" y="340" font-size="15" class="t" font-weight="700">Formulate · rewrite the question for search</text>
+<text x="360" y="359" font-size="12.5" class="m">prompts/formulator.yaml → rewrite + keywords</text>
+<text x="360" y="378" font-size="12.5" class="m">LLM failure → search with the raw question</text>
+<rect x="842" y="324" width="84.796875" height="22" rx="11" class="pill-llm"/>
+<text x="851" y="339.5" font-size="11.5" class="pt-llm" font-weight="700">Qwen3 LLM</text>
+<text x="842" y="374" font-size="24" class="big-llm" font-weight="700">1</text>
+<text x="860.34375" y="368" font-size="11.5" class="m">LLM call</text>
+<text x="860.34375" y="383" font-size="11.5" class="m"></text>
+<rect x="312" y="412" width="752" height="102" rx="10" class="panel"/>
+<circle cx="336" cy="435" r="13" class="num-emb"/>
+<text x="336" y="439.5" font-size="13" class="numt" font-weight="700" text-anchor="middle">2</text>
+<text x="360" y="440" font-size="15" class="t" font-weight="700">Retrieve · dense kNN</text>
+<text x="360" y="459" font-size="12.5" class="t" font-weight="700">Embed the rewrite, kNN over 62,942 chunks (1,024 chars each)</text>
+<text x="360" y="478" font-size="12.5" class="m">Filter: jurisdiction in {user&#x27;s province, federal, unknown}</text>
+<text x="360" y="497" font-size="12.5" class="m">&lt; 8 hits → drop the filter (&quot;relaxed&quot;) · hybrid / BM25 optional</text>
+<rect x="842" y="424" width="157.96875" height="22" rx="11" class="pill-emb"/>
+<text x="851" y="439.5" font-size="11.5" class="pt-emb" font-weight="700">Qwen3-Embedding-0.6B</text>
+<text x="842" y="474" font-size="24" class="big-emb" font-weight="700">60</text>
+<text x="880.234375" y="468" font-size="11.5" class="m">chunks</text>
+<text x="880.234375" y="483" font-size="11.5" class="m">top_k</text>
+<rect x="312" y="532" width="752" height="102" rx="10" class="panel"/>
+<circle cx="336" cy="555" r="13" class="num-emb"/>
+<text x="336" y="559.5" font-size="13" class="numt" font-weight="700" text-anchor="middle">3</text>
+<text x="360" y="560" font-size="15" class="t" font-weight="700">Rerank · cross-score every candidate</text>
+<text x="360" y="579" font-size="12.5" class="t" font-weight="700">Score = P(&quot;yes&quot;) for &quot;does this passage help answer the query?&quot;</text>
+<text x="360" y="598" font-size="12.5" class="m">Instruction from explore_policy.yaml · batch 8 · ≤ 8,192 tokens</text>
+<text x="360" y="617" font-size="12.5" class="m">Kept passages → evidence e1…e20, plus q = the question</text>
+<rect x="842" y="544" width="145.984375" height="22" rx="11" class="pill-emb"/>
+<text x="851" y="559.5" font-size="11.5" class="pt-emb" font-weight="700">Qwen3-Reranker-0.6B</text>
+<text x="842" y="594" font-size="24" class="big-emb" font-weight="700">20</text>
+<text x="879.75" y="588" font-size="11.5" class="m">passages kept</text>
+<text x="879.75" y="603" font-size="11.5" class="m">evidence_k  (60 → 20)</text>
+<rect x="312" y="652" width="752" height="82" rx="10" class="panel"/>
+<circle cx="336" cy="675" r="13" class="num-none"/>
+<text x="336" y="679.5" font-size="13" class="numt" font-weight="700" text-anchor="middle">4</text>
+<text x="360" y="680" font-size="15" class="t" font-weight="700">Built-in views · case landscape + case timeline</text>
+<text x="360" y="699" font-size="12.5" class="m">Group the 20 passages by document, jurisdiction, court, year</text>
+<text x="360" y="718" font-size="12.5" class="m">→ Sources and Timeline tabs, ~37 s after the question on a laptop</text>
+<rect x="842" y="664" width="72.0" height="22" rx="11" class="pill-none"/>
+<text x="851" y="679.5" font-size="11.5" class="pt-none" font-weight="700">No model</text>
+<text x="842" y="714" font-size="24" class="big-none" font-weight="700">5–15</text>
+<text x="903.96875" y="708" font-size="11.5" class="m">documents</text>
+<text x="903.96875" y="723" font-size="11.5" class="m">per run (typical)</text>
+<rect x="312" y="752" width="752" height="238" rx="10" class="panel"/>
+<circle cx="336" cy="775" r="13" class="num-llm"/>
+<text x="336" y="779.5" font-size="13" class="numt" font-weight="700" text-anchor="middle">5</text>
+<text x="360" y="780" font-size="15" class="t" font-weight="700">LLM views · run in parallel</text>
+<text x="360" y="799" font-size="12.5" class="m">Shared prompt: question + profile (audience, goal hint,</text>
+<text x="360" y="818" font-size="12.5" class="m">interests, province) + top 15 passages (explore_views.yaml)</text>
+<rect x="842" y="764" width="84.796875" height="22" rx="11" class="pill-llm"/>
+<text x="851" y="779.5" font-size="11.5" class="pt-llm" font-weight="700">Qwen3 LLM</text>
+<text x="842" y="814" font-size="24" class="big-llm" font-weight="700">15</text>
+<text x="874.328125" y="808" font-size="11.5" class="m">passages per prompt</text>
+<text x="874.328125" y="823" font-size="11.5" class="m">llm_evidence_k (of 20)</text>
+<rect x="328" y="838" width="228" height="138" rx="8" class="sub"/>
+<text x="340" y="859" font-size="12.5" class="pt-llm" font-weight="700">5a · fact_toggle</text>
+<text x="340" y="877" font-size="11.5" class="m">4–8 facts that would change</text>
+<text x="340" y="895" font-size="11.5" class="m">the picture: stated / assumed /</text>
+<text x="340" y="913" font-size="11.5" class="m">unknown, why it matters,</text>
+<text x="340" y="931" font-size="11.5" class="m">what changes if different</text>
+<text x="340" y="952" font-size="11.5" class="t" font-weight="700">→ Fact Breakdown, What-if Table</text>
+<rect x="570" y="838" width="228" height="138" rx="8" class="sub"/>
+<text x="582" y="859" font-size="12.5" class="pt-llm" font-weight="700">5b · plan (planner)</text>
+<text x="582" y="877" font-size="11.5" class="m">topic, 2-sentence orientation,</text>
+<text x="582" y="895" font-size="11.5" class="m">3–5 follow-up questions</text>
+<text x="582" y="913" font-size="11.5" class="m">picks 0–3 extra views and</text>
+<text x="582" y="931" font-size="11.5" class="m">says why each helps</text>
+<text x="582" y="952" font-size="11.5" class="t" font-weight="700">→ Overview tab</text>
+<rect x="812" y="838" width="228" height="138" rx="8" class="sub"/>
+<text x="824" y="859" font-size="12.5" class="pt-llm" font-weight="700">5c · build_adhoc × 0–3</text>
+<text x="824" y="877" font-size="11.5" class="m">after the plan · 180 s limit each</text>
+<text x="824" y="895" font-size="11.5" class="m">legal_test · concept_map ·</text>
+<text x="824" y="913" font-size="11.5" class="m">comparison · rule_hierarchy ·</text>
+<text x="824" y="931" font-size="11.5" class="m">process_flow · scenario_timeline</text>
+<text x="824" y="952" font-size="11.5" class="t" font-weight="700">→ Relations tab</text>
+<polyline points="799,907.0 809,907.0" class="arrow" fill="none" marker-end="url(#ah)"/>
+<rect x="312" y="1008" width="752" height="82" rx="10" class="panel"/>
+<circle cx="336" cy="1031" r="13" class="num-none"/>
+<text x="336" y="1035.5" font-size="13" class="numt" font-weight="700" text-anchor="middle">6</text>
+<text x="360" y="1036" font-size="15" class="t" font-weight="700">Grounding · every item must cite evidence</text>
+<text x="360" y="1055" font-size="12.5" class="m">Ids not in {q, e1…e20} are stripped; items left with none are hidden</text>
+<text x="360" y="1074" font-size="12.5" class="m">Each view carries an audit: backed / unbacked / ids removed</text>
+<rect x="842" y="1020" width="72.0" height="22" rx="11" class="pill-none"/>
+<text x="851" y="1035.5" font-size="11.5" class="pt-none" font-weight="700">No model</text>
+<text x="842" y="1062" font-size="11.5" class="m">Applied to every LLM view</text>
+<text x="842" y="1077" font-size="11.5" class="m">before it is streamed</text>
+<polyline points="336,395 336,409" class="arrow" fill="none" marker-end="url(#ah)"/>
+<polyline points="336,515 336,529" class="arrow" fill="none" marker-end="url(#ah)"/>
+<polyline points="336,635 336,649" class="arrow" fill="none" marker-end="url(#ah)"/>
+<polyline points="336,735 336,749" class="arrow" fill="none" marker-end="url(#ah)"/>
+<polyline points="336,991 336,1005" class="arrow" fill="none" marker-end="url(#ah)"/>
+<polyline points="273,640 292,640 292,353 309,353" class="arrow" fill="none" marker-end="url(#ah)"/>
+<polyline points="1065,450 1084,450 1084,286 1300,286 1300,268" class="arrow" fill="none" marker-end="url(#ah)"/>
+<text x="1176" y="280" font-size="11" class="m">kNN, k = 60</text>
+<rect x="312" y="1108" width="752" height="50" rx="10" class="panel" stroke-dasharray="6 4"/>
+<circle cx="336" cy="1133" r="13" class="num-llm"/>
+<text x="336" y="1137.5" font-size="13" class="numt" font-weight="700" text-anchor="middle">7</text>
+<text x="360" y="1129" font-size="14" class="t" font-weight="700">Ask panel (on demand) · POST /api/chat</text>
+<text x="360" y="1147" font-size="12" class="m">Streams an answer from all 20 passages + last 8 turns; cites [eN]</text>
+<rect x="842" y="1122" width="84.796875" height="22" rx="11" class="pill-llm"/>
+<text x="851" y="1137.5" font-size="11.5" class="pt-llm" font-weight="700">Qwen3 LLM</text>
+<polyline points="273,680 292,680 292,1133 309,1133" class="arrow" fill="none" marker-end="url(#ah)"/>
+<rect x="1104" y="312" width="312" height="196" rx="10" class="emb"/>
+<text x="1118" y="336" font-size="14" class="t" font-weight="700">In the API process (PyTorch)</text>
+<text x="1118" y="363" font-size="11.5" class="m"><tspan font-weight="700" class="t">Qwen3-Embedding-0.6B</tspan> · step 2</text>
+<text x="1118" y="382" font-size="11.5" class="m">query vector, must match the index</text>
+<text x="1118" y="401" font-size="11.5" class="m"><tspan font-weight="700" class="t">Qwen3-Reranker-0.6B</tspan> · step 3</text>
+<text x="1118" y="420" font-size="11.5" class="m">yes/no reranker, 60 pairs per query</text>
+<text x="1118" y="439" font-size="11.5" class="m">~2.2 GB download on first start</text>
+<text x="1118" y="458" font-size="11.5" class="m">EXPLORE_EMBEDDING / _RERANKER_MODEL</text>
+<rect x="1104" y="528" width="312" height="330" rx="10" class="llm"/>
+<text x="1118" y="552" font-size="14" class="t" font-weight="700">LLM server · OpenAI-compatible</text>
+<text x="1118" y="579" font-size="11.5" class="m">served as &quot;qwen3&quot; · used by steps 1, 5, 7</text>
+<text x="1118" y="598" font-size="11.5" class="t" font-weight="700">Default (.env.example): lab vLLM</text>
+<text x="1118" y="617" font-size="11.5" class="m">Qwen/Qwen3-30B-A3B-GPTQ-Int4</text>
+<text x="1118" y="636" font-size="11.5" class="m">RTX 4090 · 16,384-token context</text>
+<text x="1118" y="655" font-size="11.5" class="m">localhost:8001 via SSH tunnel</text>
+<text x="1118" y="674" font-size="11.5" class="t" font-weight="700">Alternatives</text>
+<text x="1118" y="693" font-size="11.5" class="m">vllm-metal (Mac): Qwen3-8B-4bit (MLX)</text>
+<text x="1118" y="712" font-size="11.5" class="m">Ollama (offline): qwen3:8b</text>
+<text x="1118" y="731" font-size="11.5" class="t" font-weight="700">Every call (explore_policy.yaml → llm)</text>
+<text x="1118" y="750" font-size="11.5" class="m">pydantic-ai, native JSON-schema output</text>
+<text x="1118" y="769" font-size="11.5" class="m">temperature 0 · ≤ 2,500 output tokens</text>
+<text x="1118" y="788" font-size="11.5" class="m">thinking off · 2 validation retries</text>
+<text x="1118" y="807" font-size="11.5" class="m">600 s timeout per call</text>
+<rect x="1104" y="878" width="312" height="180" rx="10" class="panel"/>
+<text x="1118" y="902" font-size="14" class="t" font-weight="700">Prompts + policy (YAML)</text>
+<text x="1118" y="929" font-size="11.5" class="t" font-weight="700">legalrag/prompts/</text>
+<text x="1118" y="948" font-size="11.5" class="m">explore_policy.yaml: sizes (60 / 20 / 15),</text>
+<text x="1118" y="967" font-size="11.5" class="m">jurisdiction filter, reranker</text>
+<text x="1118" y="986" font-size="11.5" class="m">instruction, planner limits, LLM</text>
+<text x="1118" y="1005" font-size="11.5" class="m">explore_views.yaml: view prompts,</text>
+<text x="1118" y="1024" font-size="11.5" class="m">view catalog, Ask prompt</text>
+<text x="1118" y="1043" font-size="11.5" class="m">formulator.yaml: rewrite prompt</text>
+<rect x="1104" y="1074" width="312" height="84" rx="10" class="panel"/>
+<text x="1118" y="1098" font-size="13" class="t" font-weight="700">Typical timing (measured 2026-10-18)</text>
+<text x="1118" y="1124" font-size="11.5" class="m">Lab vLLM: whole run ~58 s, each LLM view ~8 s</text>
+<text x="1118" y="1142" font-size="11.5" class="m">M2 laptop: reranker ~45 s · Ollama run ~11 min</text>
+</svg>

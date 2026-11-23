@@ -13,24 +13,36 @@ Retrieval over Canadian legal documents, backed by OpenSearch. The repo contains
 The original CanLII answer-generation pipeline is archived in
 [archive/canlii_pipeline/](archive/canlii_pipeline/README.md).
 
-```
-web/ (React + Vite)  ──POST /api/explore (NDJSON stream)──▶  legalrag/api/app.py (FastAPI)
-                                                                │
-                                         legalrag/explore/engine.py  ExplorationEngine
-  1. formulate      LLM rewrites the question for search                    (Qwen3 via OpenAI-compatible API)
-  2. retrieve       kNN in OpenSearch, top 60,                              (Qwen3-Embedding-0.6B)
-                    filtered to {user's province, federal, unknown}
-  3. rerank         keep the best 20 passages → evidence e1..e20            (Qwen3-Reranker-0.6B)
-  4. built-in views case landscape + case timeline, from metadata           (no LLM)
-  5. LLM views      fact toggles  ‖  planner → 0–3 extra views it judges useful
-  6. grounding      every item must cite e# (or q = the question); others are hidden
-                                                                │
-                              every step is traced → "Under the hood" panel + logs/explore_traces/
-```
+## System architecture
+
+![LegalRAG Explore system architecture: offline indexing, then seven online steps with the model and number of chunks used at each](docs/architecture.svg)
+
+The same pipeline as a table. Sizes come from `legalrag/prompts/explore_policy.yaml` and
+models from `.env` / `legalrag/core/config.py`.
+
+| Step | Model | Chunks / size |
+|---|---|---|
+| Index (offline, once) | Qwen3-Embedding-0.6B (1,024-dim) | 1,117 docs → **62,942 chunks** of **1,024 chars, 128 overlap** (RecursiveCharacterTextSplitter); OpenSearch 3.4 HNSW, cosine |
+| 1. Formulate | LLM (Qwen3) | 1 call: rewrite the question + keywords |
+| 2. Retrieve | Qwen3-Embedding-0.6B → OpenSearch kNN | **top 60 chunks** (`top_k`), filtered to {user's province, federal, unknown}; fewer than 8 hits → no filter |
+| 3. Rerank | Qwen3-Reranker-0.6B | score all 60, **keep 20** (`evidence_k`) → evidence `e1..e20`, plus `q` for the question |
+| 4. Built-in views | none | the 20 passages grouped by document (typically 5–15 documents) → Sources, Timeline |
+| 5. LLM views (parallel) | LLM (Qwen3) | **top 15 passages** per prompt (`llm_evidence_k`): fact toggles ‖ planner → 0–3 extra views (180 s limit each) |
+| 6. Grounding | none | every item must cite `q` or `e1..e20`; uncited items are hidden |
+| 7. Ask panel (on demand) | LLM (Qwen3) | all 20 passages + the last 8 chat turns |
+
+**LLM server.** Any OpenAI-compatible server, served as `qwen3`. The default in
+`.env.example` is the lab vLLM running `Qwen/Qwen3-30B-A3B-GPTQ-Int4` on an RTX 4090 (16K
+context). Local alternatives: vllm-metal with `mlx-community/Qwen3-8B-4bit`, or Ollama with
+`qwen3:8b`. Every call uses pydantic-ai native JSON-schema output, temperature 0, at most
+2,500 output tokens, with thinking off. The embedder and reranker run inside the API
+process (PyTorch).
+
+Every step is traced to the "under the hood" panel and `logs/explore_traces/`.
 
 | Read next | |
 |---|---|
-| Architecture diagram + a full example request, step by step | [legalrag/README.md](legalrag/README.md) |
+| Module-level diagram + a full example request, step by step | [legalrag/README.md](legalrag/README.md) |
 | Frontend structure and conventions | [web/README.md](web/README.md) |
 | Building the index on the lab GPU, copying it to a laptop | [docs/lab_ingestion.md](docs/lab_ingestion.md) |
 | Open decisions, prompts and templates to review | [docs/explore_app.md](docs/explore_app.md) |
@@ -281,7 +293,7 @@ rewrite needs `pip install -e ".[eval]"`). Static results viewer: `eval-viewer/`
 | Explore embedder | Qwen3-Embedding-0.6B (1024-dim) | `EXPLORE_EMBEDDING_MODEL`; must match the index |
 | Explore retrieval | Dense kNN, top 60 | `retrieval.mode` in `explore_policy.yaml` (`hybrid` / `lexical` available) |
 | Explore reranker | Qwen3-Reranker-0.6B | `EXPLORE_RERANKER_MODEL`; instruction in `explore_policy.yaml` |
-| LLM | Qwen3 via any OpenAI-compatible server | Local Ollama `qwen3:8b` or lab vLLM; `LLM_*` / `EXPLORE_LLM_MODEL` |
+| LLM | Qwen3 via any OpenAI-compatible server | Lab vLLM `Qwen/Qwen3-30B-A3B-GPTQ-Int4` (default), vllm-metal `Qwen3-8B-4bit` or Ollama `qwen3:8b`; `LLM_*` / `EXPLORE_LLM_MODEL` |
 | Structured LLM output | pydantic-ai, native JSON-schema mode | `legalrag/explore/schemas.py`; `llm.output_mode` |
 | Prompts and policies | YAML, not Python | `legalrag/prompts/*.yaml` |
 | Output style | Views, not an answer | Every item must cite retrieved evidence |
@@ -303,7 +315,7 @@ LegalRAG/
 ├── scripts/                  CLIs: ingest, explore, chunking audit, vLLM launcher, eval viewer build
 ├── evaluation/               LegalBench-RAG evaluation
 ├── tests/                    pytest suite (no OpenSearch needed)
-├── docs/                     explore_app, lab_ingestion, evaluation
+├── docs/                     architecture.svg, explore_app, lab_ingestion, evaluation
 ├── archive/                  archived CanLII answer pipeline (not maintained)
 ├── Demo/                     static visualization demo (Reyhaneh); renderers reused in web/
 ├── eval-viewer/              static evaluation results site
